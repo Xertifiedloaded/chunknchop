@@ -176,7 +176,7 @@ export default function Header() {
   }
 
   return (
-    <header className="relative z-50 w-full border-b border-neutral-100 bg-white">
+    <header className="bg-brand-foreground relative z-50 w-full border-b border-neutral-100">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-2 lg:px-10">
         <Link href="/" className="flex shrink-0 items-center gap-3">
           <Image
@@ -189,13 +189,13 @@ export default function Header() {
           />
         </Link>
 
-        <nav className="hidden items-center gap-9 lg:flex">
+        <nav className="hidden items-center gap-6 lg:flex">
           {!isSupplier &&
             NAV_LINKS.map((link) => (
               <Link
                 key={link.label}
                 href={link.href}
-                className="text-[15px] font-medium text-neutral-700 transition-colors hover:text-neutral-900"
+                className="text-charcoal text-sm transition-colors hover:text-neutral-900"
               >
                 {link.label}
               </Link>
@@ -204,7 +204,7 @@ export default function Header() {
           {isSupplier && (
             <Link
               href="/supplier/dashboard"
-              className="flex items-center gap-2 text-[15px] font-medium text-neutral-700 transition-colors hover:text-neutral-900"
+              className="text-charcoal flex items-center gap-2 text-sm transition-colors hover:text-neutral-900"
             >
               <Package size={16} strokeWidth={1.8} />
               Dashboard
@@ -214,7 +214,7 @@ export default function Header() {
           {isAdmin && (
             <Link
               href="/admin"
-              className="text-[15px] font-medium text-neutral-700 transition-colors hover:text-neutral-900"
+              className="text-charcoal text-sm transition-colors hover:text-neutral-900"
             >
               Admin
             </Link>
@@ -271,28 +271,28 @@ export default function Header() {
                       <Link
                         href="/orders"
                         onClick={() => setAccountOpen(false)}
-                        className="block px-4 py-2.5 text-sm text-neutral-700 hover:bg-neutral-50"
+                        className="text-charcoal block px-4 py-2.5 text-sm hover:bg-neutral-50"
                       >
                         Orders
                       </Link>
                       <Link
                         href="/account/subscriptions"
                         onClick={() => setAccountOpen(false)}
-                        className="block px-4 py-2.5 text-sm text-neutral-700 hover:bg-neutral-50"
+                        className="text-charcoal block px-4 py-2.5 text-sm hover:bg-neutral-50"
                       >
                         Subscriptions
                       </Link>
                       <Link
                         href="/account/wholesale"
                         onClick={() => setAccountOpen(false)}
-                        className="block px-4 py-2.5 text-sm text-neutral-700 hover:bg-neutral-50"
+                        className="text-charcoal block px-4 py-2.5 text-sm hover:bg-neutral-50"
                       >
                         Wholesale
                       </Link>
                       <Link
                         href="/account/support"
                         onClick={() => setAccountOpen(false)}
-                        className="block px-4 py-2.5 text-sm text-neutral-700 hover:bg-neutral-50"
+                        className="text-charcoal block px-4 py-2.5 text-sm hover:bg-neutral-50"
                       >
                         Support
                       </Link>
@@ -312,7 +312,7 @@ export default function Header() {
               <div className="flex items-center gap-3">
                 <Link
                   href="/auth/login"
-                  className="text-sm font-medium text-neutral-700 transition-colors hover:text-neutral-900"
+                  className="text-charcoal text-sm transition-colors hover:text-neutral-900"
                 >
                   Sign In
                 </Link>
@@ -350,7 +350,7 @@ export default function Header() {
             aria-label={menuOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen((v) => !v)}
-            className="text-neutral-700 transition-colors hover:text-neutral-900 lg:hidden"
+            className="text-charcoal transition-colors hover:text-neutral-900 lg:hidden"
           >
             {menuOpen ? <X size={22} strokeWidth={1.8} /> : <Menu size={22} strokeWidth={1.8} />}
           </button>
@@ -381,7 +381,7 @@ export default function Header() {
                 type="button"
                 aria-label="Clear search"
                 onClick={() => setQuery('')}
-                className="text-neutral-400 hover:text-neutral-700"
+                className="hover:text-charcoal text-neutral-400"
               >
                 <X size={16} />
               </button>
@@ -405,7 +405,7 @@ export default function Header() {
               <button
                 aria-label="Close cart"
                 onClick={() => setCartOpen(false)}
-                className="text-neutral-400 hover:text-neutral-700"
+                className="hover:text-charcoal text-neutral-400"
               >
                 <X size={16} />
               </button>
@@ -431,6 +431,7 @@ export default function Header() {
                     >
                       {item.product.images?.[0] ? (
                         <img
+                          loading="lazy"
                           src={item.product.images[0]}
                           alt={item.product.name}
                           className="h-12 w-12 shrink-0 rounded-lg object-cover"
@@ -484,7 +485,7 @@ export default function Header() {
             {!cartLoading && cartItems.length > 0 && (
               <div className="mt-5 flex flex-col items-stretch gap-3 border-t border-neutral-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center justify-between sm:justify-start sm:gap-3">
-                  <span className="text-sm font-medium text-neutral-500">Subtotal</span>
+                  <span className="text-sm text-neutral-500">Subtotal</span>
                   <span className="text-base font-bold text-[#2D2D2D]">
                     {formatNaira(cartTotal)}
                   </span>
@@ -514,7 +515,7 @@ export default function Header() {
                 key={link.label}
                 href={link.href}
                 onClick={() => setMenuOpen(false)}
-                className="rounded-md px-2 py-2.5 text-[15px] font-medium text-neutral-700 transition-colors hover:bg-neutral-50 hover:text-neutral-900"
+                className="text-charcoal rounded-md px-2 py-2.5 text-sm transition-colors hover:bg-neutral-50 hover:text-neutral-900"
               >
                 {link.label}
               </Link>
@@ -524,7 +525,7 @@ export default function Header() {
             <Link
               href="/supplier/dashboard"
               onClick={() => setMenuOpen(false)}
-              className="rounded-md px-2 py-2.5 text-[15px] font-medium text-neutral-700 transition-colors hover:bg-neutral-50 hover:text-neutral-900"
+              className="text-charcoal rounded-md px-2 py-2.5 text-sm transition-colors hover:bg-neutral-50 hover:text-neutral-900"
             >
               Dashboard
             </Link>
@@ -534,7 +535,7 @@ export default function Header() {
             <Link
               href="/admin"
               onClick={() => setMenuOpen(false)}
-              className="rounded-md px-2 py-2.5 text-[15px] font-medium text-neutral-700 transition-colors hover:bg-neutral-50 hover:text-neutral-900"
+              className="text-charcoal rounded-md px-2 py-2.5 text-sm transition-colors hover:bg-neutral-50 hover:text-neutral-900"
             >
               Admin
             </Link>
@@ -547,7 +548,7 @@ export default function Header() {
                 setCartOpen(true);
                 fetchCart();
               }}
-              className="flex items-center gap-2 rounded-md px-2 py-2.5 text-left text-[15px] font-medium text-neutral-700 transition-colors hover:bg-neutral-50 hover:text-neutral-900"
+              className="text-charcoal flex items-center gap-2 rounded-md px-2 py-2.5 text-left text-sm transition-colors hover:bg-neutral-50 hover:text-neutral-900"
             >
               <ShoppingBag size={16} strokeWidth={1.8} />
               Cart ({cartCount})
@@ -561,21 +562,21 @@ export default function Header() {
                   <Link
                     href="/account/subscriptions"
                     onClick={() => setMenuOpen(false)}
-                    className="rounded-md px-2 py-2.5 text-[15px] font-medium text-neutral-700 transition-colors hover:bg-neutral-50 hover:text-neutral-900"
+                    className="text-charcoal rounded-md px-2 py-2.5 text-sm transition-colors hover:bg-neutral-50 hover:text-neutral-900"
                   >
                     Subscriptions
                   </Link>
                   <Link
                     href="/account/wholesale"
                     onClick={() => setMenuOpen(false)}
-                    className="rounded-md px-2 py-2.5 text-[15px] font-medium text-neutral-700 transition-colors hover:bg-neutral-50 hover:text-neutral-900"
+                    className="text-charcoal rounded-md px-2 py-2.5 text-sm transition-colors hover:bg-neutral-50 hover:text-neutral-900"
                   >
                     Wholesale
                   </Link>
                   <Link
                     href="/account/support"
                     onClick={() => setMenuOpen(false)}
-                    className="rounded-md px-2 py-2.5 text-[15px] font-medium text-neutral-700 transition-colors hover:bg-neutral-50 hover:text-neutral-900"
+                    className="text-charcoal rounded-md px-2 py-2.5 text-sm transition-colors hover:bg-neutral-50 hover:text-neutral-900"
                   >
                     Support
                   </Link>
@@ -583,7 +584,7 @@ export default function Header() {
               )}
               <button
                 onClick={handleLogout}
-                className="mt-1 flex items-center gap-2 rounded-md border-t border-neutral-100 px-2 pt-3 text-left text-[15px] font-medium text-red-500 transition-colors hover:text-red-600"
+                className="mt-1 flex items-center gap-2 rounded-md border-t border-neutral-100 px-2 pt-3 text-left text-sm text-red-500 transition-colors hover:text-red-600"
               >
                 <LogOut size={18} strokeWidth={1.8} />
                 Logout
@@ -594,14 +595,14 @@ export default function Header() {
               <Link
                 href="/auth/login"
                 onClick={() => setMenuOpen(false)}
-                className="rounded-md px-2 py-2.5 text-[15px] font-medium text-neutral-700 transition-colors hover:bg-neutral-50 hover:text-neutral-900"
+                className="text-charcoal rounded-md px-2 py-2.5 text-sm transition-colors hover:bg-neutral-50 hover:text-neutral-900"
               >
                 Sign In
               </Link>
               <Link
                 href="/auth/signup"
                 onClick={() => setMenuOpen(false)}
-                className="rounded-md px-2 py-2.5 text-[15px] font-medium text-neutral-700 transition-colors hover:bg-neutral-50 hover:text-neutral-900"
+                className="text-charcoal rounded-md px-2 py-2.5 text-sm transition-colors hover:bg-neutral-50 hover:text-neutral-900"
               >
                 Sign Up
               </Link>

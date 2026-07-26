@@ -8,23 +8,28 @@ import { ArrowLeft, Loader2, Package } from 'lucide-react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 
+interface OrderItem {
+  productId: string;
+  quantity: number;
+  pricePerUnit: number;
+  tier: string | null;
+  product: {
+    name: string;
+  };
+}
+
 interface Order {
   id: string;
   orderNumber: string;
-  totalAmount: number;
+  total: number;
   status: string;
   createdAt: string;
-  items: Array<{
-    productName: string;
-    tierName: string;
-    quantity: number;
-    price: number;
-  }>;
+  items: OrderItem[];
 }
 
 export default function OrdersPage() {
   const router = useRouter();
-  const { user } = useAuthStore();
+  const { user, accessToken } = useAuthStore();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -39,16 +44,24 @@ export default function OrdersPage() {
 
   const fetchOrders = async () => {
     try {
+      if (!accessToken) {
+        setLoading(false);
+        return;
+      }
+
       const response = await fetch('/api/customer/orders', {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${accessToken}`,
         },
       });
 
-      if (!response.ok) throw new Error('Failed to fetch orders');
+      if (!response.ok) {
+        const errBody = await response.json().catch(() => null);
+        throw new Error(errBody?.error || `Failed to fetch orders (${response.status})`);
+      }
 
       const data = await response.json();
-      setOrders(data);
+      setOrders(data.orders);
     } catch (error) {
       console.error('Error fetching orders:', error);
       toast.error('Failed to load orders');
@@ -101,7 +114,7 @@ export default function OrdersPage() {
                   </div>
                   <div className="text-right">
                     <p className="text-muted-foreground text-sm">Total</p>
-                    <p className="text-xl font-bold">${order.totalAmount.toFixed(2)}</p>
+                    <p className="text-xl font-bold">${order.total.toFixed(2)}</p>
                   </div>
                 </div>
 
@@ -111,9 +124,10 @@ export default function OrdersPage() {
                     {order.items.map((item, idx) => (
                       <div key={idx} className="flex justify-between text-sm">
                         <span className="text-muted-foreground">
-                          {item.productName} ({item.tierName}) x {item.quantity}
+                          {item.product.name}
+                          {item.tier ? ` (${item.tier})` : ''} x {item.quantity}
                         </span>
-                        <span>${(item.price * item.quantity).toFixed(2)}</span>
+                        <span>${(item.pricePerUnit * item.quantity).toFixed(2)}</span>
                       </div>
                     ))}
                   </div>

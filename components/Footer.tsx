@@ -68,11 +68,11 @@ export default function Footer() {
             <Image
               width={200}
               height={100}
-              className="object-cover"
+              className="h-auto w-32 object-contain"
               src={logo}
               alt="ChunkNChop Logo"
             />
-            <p className="mt-4 max-w-55 text-sm leading-relaxed text-neutral-400">
+            <p className="mt-4  text-sm leading-relaxed text-neutral-400">
               Premium meat, expertly portioned and delivered fresh across Lagos.
             </p>
           </div>

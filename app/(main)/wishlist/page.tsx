@@ -82,6 +82,7 @@ export default function WishlistPage() {
               <div className="bg-muted relative aspect-square">
                 {item.product.images[0] && (
                   <img
+                    loading="lazy"
                     src={item.product.images[0]}
                     alt={item.product.name}
                     className="h-full w-full object-cover"

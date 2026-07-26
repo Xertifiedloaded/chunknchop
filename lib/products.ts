@@ -12,7 +12,7 @@ export interface Product {
   price: number;
   rating: number;
   reviews: number;
-  addedDaysAgo: number; // 0 = today
+  addedDaysAgo: number;
   preparation: Preparation;
   isNew: boolean;
   inStock: boolean;
@@ -20,7 +20,7 @@ export interface Product {
   newArrival: boolean;
   bestSeller: boolean;
   emoji: string;
-  gradient: string; // tailwind gradient classes
+  gradient: string;
 }
 
 export const CATEGORIES: Category[] = [

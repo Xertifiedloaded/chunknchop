@@ -102,7 +102,6 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// GET: Fetch user's orders
 export async function GET(req: NextRequest) {
   try {
     const user = getUserFromRequest(req);
@@ -112,7 +111,11 @@ export async function GET(req: NextRequest) {
 
     const orders = await prisma.order.findMany({
       where: { customerId: user.id },
-      include: { items: true },
+      include: {
+        items: {
+          include: { product: true },
+        },
+      },
       orderBy: { createdAt: 'desc' },
     });
 

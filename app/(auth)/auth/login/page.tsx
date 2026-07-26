@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Link from 'next/link';
 import { Loader2, Mail, Lock } from 'lucide-react';
-import toast from 'react-hot-toast';
 
 export default function LoginPage() {
   return (
@@ -22,6 +21,7 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const { setUser, setAccessToken } = useAuthStore();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -30,11 +30,13 @@ function LoginForm() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    if (error) setError('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
 
     try {
       const response = await fetch('/api/auth/login', {
@@ -43,20 +45,23 @@ function LoginForm() {
         body: JSON.stringify(formData),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error('Invalid credentials');
+        setError(data?.error || 'Failed to log in');
+        return;
       }
 
-      const { user, token } = await response.json();
+      const { user, accessToken } = data;
       setUser(user);
-      setAccessToken(token);
+      setAccessToken(accessToken);
+      localStorage.setItem('token', accessToken);
 
       const redirect = searchParams.get('redirect') || '/';
       router.push(redirect);
-      toast.success('Logged in successfully');
-    } catch (error) {
-      console.error('Login error:', error);
-      toast.error('Failed to log in');
+    } catch (err) {
+      console.error('Login error:', err);
+      setError('Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -102,6 +107,7 @@ function LoginForm() {
                   required
                 />
               </div>
+              {error && <p className="text-destructive mt-1.5 text-sm">{error}</p>}
             </div>
 
             <Button

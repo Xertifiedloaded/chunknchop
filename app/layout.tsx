@@ -1,9 +1,28 @@
 import { Analytics } from '@vercel/analytics/next';
 import type { Metadata, Viewport } from 'next';
+import { Sora, Inter, Work_Sans } from 'next/font/google';
 import './globals.css';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import MobileAppPromo from '@/components/MobileApp';
+
+const sora = Sora({
+  subsets: ['latin'],
+  variable: '--font-sora',
+  display: 'swap',
+});
+
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+});
+
+const workSans = Work_Sans({
+  subsets: ['latin'],
+  variable: '--font-work-sans',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: 'ChunkNChop | Premium Meat Delivery in Lagos',
@@ -27,12 +46,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="bg-background">
+    <html
+      lang="en"
+      className={`bg-background ${sora.variable} ${inter.variable} ${workSans.variable}`}
+    >
       <body className="antialiased">
         <Header />
         {children}
         {process.env.NODE_ENV === 'production' && <Analytics />}
-        <MobileAppPromo />
         <Footer />
       </body>
     </html>

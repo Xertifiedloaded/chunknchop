@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Link from 'next/link';
 import { Loader2, Mail, Lock, User } from 'lucide-react';
-import toast from 'react-hot-toast';
 
 export default function SignupPage() {
   return (
@@ -19,7 +18,7 @@ export default function SignupPage() {
 
 function SignupForm() {
   const router = useRouter();
-  const { setUser, setToken } = useAuthStore();
+  const { setUser, setAccessToken } = useAuthStore();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -57,7 +56,6 @@ function SignupForm() {
     e.preventDefault();
 
     if (!validateForm()) {
-      toast.error('Please fix the errors above');
       return;
     }
 
@@ -75,21 +73,21 @@ function SignupForm() {
         }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to create account');
+        setErrors((prev) => ({ ...prev, form: data?.error || 'Failed to create account' }));
+        return;
       }
 
-      const { user, token } = await response.json();
+      const { user, accessToken } = data;
       setUser(user);
-      setToken(token);
-      localStorage.setItem('token', token);
+      setAccessToken(accessToken);
 
-      toast.success('Account created successfully');
       router.push(formData.role === 'SUPPLIER' ? '/supplier/dashboard' : '/');
-    } catch (error) {
-      console.error('Signup error:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to create account');
+    } catch (err) {
+      console.error('Signup error:', err);
+      setErrors((prev) => ({ ...prev, form: 'Something went wrong. Please try again.' }));
     } finally {
       setLoading(false);
     }
@@ -183,6 +181,8 @@ function SignupForm() {
                 <p className="mt-1 text-sm text-red-500">{errors.passwordConfirm}</p>
               )}
             </div>
+
+            {errors.form && <p className="text-center text-sm text-red-500">{errors.form}</p>}
 
             <Button
               type="submit"

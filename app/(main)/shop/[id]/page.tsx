@@ -164,15 +164,15 @@ export default function ProductDetailPage() {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-          {/* Images */}
           <div>
             <div className="bg-muted mb-4 overflow-hidden rounded-lg">
               {product.images[mainImageIndex] ? (
                 <img
+                  loading="lazy"
                   src={product.images[mainImageIndex]}
+                  loading="lazy"
                   alt={product.name}
                   className="h-96 w-full object-cover"
                 />
@@ -193,6 +193,7 @@ export default function ProductDetailPage() {
                     }`}
                   >
                     <img
+                      loading="lazy"
                       src={image}
                       alt={`${product.name} ${idx + 1}`}
                       className="h-20 w-full object-cover"
@@ -218,6 +219,7 @@ export default function ProductDetailPage() {
             >
               {product.supplier.supplierProfile?.logo && (
                 <img
+                  loading="lazy"
                   src={product.supplier.supplierProfile.logo}
                   alt={product.supplier.supplierProfile.storeName}
                   className="h-8 w-8 rounded-full"

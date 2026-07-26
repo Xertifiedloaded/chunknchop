@@ -13,8 +13,6 @@ interface AuthState {
   accessToken: string | null;
   isLoading: boolean;
   error: string | null;
-
-  // Actions
   setUser: (user: User | null) => void;
   setAccessToken: (token: string | null) => void;
   setLoading: (loading: boolean) => void;
@@ -37,7 +35,7 @@ export const useAuthStore = create<AuthState>()(
       logout: () => set({ user: null, accessToken: null }),
     }),
     {
-      name: 'auth-storage', // localStorage key
+      name: 'auth-storage', 
       partialize: (state) => ({
         user: state.user,
         accessToken: state.accessToken,

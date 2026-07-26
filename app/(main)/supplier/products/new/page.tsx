@@ -11,7 +11,7 @@ import toast from 'react-hot-toast';
 
 export default function NewProductPage() {
   const router = useRouter();
-  const { user } = useAuthStore();
+  const { user, accessToken } = useAuthStore();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -51,7 +51,7 @@ export default function NewProductPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
           name: formData.name,

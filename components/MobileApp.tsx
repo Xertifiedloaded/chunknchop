@@ -4,18 +4,18 @@ import MobileIcon from '../assets/mobile.svg';
 
 export default function MobileAppPromo() {
   return (
-    <section className="w-full bg-white">
+    <section className="bg-brand-foreground w-full">
       <div className="mx-auto max-w-6xl px-6 py-16 lg:px-10">
-        <div className="relative overflow-hidden rounded-[32px] bg-[#221B18]">
+        <div className="bg-charcoal relative overflow-hidden rounded-[32px]">
           <div className="grid grid-cols-1 items-center gap-10 px-6 py-12 sm:px-10 sm:py-14 lg:grid-cols-2 lg:gap-8 lg:px-16 lg:py-0">
             <div className="text-center lg:text-left">
-              <p className="text-xs font-bold tracking-wider text-[#E67E51]">MOBILE APP</p>
-              <h2 className="mt-3 text-3xl leading-tight font-extrabold text-white sm:text-4xl">
+              <p className="text-brand text-xs font-bold tracking-wider">MOBILE APP</p>
+              <h2 className="font-sora text-brand-foreground mt-3 text-3xl leading-tight font-extrabold sm:text-4xl">
                 Order in seconds.
                 <br />
                 <span className="text-[#E67E51]">Track</span> to your door.
               </h2>
-              <p className="mx-auto mt-4 max-w-sm text-sm leading-relaxed text-neutral-400 lg:mx-0">
+              <p className="font-worksans mx-auto mt-4 max-w-sm text-sm leading-relaxed text-neutral-400 lg:mx-0">
                 The ChunkNChop app: faster reorders, saved cuts, delivery tracking and app-only
                 drops.
               </p>
@@ -39,7 +39,9 @@ export default function MobileAppPromo() {
                   </svg>
                   <span className="text-left leading-none">
                     <span className="block text-[9px] text-neutral-400">GET IT ON</span>
-                    <span className="block text-sm font-semibold text-white">Google Play</span>
+                    <span className="text-brand-foreground block text-sm font-semibold">
+                      Google Play
+                    </span>
                   </span>
                 </a>
 
@@ -47,12 +49,14 @@ export default function MobileAppPromo() {
                   href="#"
                   className="flex items-center gap-2 rounded-xl border border-neutral-700 bg-black px-4 py-2.5 transition-colors hover:border-neutral-500"
                 >
-                  <svg viewBox="0 0 24 24" className="h-6 w-6 shrink-0 fill-white">
+                  <svg viewBox="0 0 24 24" className="fill-brand-foreground h-6 w-6 shrink-0">
                     <path d="M16.365 1.43c0 1.14-.463 2.101-1.02 2.79-.632.78-1.577 1.334-2.435 1.264-.126-1.09.43-2.235 1.03-2.94.653-.767 1.79-1.36 2.425-1.114zm3.16 16.35c-.323.744-.703 1.457-1.148 2.135-.62.937-1.128 1.585-1.517 1.94-.61.577-1.264.872-1.966.886-.507.008-1.113-.144-1.82-.454-.71-.312-1.362-.464-1.958-.464-.62 0-1.29.152-2.008.464-.72.31-1.302.472-1.75.484-.673.026-1.34-.278-1.998-.912-.42-.398-.964-1.088-1.634-2.07-.72-1.053-1.31-2.276-1.774-3.667-.494-1.502-.742-2.958-.742-4.37 0-1.62.35-3.017 1.05-4.188.55-.94 1.28-1.68 2.196-2.222.916-.542 1.906-.826 2.973-.85.53 0 1.223.164 2.084.487.86.324 1.412.488 1.657.488.183 0 .793-.19 1.83-.57.977-.353 1.802-.5 2.478-.442 1.83.148 3.205.87 4.12 2.17-1.638.99-2.448 2.378-2.43 4.157.017 1.386.517 2.538 1.498 3.45.446.42.943.746 1.492.977-.12.35-.246.685-.38 1.007z" />
                   </svg>
                   <span className="text-left leading-none">
                     <span className="block text-[9px] text-neutral-400">Download on the</span>
-                    <span className="block text-sm font-semibold text-white">App Store</span>
+                    <span className="text-brand-foreground block text-sm font-semibold">
+                      App Store
+                    </span>
                   </span>
                 </a>
               </div>

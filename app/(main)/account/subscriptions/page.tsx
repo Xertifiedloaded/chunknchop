@@ -24,7 +24,7 @@ interface Subscription {
 
 export default function SubscriptionsPage() {
   const router = useRouter();
-  const { user } = useAuthStore();
+  const { user, accessToken } = useAuthStore();
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -41,7 +41,7 @@ export default function SubscriptionsPage() {
     try {
       const response = await fetch('/api/customer/subscriptions', {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${accessToken}`,
         },
       });
 
@@ -127,9 +127,8 @@ export default function SubscriptionsPage() {
                     </span>
                   </div>
                   <p
-                    className={`text-sm font-medium ${
-                      subscription.status === 'ACTIVE' ? 'text-green-600' : 'text-yellow-600'
-                    }`}
+                    className={`text-sm font-medium ${subscription.status === 'ACTIVE' ? 'text-green-600' : 'text-yellow-600'
+                      }`}
                   >
                     Status: {subscription.status}
                   </p>

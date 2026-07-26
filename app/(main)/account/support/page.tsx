@@ -21,7 +21,7 @@ interface SupportTicket {
 
 export default function SupportPage() {
   const router = useRouter();
-  const { user } = useAuthStore();
+  const { user, accessToken } = useAuthStore();
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -45,7 +45,7 @@ export default function SupportPage() {
     try {
       const response = await fetch('/api/customer/support-tickets', {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${accessToken}`,
         },
       });
 

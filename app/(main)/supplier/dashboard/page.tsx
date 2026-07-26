@@ -20,7 +20,7 @@ interface Product {
 
 export default function SupplierDashboard() {
   const router = useRouter();
-  const { user } = useAuthStore();
+  const { user, accessToken } = useAuthStore();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -37,7 +37,7 @@ export default function SupplierDashboard() {
     try {
       const response = await fetch('/api/supplier/products', {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${accessToken}`,
         },
       });
 

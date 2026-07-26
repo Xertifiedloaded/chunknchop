@@ -29,35 +29,35 @@ const CATEGORIES = [
 
 export default function Categories() {
   return (
-    <section className="w-full bg-[#F5ECE6]">
+    <section className="bg-sand w-full overflow-x-hidden">
       <div className="mx-auto max-w-7xl px-6 py-20 lg:px-10">
         <div className="flex items-end justify-between">
           <div>
-            <p className="text-xs font-bold tracking-wider text-[#E55A2A]">EXPLORE</p>
+            <p className="text-brand text-xs font-bold tracking-wider">EXPLORE</p>
             <h2 className="mt-2 text-3xl font-extrabold text-black sm:text-[34px]">
               Shop by Category
             </h2>
-            <p className="mt-2 text-sm text-neutral-500">
+            <p className="text-ink mt-2 text-sm">
               Handpicked cuts and pantry essentials, curated for every Nigerian kitchen.
             </p>
           </div>
           <Link
             href="/shop"
-            className="hidden shrink-0 items-center gap-1 text-sm font-semibold text-[#E55A2A] hover:text-[#c8692f] sm:flex"
+            className="text-brand hidden shrink-0 items-center gap-1 text-sm font-semibold hover:text-[#c8692f] sm:flex"
           >
             View all
             <ChevronRight size={16} />
           </Link>
         </div>
 
-        <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+        <div className="mt-10 flex w-full max-w-full gap-4 overflow-x-auto pb-2 scrollbar-none sm:grid sm:grid-cols-3 sm:overflow-visible sm:pb-0 lg:grid-cols-5 [&::-webkit-scrollbar]:hidden">
           {CATEGORIES.map((category) => (
             <Link
               key={category.name}
               href={`/shop?category=${category.slug}`}
-              className="group overflow-hidden rounded-xl bg-[#F3F4F6] text-left shadow-sm transition-shadow hover:shadow-md"
+              className="group w-[45%] shrink-0 overflow-hidden rounded-xl bg-[#F3F4F6] text-left shadow-sm transition-shadow hover:shadow-md sm:w-auto"
             >
-              <div className="relative aspect-square w-full">
+              <div className="relative aspect-3/4 w-full sm:aspect-square">
                 <Image
                   src={category.image}
                   alt={category.name}
@@ -69,7 +69,7 @@ export default function Categories() {
                 <span className="text-sm font-medium text-neutral-800">{category.name}</span>
                 <ChevronRight
                   size={15}
-                  className="text-neutral-400 transition-transform group-hover:translate-x-0.5"
+                  className="hidden shrink-0 text-neutral-400 transition-transform group-hover:translate-x-0.5 sm:block"
                 />
               </div>
             </Link>

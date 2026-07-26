@@ -2,19 +2,12 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { usePusher } from '@/lib/hooks/usePusher';
-import { CheckCircle, Clock, Truck, Package } from 'lucide-react';
+import { statusSteps } from '@/lib';
 
 interface OrderTrackerProps {
   orderId: string;
   currentStatus: string;
 }
-
-const statusSteps = [
-  { key: 'PENDING', label: 'Order Placed', icon: Package },
-  { key: 'PROCESSING', label: 'Processing', icon: Clock },
-  { key: 'SHIPPED', label: 'Shipped', icon: Truck },
-  { key: 'DELIVERED', label: 'Delivered', icon: CheckCircle },
-];
 
 export function OrderTracker({ orderId, currentStatus }: OrderTrackerProps) {
   const [status, setStatus] = useState(currentStatus);

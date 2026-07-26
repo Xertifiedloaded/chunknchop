@@ -1,0 +1,550 @@
+
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Users with role-based access
+model User {
+  id                    String      @id @default(cuid())
+  email                 String      @unique
+  password              String      // bcrypt hashed
+  name                  String?
+  role                  UserRole    @default(CUSTOMER)
+  
+  supplierProfile       SupplierProfile?
+  products              Product[]
+  
+  // Customer specific
+  cart                  CartItem[]
+  orders                Order[]
+  subscriptions         Subscription[]
+  supportTickets        SupportTicket[]
+  ratings               Rating[]
+  wishlist              Wishlist[]
+  addresses             Address[]
+  paymentMethods        PaymentMethod[]
+  
+  // Auth
+  refreshTokens         RefreshToken[]
+  
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+  
+  @@index([email])
+}
+
+enum UserRole {
+  CUSTOMER
+  SUPPLIER
+  ADMIN
+}
+
+// Supplier profile with stats
+model SupplierProfile {
+  id                    String      @id @default(cuid())
+  userId                String      @unique
+  user                  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  storeName             String
+  description           String?
+  logo                  String?     // Supabase storage URL
+  banner                String?     // Supabase storage URL
+  website               String?
+  
+  // Stats
+  rating                Float       @default(5.0)
+  totalReviews          Int         @default(0)
+  totalSales            Int         @default(0)
+  
+  isVerified            Boolean     @default(false)
+  verificationDate      DateTime?
+  
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+}
+
+// Products - Meat delivery focused
+model Product {
+  id                    String      @id @default(cuid())
+  supplierId            String
+  supplier              User        @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  
+  name                  String
+  description           String
+  images                String[]    // Supabase storage URLs
+  basePrice             Float
+  
+  // Inventory & Availability
+  stock                 Int
+  inStock               Boolean     @default(true)
+  sku                   String?     @unique
+  
+  // Meat specific
+  meatType              MeatType    // BEEF, CHICKEN, SEAFOOD, GOAT, PORK, TURKEY, BBQ, SAUSAGE, SPICE
+  preparations          String[]    // ["minced", "cubbed", "boneless", "sliced", "whole"]
+  
+  // Badges & Features
+  isNewArrival          Boolean     @default(false)
+  isBestSeller          Boolean     @default(false)
+  sameDayDelivery       Boolean     @default(false)
+  
+  // Categories and tags
+  category              String
+  tags                  String[]
+  
+  // Tiers (sizing/quantity)
+  tiers                 ProductTier[]
+  variants              ProductVariant[]
+  
+  // Ratings
+  rating                Float       @default(5.0)
+  reviewCount           Int         @default(0)
+  ratings               Rating[]
+  
+  isActive              Boolean     @default(true)
+  
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+  
+  @@index([supplierId])
+  @@index([category])
+  @@index([meatType])
+}
+
+enum MeatType {
+  BEEF
+  CHICKEN
+  SEAFOOD
+  GOAT
+  PORK
+  TURKEY
+  BBQ
+  SAUSAGE
+  SPICE
+}
+
+// Product tiers (pricing tiers like Basic, Pro, Enterprise)
+model ProductTier {
+  id                    String      @id @default(cuid())
+  productId             String
+  product               Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  name                  String      // "Basic", "Professional", "Enterprise"
+  description           String?
+  price                 Float
+  discount              Float?      // Percentage discount for bulk
+  minimumQuantity       Int         @default(1)
+  features              String[]
+  
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+  
+  @@index([productId])
+}
+
+// Product variants (size, color, etc)
+model ProductVariant {
+  id                    String      @id @default(cuid())
+  productId             String
+  product               Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  name                  String      // "Red", "Large", etc
+  value                 String
+  priceModifier         Float       @default(0)
+  
+  createdAt             DateTime    @default(now())
+  
+  @@index([productId])
+}
+
+// Shopping cart
+model CartItem {
+  id                    String      @id @default(cuid())
+  userId                String
+  user                  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  productId             String
+  quantity              Int
+  selectedTier          String?     // Tier name
+  selectedVariants      String[]    // Variant values
+  
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+  
+  @@unique([userId, productId])
+  @@index([userId])
+}
+
+// Orders
+model Order {
+  id                    String      @id @default(cuid())
+  customerId            String
+  customer              User        @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  
+  // Order items
+  items                 OrderItem[]
+  
+  // Pricing
+  subtotal              Float
+  tax                   Float       @default(0)
+  shipping              Float       @default(0)
+  total                 Float
+  
+  // Status
+  status                OrderStatus @default(PENDING)
+  paymentStatus         PaymentStatus @default(PENDING)
+  paymentMethod         String?
+  paymentIntentId       String?     // Stripe
+  
+  // Shipping
+  shippingAddress       String
+  shippingCity          String
+  shippingState         String
+  shippingZip           String
+  shippingCountry       String
+  
+  trackingNumber        String?
+  estimatedDelivery     DateTime?
+  
+  // Timeline
+  createdAt             DateTime    @default(now())
+  paidAt                DateTime?
+  shippedAt             DateTime?
+  deliveredAt           DateTime?
+  updatedAt             DateTime    @updatedAt
+  
+  @@index([customerId])
+  @@index([status])
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  RETURNED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+// Order items
+model OrderItem {
+  id                    String      @id @default(cuid())
+  orderId               String
+  order                 Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  productId             String
+  quantity              Int
+  pricePerUnit          Float
+  tier                  String?
+  variants              String[]
+  
+  createdAt             DateTime    @default(now())
+  
+  @@index([orderId])
+}
+
+// Subscriptions
+model Subscription {
+  id                    String      @id @default(cuid())
+  customerId            String
+  customer              User        @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  
+  type                  SubscriptionType
+  tier                  String      // Which tier (Basic, Pro, etc)
+  
+  price                 Float
+  billingCycle          Int         // Days
+  
+  status                SubscriptionStatus @default(ACTIVE)
+  stripeSubscriptionId  String?
+  
+  nextBillingDate       DateTime
+  cancelledAt           DateTime?
+  
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+  
+  @@index([customerId])
+  @@index([status])
+}
+
+enum SubscriptionType {
+  MONTHLY_DELIVERY
+  QUARTERLY_DELIVERY
+  ANNUAL_DELIVERY
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAUSED
+  CANCELLED
+}
+
+// Support tickets
+model SupportTicket {
+  id                    String      @id @default(cuid())
+  userId                String
+  user                  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  subject               String
+  description           String
+  category              String
+  
+  status                TicketStatus @default(OPEN)
+  priority              TicketPriority @default(MEDIUM)
+  
+  messages              TicketMessage[]
+  
+  createdAt             DateTime    @default(now())
+  resolvedAt            DateTime?
+  updatedAt             DateTime    @updatedAt
+  
+  @@index([userId])
+  @@index([status])
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING_CUSTOMER
+  RESOLVED
+  CLOSED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+// Support ticket messages
+model TicketMessage {
+  id                    String      @id @default(cuid())
+  ticketId              String
+  ticket                SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  
+  authorId              String
+  message               String
+  attachments           String[]
+  
+  createdAt             DateTime    @default(now())
+  
+  @@index([ticketId])
+}
+
+// Ratings & Reviews
+model Rating {
+  id                    String      @id @default(cuid())
+  productId             String
+  product               Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  userId                String
+  user                  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  score                 Int         @db.SmallInt // 1-5
+  title                 String?
+  comment               String?
+  
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+  
+  @@unique([productId, userId])
+  @@index([productId])
+  @@index([userId])
+}
+
+// Refresh tokens for auth
+model RefreshToken {
+  id                    String      @id @default(cuid())
+  userId                String
+  user                  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  token                 String      @unique
+  expiresAt             DateTime
+  
+  createdAt             DateTime    @default(now())
+  
+  @@index([userId])
+}
+
+// Analytics/Reports data
+model AnalyticsEvent {
+  id                    String      @id @default(cuid())
+  eventType             String      // "product_view", "add_to_cart", "purchase", etc
+  userId                String?
+  productId             String?
+  
+  metadata              String      // JSON string for extra data
+  
+  createdAt             DateTime    @default(now())
+  
+  @@index([eventType])
+  @@index([userId])
+  @@index([productId])
+}
+
+// Categories
+model Category {
+  id                    String      @id @default(cuid())
+  name                  String      @unique
+  description           String?
+  image                 String?     // Supabase URL
+  slug                  String      @unique
+  isActive              Boolean     @default(true)
+  
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+}
+
+// Inventory tracking
+model InventoryLog {
+  id                    String      @id @default(cuid())
+  productId             String
+  
+  previousStock         Int
+  newStock              Int
+  changeReason          InventoryChangeReason
+  notes                 String?
+  
+  createdAt             DateTime    @default(now())
+  
+  @@index([productId])
+}
+
+enum InventoryChangeReason {
+  PURCHASE
+  RESTOCK
+  ADJUSTMENT
+  DAMAGE
+  EXPIRY
+  RETURN
+}
+
+// Promotions/Discounts
+model Promotion {
+  id                    String      @id @default(cuid())
+  code                  String      @unique
+  description           String?
+  
+  type                  PromotionType // PERCENTAGE, FIXED_AMOUNT
+  value                 Float       // 10 for 10%, or 5 for $5 off
+  
+  startDate             DateTime
+  endDate               DateTime
+  maxUses               Int?
+  currentUses           Int         @default(0)
+  minOrderAmount        Float?
+  
+  applicableProducts    String[]    // Product IDs
+  applicableMeatTypes   String[]    // MeatType values
+  
+  isActive              Boolean     @default(true)
+  
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+  
+  @@index([code])
+}
+
+enum PromotionType {
+  PERCENTAGE
+  FIXED_AMOUNT
+  FREE_SHIPPING
+}
+
+model Wishlist {
+  id                    String      @id @default(cuid())
+  userId                String
+  user                  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  productId             String
+  
+  createdAt             DateTime    @default(now())
+  
+  @@unique([userId, productId])
+  @@index([userId])
+}
+
+// Delivery/Shipping zones
+model DeliveryZone {
+  id                    String      @id @default(cuid())
+  name                  String
+  zipCodes              String[]    // Delivery zones by zip code range
+  state                 String?
+  
+  baseCost              Float
+  freeDeliveryOver      Float?      // Free delivery for orders over this amount
+  estimatedDays         Int         // Estimated delivery days
+  
+  isActive              Boolean     @default(true)
+  
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+}
+
+// Customer addresses
+model Address {
+  id                    String      @id @default(cuid())
+  userId                String
+  user                  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  label                 String?     // "Home", "Office", etc
+  fullName              String
+  phone                 String?
+  street                String
+  city                  String
+  state                 String
+  zipCode               String
+  country               String       @default("USA")
+  
+  isDefault             Boolean     @default(false)
+  
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+  
+  @@index([userId])
+}
+
+// Payment methods
+model PaymentMethod {
+  id                    String      @id @default(cuid())
+  userId                String
+  user                  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  type                  PaymentMethodType  // CARD, BANK_TRANSFER
+  label                 String?     // "Visa ending in 4242"
+  
+  // Card details (encrypted)
+  cardLast4             String?
+  cardBrand             String?     // visa, mastercard
+  cardExpiry            String?     // MM/YY
+  
+  stripePaymentMethodId String?
+  
+  isDefault             Boolean     @default(false)
+  isActive              Boolean     @default(true)
+  
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+  
+  @@index([userId])
+}
+
+enum PaymentMethodType {
+  CARD
+  BANK_TRANSFER
+  DIGITAL_WALLET
+}

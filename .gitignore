@@ -1,0 +1,12 @@
+
+.snowflake/
+.vercel/
+
+
+.env*.local
+.env.local
+.env.local.*
+.env
+node_modules
+.next/
+.DS_Store

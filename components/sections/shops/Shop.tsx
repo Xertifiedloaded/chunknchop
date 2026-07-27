@@ -16,7 +16,6 @@ import LoadingState from '@/components/sections/common/LoadingState';
 
 const PAGE_SIZE = 8;
 
-// Maps ?section=... query values to the filter flags they should switch on.
 function applySectionParam(base: FilterState, section: string | null): FilterState {
   switch (section) {
     case 'best-sellers':

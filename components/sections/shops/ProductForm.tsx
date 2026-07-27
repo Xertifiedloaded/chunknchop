@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2, ImagePlus, X } from 'lucide-react';
+import { CATEGORIES, PREPARATIONS } from '@/lib/categories';
 
 const MEAT_TYPES = ['BEEF', 'PORK', 'CHICKEN', 'LAMB', 'GOAT', 'FISH', 'SEAFOOD', 'OTHER'];
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -66,6 +67,16 @@ export default function ProductForm({ mode, productId, initial, initialImages }:
   const [images, setImages] = useState<ImageItem[]>(() => (initialImages ?? []).map((url) => ({ id: url, url })));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!initial) return;
+    setForm({ ...EMPTY_FORM, ...initial });
+  }, [initial]);
+
+  useEffect(() => {
+    if (!initialImages) return;
+    setImages(initialImages.map((url) => ({ id: url, url })));
+  }, [initialImages]);
 
   const update = <K extends keyof ProductFormData>(key: K, value: ProductFormData[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -201,7 +212,21 @@ export default function ProductForm({ mode, productId, initial, initialImages }:
             <label htmlFor="category" className={labelClass}>
               Category
             </label>
-            <input id="category" type="text" value={form.category} onChange={(e) => update('category', e.target.value)} placeholder="Steaks" className={inputClass} />
+            <input
+              id="category"
+              type="text"
+              list="category-options"
+              value={form.category}
+              onChange={(e) => update('category', e.target.value)}
+              placeholder="Steaks"
+              className={inputClass}
+              autoComplete="off"
+            />
+            <datalist id="category-options">
+              {CATEGORIES.map((cat) => (
+                <option key={cat} value={cat} />
+              ))}
+            </datalist>
           </div>
 
           <div>
@@ -229,7 +254,21 @@ export default function ProductForm({ mode, productId, initial, initialImages }:
             <label htmlFor="preparations" className={labelClass}>
               Preparations <span className="text-ink font-normal">(comma-separated)</span>
             </label>
-            <input id="preparations" type="text" value={form.preparations} onChange={(e) => update('preparations', e.target.value)} placeholder="whole, sliced, marinated" className={inputClass} />
+            <input
+              id="preparations"
+              type="text"
+              list="preparation-options"
+              value={form.preparations}
+              onChange={(e) => update('preparations', e.target.value)}
+              placeholder="whole, sliced, marinated"
+              className={inputClass}
+              autoComplete="off"
+            />
+            <datalist id="preparation-options">
+              {PREPARATIONS.map((p) => (
+                <option key={p} value={p} />
+              ))}
+            </datalist>
           </div>
 
           <div className="sm:col-span-2">

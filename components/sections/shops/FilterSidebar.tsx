@@ -40,12 +40,12 @@ export default function FilterSidebar({ filters, onChange, onClearAll, className
           <SectionTitle>Categories</SectionTitle>
           <div className="flex flex-col gap-2.5">
             <label className="text-charcoal flex cursor-pointer items-center gap-2.5 text-sm">
-              <input type="radio" name="category" className="h-4 w-4 text-black" checked={filters.category === 'All'} onChange={() => update({ category: 'All' })} />
+              <input type="radio" name="category" className="text-brand h-4 w-4" checked={filters.category === 'All'} onChange={() => update({ category: 'All' })} />
               All
             </label>
             {CATEGORIES.map((cat) => (
               <label key={cat} className="text-charcoal flex cursor-pointer items-center gap-2.5 text-sm">
-                <input type="radio" name="category" className="h-4 w-4 text-black" checked={filters.category === cat} onChange={() => update({ category: cat })} />
+                <input type="radio" name="category" className="text-brand h-4 w-4" checked={filters.category === cat} onChange={() => update({ category: cat })} />
                 {cat}
               </label>
             ))}
@@ -66,7 +66,7 @@ export default function FilterSidebar({ filters, onChange, onClearAll, className
           <div className="flex flex-col gap-2.5">
             {PREPARATIONS.map((p) => (
               <label key={p} className="text-charcoal flex cursor-pointer items-center gap-2.5 text-sm">
-                <input type="checkbox" className="h-4 w-4 rounded text-black" checked={filters.preparations.includes(p)} onChange={() => update({ preparations: toggleInArray(filters.preparations, p) })} />
+                <input type="checkbox" className="text-brand h-4 w-4 rounded" checked={filters.preparations.includes(p)} onChange={() => update({ preparations: toggleInArray(filters.preparations, p) })} />
                 {p}
               </label>
             ))}
@@ -77,19 +77,19 @@ export default function FilterSidebar({ filters, onChange, onClearAll, className
           <SectionTitle>Availability</SectionTitle>
           <div className="flex flex-col gap-2.5">
             <label className="text-charcoal flex cursor-pointer items-center gap-2.5 text-sm">
-              <input type="checkbox" className="h-4 w-4 rounded text-black" checked={filters.inStock} onChange={(e) => update({ inStock: e.target.checked })} />
+              <input type="checkbox" className="text-brand h-4 w-4 rounded" checked={filters.inStock} onChange={(e) => update({ inStock: e.target.checked })} />
               In Stock
             </label>
             <label className="text-charcoal flex cursor-pointer items-center gap-2.5 text-sm">
-              <input type="checkbox" className="h-4 w-4 rounded text-black" checked={filters.sameDayDelivery} onChange={(e) => update({ sameDayDelivery: e.target.checked })} />
+              <input type="checkbox" className="text-brand h-4 w-4 rounded" checked={filters.sameDayDelivery} onChange={(e) => update({ sameDayDelivery: e.target.checked })} />
               Same Day Delivery
             </label>
             <label className="text-charcoal flex cursor-pointer items-center gap-2.5 text-sm">
-              <input type="checkbox" className="h-4 w-4 rounded text-black" checked={filters.newArrival} onChange={(e) => update({ newArrival: e.target.checked })} />
+              <input type="checkbox" className="text-brand h-4 w-4 rounded" checked={filters.newArrival} onChange={(e) => update({ newArrival: e.target.checked })} />
               New Arrival
             </label>
             <label className="text-charcoal flex cursor-pointer items-center gap-2.5 text-sm">
-              <input type="checkbox" className="h-4 w-4 rounded text-black" checked={filters.bestSeller} onChange={(e) => update({ bestSeller: e.target.checked })} />
+              <input type="checkbox" className="text-brand h-4 w-4 rounded" checked={filters.bestSeller} onChange={(e) => update({ bestSeller: e.target.checked })} />
               Best Seller
             </label>
           </div>
@@ -104,7 +104,7 @@ export function MobileFilterDrawer({ open, onClose, filters, onChange, onClearAl
   return (
     <div className="fixed inset-0 z-50 lg:hidden">
       <div className="bg-ink/40 absolute inset-0 backdrop-blur-sm" onClick={onClose} aria-hidden="true" />
-      <div className="bg-cream-100 absolute inset-y-0 left-0 flex w-[85vw] max-w-sm flex-col shadow-2xl">
+      <div className="bg-white absolute inset-y-0 left-0 flex w-[85vw] max-w-sm flex-col shadow-2xl">
         <div className="border-ink/10 flex items-center justify-between border-b px-5 py-4">
           <span className="text-ink text-base font-bold">Filters</span>
           <button type="button" onClick={onClose} aria-label="Close filters" className="hover:bg-ink/5 text-charcoal flex h-9 w-9 items-center justify-center rounded-full">
@@ -114,11 +114,7 @@ export function MobileFilterDrawer({ open, onClose, filters, onChange, onClearAl
         <div className="flex-1 scrollbar-thin overflow-y-auto px-5 py-5">
           <FilterSidebar filters={filters} onChange={onChange} onClearAll={onClearAll} hideHeader />
         </div>
-        <div className="border-ink/10 border-t p-4">
-          <button type="button" onClick={onClose} className="bg-ember-500 w-full rounded-full py-3 text-sm font-semibold text-white transition-colors hover:bg-black">
-            Show results
-          </button>
-        </div>
+
       </div>
     </div>
   );

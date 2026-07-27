@@ -1,11 +1,12 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { ArrowUpDown, SlidersHorizontal, Search } from 'lucide-react';
 
 import { useProductStore } from '@/lib/store/productStore';
 import { DEFAULT_FILTERS, FilterState, SORT_OPTIONS, countActiveFilters, filterProducts } from '@/lib/filters';
+import { resolveCategoryFromSlug } from '@/lib/categories';
 
 import CategoryPills from '@/components/sections/shops/CategoryPills';
 import EmptyState from '@/components/sections/shops/EmptyState';
@@ -15,17 +16,36 @@ import LoadingState from '@/components/sections/common/LoadingState';
 
 const PAGE_SIZE = 8;
 
+// Maps ?section=... query values to the filter flags they should switch on.
+function applySectionParam(base: FilterState, section: string | null): FilterState {
+  switch (section) {
+    case 'best-sellers':
+      return { ...base, bestSeller: true };
+    case 'new-arrivals':
+      return { ...base, newArrival: true };
+    default:
+      return base;
+  }
+}
+
 export default function Shop() {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
 
   const { products, setProducts } = useProductStore();
 
   const [isLoadingProducts, setIsLoadingProducts] = useState(true);
 
-  const [filters, setFilters] = useState<FilterState>(() => ({
-    ...DEFAULT_FILTERS,
-    category: searchParams.get('category') || 'All',
-  }));
+  const [filters, setFilters] = useState<FilterState>(() =>
+    applySectionParam(
+      {
+        ...DEFAULT_FILTERS,
+        category: resolveCategoryFromSlug(searchParams.get('category')),
+      },
+      searchParams.get('section')
+    )
+  );
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
@@ -57,17 +77,21 @@ export default function Shop() {
   }, [setProducts]);
 
   useEffect(() => {
-    const categoryFromUrl = searchParams.get('category') || 'All';
+    const categoryFromUrl = resolveCategoryFromSlug(searchParams.get('category'));
+    const sectionFromUrl = searchParams.get('section');
 
     setFilters((currentFilters) => {
-      if (currentFilters.category === categoryFromUrl) {
-        return currentFilters;
-      }
+      const next = applySectionParam(
+        {
+          ...currentFilters,
+          category: categoryFromUrl,
+        },
+        sectionFromUrl
+      );
 
-      return {
-        ...currentFilters,
-        category: categoryFromUrl,
-      };
+      const unchanged = next.category === currentFilters.category && next.bestSeller === currentFilters.bestSeller && next.newArrival === currentFilters.newArrival;
+
+      return unchanged ? currentFilters : next;
     });
 
     setVisibleCount(PAGE_SIZE);
@@ -93,6 +117,9 @@ export default function Shop() {
     });
 
     setVisibleCount(PAGE_SIZE);
+    if (searchParams.toString()) {
+      router.replace(pathname, { scroll: false });
+    }
   };
 
   return (

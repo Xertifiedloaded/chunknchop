@@ -18,8 +18,8 @@ function daysAgoLabel(createdAt: string) {
 }
 
 function getProductBadge(product: Product) {
-  if (product.isBestSeller) return { label: 'Best Seller', className: 'bg-orange-500' };
-  if (product.isNewArrival) return { label: 'Fresh Today', className: 'bg-orange-500' };
+  if (product.isBestSeller) return { label: 'Best Seller', className: 'bg-brand' };
+  if (product.isNewArrival) return { label: 'Fresh Today', className: 'bg-brand' };
   return null;
 }
 
@@ -120,10 +120,10 @@ export default function ProductCard({ product }: { product: Product }) {
         {image ? (
           <img src={image} alt={product.name} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-sm text-gray-400">No image</div>
+          <div className="flex h-full w-full items-center justify-center text-sm text-ink">No image</div>
         )}
 
-        {badge && <span className={`absolute top-3 left-3 z-10 rounded-full px-3 py-1.5 text-[10px] font-bold tracking-wide text-white uppercase shadow-sm ${badge.className}`}>{badge.label}</span>}
+        {badge && <span className={`absolute text-xs bg-sand text-brand  top-3 left-3 z-10 rounded-full px-3 py-1.5 text-[10px] font-bold tracking-wide  uppercase shadow-sm ${badge.className}`}>{badge.label}</span>}
 
         <button
           type="button"
@@ -136,42 +136,49 @@ export default function ProductCard({ product }: { product: Product }) {
           aria-label={saved ? 'Remove from favorites' : 'Save to favorites'}
           className="absolute top-3 right-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 shadow-sm backdrop-blur transition hover:bg-white"
         >
-          <Heart className={`h-4 w-4 transition-colors ${saved ? 'fill-ember-500 text-ember-500' : 'text-gray-500'}`} />
+          <Heart className={`h-4 w-4 transition-colors ${saved ? 'fill-ember-500 text-ember-500' : 'text-ink'}`} />
         </button>
 
-        {product.preparations?.[0] && <span className="absolute bottom-3 left-3 z-10 rounded-full bg-black/70 px-3 py-1.5 text-[11px] font-medium text-white capitalize backdrop-blur">🔪 {product.preparations[0]}</span>}
+        {product.preparations?.[0] && <span className="absolute bottom-3 left-3 z-10 rounded-full  px-3 py-1.5 text-[11px] font-medium bg-sand text-brand text-xs capitalize backdrop-blur">🔪 {product.preparations[0]}</span>}
 
         {!product.inStock && (
           <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40">
-            <span className="rounded-full bg-white px-4 py-2 text-xs font-semibold text-gray-900">Out of stock</span>
+            <span className="rounded-full bg-white px-4 py-2 text-xs font-semibold text-ink">Out of stock</span>
           </div>
         )}
       </div>
 
       <div className="flex flex-1 flex-col gap-2 p-4">
         <Link href={`/shop/${product.id}`}>
-          <h3 className="line-clamp-1 font-semibold text-gray-900 hover:underline">{product.name}</h3>
+          <h3 className="line-clamp-1 text-sm capitalize font-sora font-semibold text-ink hover:underline">{product.name}</h3>
         </Link>
 
-        <div className="flex items-center gap-1.5 text-sm text-gray-500">
-          <Star className="h-3.5 w-3.5 fill-orange-500 text-orange-500" />
-          <span className="font-medium text-gray-700">{product.rating.toFixed(1)}</span>
+        <div className="flex items-center gap-1.5 text-xs text-ink">
+          <Star className="h-3.5 w-3.5 fill-brand text-brand" />
+          <span className="font-medium text-ink">{product.rating.toFixed(1)}</span>
           <span>({product.reviewCount})</span>
-          <span className="mx-1 text-gray-300">·</span>
+          <span className="mx-1 text-ink">·</span>
           <Clock className="h-3.5 w-3.5" />
           <span>{daysAgoLabel(product.createdAt)}</span>
         </div>
 
-        <div className="mt-auto flex items-center justify-between pt-3">
-          <span className="text-lg font-bold text-gray-900">{formatNaira(product.basePrice)}</span>
+        <div className="text-xs mt-6 flex items-center justify-between ">
+          <span className="text-lg font-sora  font-bold text-ink">{formatNaira(product.basePrice)}</span>
 
           <button
             type="button"
             disabled={!product.inStock || isAdding}
             onClick={handleAddToCart}
-            className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-500 text-white transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-gray-300"
+            className="inline-flex h-10 min-w-20 items-center justify-center gap-1.5 rounded-xl bg-brand px-3 text-sm font-medium text-white transition-colors hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-ink sm:h-11 sm:px-4"
           >
-            {isAdding ? <Loader2 className="h-5 w-5 animate-spin" /> : <Plus className="h-5 w-5" />}
+            {isAdding ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <>
+                <Plus className="h-4 w-4 shrink-0 sm:h-5 sm:w-5" />
+                <span>Add</span>
+              </>
+            )}
           </button>
         </div>
       </div>

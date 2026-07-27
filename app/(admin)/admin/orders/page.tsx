@@ -62,31 +62,16 @@ export default function AdminOrders() {
               <tr key={order.id} className="border-b border-slate-200 hover:bg-slate-50">
                 <td className="px-6 py-3 font-mono text-sm text-slate-900">{order.orderNumber}</td>
                 <td className="px-6 py-3 text-sm text-slate-600">{order.customerName}</td>
-                <td className="px-6 py-3 text-sm font-semibold text-slate-900">
-                  ${order.total.toFixed(2)}
+                <td className="px-6 py-3 text-sm font-semibold text-slate-900">${order.total.toFixed(2)}</td>
+                <td className="px-6 py-3 text-sm">
+                  <span className={`rounded-full px-3 py-1 text-xs font-semibold ${getStatusColor(order.status)}`}>{order.status}</span>
                 </td>
                 <td className="px-6 py-3 text-sm">
-                  <span
-                    className={`rounded-full px-3 py-1 text-xs font-semibold ${getStatusColor(order.status)}`}
-                  >
-                    {order.status}
-                  </span>
+                  <span className={`rounded-full px-3 py-1 text-xs font-semibold ${getPaymentColor(order.paymentStatus)}`}>{order.paymentStatus}</span>
                 </td>
+                <td className="px-6 py-3 text-sm text-slate-600">{new Date(order.createdAt).toLocaleDateString()}</td>
                 <td className="px-6 py-3 text-sm">
-                  <span
-                    className={`rounded-full px-3 py-1 text-xs font-semibold ${getPaymentColor(order.paymentStatus)}`}
-                  >
-                    {order.paymentStatus}
-                  </span>
-                </td>
-                <td className="px-6 py-3 text-sm text-slate-600">
-                  {new Date(order.createdAt).toLocaleDateString()}
-                </td>
-                <td className="px-6 py-3 text-sm">
-                  <Link
-                    href={`/admin/orders/${order.id}`}
-                    className="font-semibold text-blue-600 hover:text-blue-800"
-                  >
+                  <Link href={`/admin/orders/${order.id}`} className="font-semibold text-blue-600 hover:text-blue-800">
                     View
                   </Link>
                 </td>

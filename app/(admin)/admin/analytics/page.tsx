@@ -45,21 +45,15 @@ export default function AdminAnalytics() {
       <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-3">
         <div className="rounded-lg bg-white p-6 shadow">
           <p className="text-sm font-medium text-slate-600">Total Revenue</p>
-          <p className="mt-2 text-3xl font-bold text-slate-900">
-            ${(analytics?.totalRevenue || 0).toFixed(2)}
-          </p>
+          <p className="mt-2 text-3xl font-bold text-slate-900">${(analytics?.totalRevenue || 0).toFixed(2)}</p>
         </div>
         <div className="rounded-lg bg-white p-6 shadow">
           <p className="text-sm font-medium text-slate-600">Average Order Value</p>
-          <p className="mt-2 text-3xl font-bold text-slate-900">
-            ${(analytics?.averageOrderValue || 0).toFixed(2)}
-          </p>
+          <p className="mt-2 text-3xl font-bold text-slate-900">${(analytics?.averageOrderValue || 0).toFixed(2)}</p>
         </div>
         <div className="rounded-lg bg-white p-6 shadow">
           <p className="text-sm font-medium text-slate-600">Conversion Rate</p>
-          <p className="mt-2 text-3xl font-bold text-slate-900">
-            {(analytics?.conversionRate || 0).toFixed(2)}%
-          </p>
+          <p className="mt-2 text-3xl font-bold text-slate-900">{(analytics?.conversionRate || 0).toFixed(2)}%</p>
         </div>
       </div>
 
@@ -95,10 +89,7 @@ export default function AdminAnalytics() {
                   <p className="font-semibold text-slate-900">${item.revenue.toFixed(2)}</p>
                 </div>
                 <div className="h-2 w-full rounded-full bg-slate-200">
-                  <div
-                    className="h-2 rounded-full bg-emerald-600"
-                    style={{ width: `${item.percentage}%` }}
-                  />
+                  <div className="h-2 rounded-full bg-emerald-600" style={{ width: `${item.percentage}%` }} />
                 </div>
               </div>
             ))}

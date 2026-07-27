@@ -2,17 +2,17 @@
 
 import { useState, useEffect } from 'react';
 import { useProductStore } from '@/lib/store/productStore';
-import Header from '@/components/Header';
-import Hero from '@/components/Hero';
-import About from '@/components/About';
-import WhyUs from '@/components/WhyUs';
-import Categories from '@/components/Categories';
-import HowItWorks from '@/components/HowItWorks';
-import MeatBox from '@/components/MeatBox';
-import DeliveryCoverage from '@/components/DeliveryCoverage';
-import Testimonials from '@/components/Testimonial';
-import MobileAppPromo from '@/components/MobileApp';
-import Footer from '@/components/Footer';
+import Header from '@/components/sections/common/Header';
+import Hero from '@/components/sections/main/Hero';
+import About from '@/components/sections/main/About';
+import WhyUs from '@/components/sections/main/WhyUs';
+import Categories from '@/components/sections/main/Categories';
+import HowItWorks from '@/components/sections/main/HowItWorks';
+import MeatBox from '@/components/sections/main/MeatBox';
+import DeliveryCoverage from '@/components/sections/main/DeliveryCoverage';
+import Testimonials from '@/components/sections/main/Testimonial';
+import MobileAppPromo from '@/components/sections/main/MobileApp';
+import Footer from '@/components/sections/common/Footer';
 export default function HomePage() {
   const { products, setProducts } = useProductStore();
   const [isLoadingProducts, setIsLoadingProducts] = useState(true);

@@ -11,8 +11,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { items, shippingAddress, shippingCity, shippingState, shippingZip, shippingCountry } =
-      body;
+    const { items, shippingAddress, shippingCity, shippingState, shippingZip, shippingCountry } = body;
 
     if (!items || items.length === 0) {
       return NextResponse.json({ error: 'No items in cart' }, { status: 400 });
@@ -34,15 +33,10 @@ export async function POST(req: NextRequest) {
 
       // Verify stock
       if (cartItem.product.stock < cartItem.quantity) {
-        return NextResponse.json(
-          { error: `Not enough stock for ${cartItem.product.name}` },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: `Not enough stock for ${cartItem.product.name}` }, { status: 400 });
       }
 
-      const tierPrice = cartItem.selectedTier
-        ? cartItem.product.tiers.find((t) => t.name === cartItem.selectedTier)?.price
-        : undefined;
+      const tierPrice = cartItem.selectedTier ? cartItem.product.tiers.find((t) => t.name === cartItem.selectedTier)?.price : undefined;
       const itemPrice = tierPrice || cartItem.product.basePrice;
       const itemTotal = itemPrice * cartItem.quantity;
 

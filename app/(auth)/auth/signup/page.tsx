@@ -105,12 +105,7 @@ function SignupForm() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="mb-2 block text-sm font-medium">Account Type</label>
-              <select
-                name="role"
-                value={formData.role}
-                onChange={handleInputChange}
-                className="border-border bg-background text-foreground w-full rounded-md border px-3 py-2"
-              >
+              <select name="role" value={formData.role} onChange={handleInputChange} className="border-border bg-background text-foreground w-full rounded-md border px-3 py-2">
                 <option value="CUSTOMER">Customer</option>
                 <option value="SUPPLIER">Supplier</option>
               </select>
@@ -120,14 +115,7 @@ function SignupForm() {
               <label className="mb-2 block text-sm font-medium">Full Name</label>
               <div className="relative">
                 <User className="text-muted-foreground absolute top-3 left-3 h-5 w-5" />
-                <Input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  placeholder="John Doe"
-                  className="pl-10"
-                />
+                <Input type="text" name="name" value={formData.name} onChange={handleInputChange} placeholder="John Doe" className="pl-10" />
               </div>
               {errors.name && <p className="mt-1 text-sm text-red-500">{errors.name}</p>}
             </div>
@@ -136,14 +124,7 @@ function SignupForm() {
               <label className="mb-2 block text-sm font-medium">Email Address</label>
               <div className="relative">
                 <Mail className="text-muted-foreground absolute top-3 left-3 h-5 w-5" />
-                <Input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  placeholder="you@example.com"
-                  className="pl-10"
-                />
+                <Input type="email" name="email" value={formData.email} onChange={handleInputChange} placeholder="you@example.com" className="pl-10" />
               </div>
               {errors.email && <p className="mt-1 text-sm text-red-500">{errors.email}</p>}
             </div>
@@ -152,14 +133,7 @@ function SignupForm() {
               <label className="mb-2 block text-sm font-medium">Password</label>
               <div className="relative">
                 <Lock className="text-muted-foreground absolute top-3 left-3 h-5 w-5" />
-                <Input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  placeholder="••••••••"
-                  className="pl-10"
-                />
+                <Input type="password" name="password" value={formData.password} onChange={handleInputChange} placeholder="••••••••" className="pl-10" />
               </div>
               {errors.password && <p className="mt-1 text-sm text-red-500">{errors.password}</p>}
             </div>
@@ -168,27 +142,14 @@ function SignupForm() {
               <label className="mb-2 block text-sm font-medium">Confirm Password</label>
               <div className="relative">
                 <Lock className="text-muted-foreground absolute top-3 left-3 h-5 w-5" />
-                <Input
-                  type="password"
-                  name="passwordConfirm"
-                  value={formData.passwordConfirm}
-                  onChange={handleInputChange}
-                  placeholder="••••••••"
-                  className="pl-10"
-                />
+                <Input type="password" name="passwordConfirm" value={formData.passwordConfirm} onChange={handleInputChange} placeholder="••••••••" className="pl-10" />
               </div>
-              {errors.passwordConfirm && (
-                <p className="mt-1 text-sm text-red-500">{errors.passwordConfirm}</p>
-              )}
+              {errors.passwordConfirm && <p className="mt-1 text-sm text-red-500">{errors.passwordConfirm}</p>}
             </div>
 
             {errors.form && <p className="text-center text-sm text-red-500">{errors.form}</p>}
 
-            <Button
-              type="submit"
-              disabled={loading}
-              className="bg-accent text-accent-foreground hover:bg-accent/90 w-full"
-            >
+            <Button type="submit" disabled={loading} className="bg-accent text-accent-foreground hover:bg-accent/90 w-full">
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

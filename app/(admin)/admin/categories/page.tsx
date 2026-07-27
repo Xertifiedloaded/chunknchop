@@ -25,9 +25,7 @@ export default function CategoriesPage() {
     isActive: true,
   });
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     setFormData({
       ...formData,
@@ -104,9 +102,7 @@ export default function CategoriesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-foreground text-3xl font-bold">Categories</h1>
-        <Button onClick={() => setShowForm(!showForm)}>
-          {showForm ? 'Cancel' : '+ Add Category'}
-        </Button>
+        <Button onClick={() => setShowForm(!showForm)}>{showForm ? 'Cancel' : '+ Add Category'}</Button>
       </div>
 
       {/* Form */}
@@ -114,42 +110,19 @@ export default function CategoriesPage() {
         <form onSubmit={handleSubmit} className="bg-card border-border rounded-lg border p-6">
           <div className="space-y-4">
             <div>
-              <label className="text-foreground mb-2 block text-sm font-medium">
-                Category Name *
-              </label>
-              <input
-                type="text"
-                name="name"
-                placeholder="e.g., Premium Beef"
-                value={formData.name}
-                onChange={handleInputChange}
-                required
-                className="border-border bg-background text-foreground w-full rounded-lg border px-3 py-2"
-              />
+              <label className="text-foreground mb-2 block text-sm font-medium">Category Name *</label>
+              <input type="text" name="name" placeholder="e.g., Premium Beef" value={formData.name} onChange={handleInputChange} required className="border-border bg-background text-foreground w-full rounded-lg border px-3 py-2" />
             </div>
 
             <div>
               <label className="text-foreground mb-2 block text-sm font-medium">Description</label>
-              <textarea
-                name="description"
-                placeholder="Category description"
-                value={formData.description}
-                onChange={handleInputChange}
-                className="border-border bg-background text-foreground h-24 w-full rounded-lg border px-3 py-2"
-              />
+              <textarea name="description" placeholder="Category description" value={formData.description} onChange={handleInputChange} className="border-border bg-background text-foreground h-24 w-full rounded-lg border px-3 py-2" />
             </div>
 
             <div>
               <label className="text-foreground mb-2 block text-sm font-medium">Slug</label>
               <div className="flex gap-2">
-                <input
-                  type="text"
-                  name="slug"
-                  placeholder="e.g., premium-beef"
-                  value={formData.slug}
-                  onChange={handleInputChange}
-                  className="border-border bg-background text-foreground flex-1 rounded-lg border px-3 py-2"
-                />
+                <input type="text" name="slug" placeholder="e.g., premium-beef" value={formData.slug} onChange={handleInputChange} className="border-border bg-background text-foreground flex-1 rounded-lg border px-3 py-2" />
                 <Button variant="outline" type="button" onClick={handleGenerateSlug}>
                   Generate
                 </Button>
@@ -157,13 +130,7 @@ export default function CategoriesPage() {
             </div>
 
             <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                name="isActive"
-                checked={formData.isActive}
-                onChange={handleInputChange}
-                className="h-4 w-4"
-              />
+              <input type="checkbox" name="isActive" checked={formData.isActive} onChange={handleInputChange} className="h-4 w-4" />
               <span className="text-foreground">Active</span>
             </label>
 
@@ -182,12 +149,8 @@ export default function CategoriesPage() {
               <tr>
                 <th className="text-foreground px-6 py-3 text-left text-sm font-semibold">Name</th>
                 <th className="text-foreground px-6 py-3 text-left text-sm font-semibold">Slug</th>
-                <th className="text-foreground px-6 py-3 text-left text-sm font-semibold">
-                  Status
-                </th>
-                <th className="text-foreground px-6 py-3 text-left text-sm font-semibold">
-                  Actions
-                </th>
+                <th className="text-foreground px-6 py-3 text-left text-sm font-semibold">Status</th>
+                <th className="text-foreground px-6 py-3 text-left text-sm font-semibold">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-border divide-y">
@@ -196,33 +159,18 @@ export default function CategoriesPage() {
                   <td className="px-6 py-4">
                     <div>
                       <p className="text-foreground font-medium">{category.name}</p>
-                      {category.description && (
-                        <p className="text-muted-foreground text-sm">{category.description}</p>
-                      )}
+                      {category.description && <p className="text-muted-foreground text-sm">{category.description}</p>}
                     </div>
                   </td>
                   <td className="text-muted-foreground px-6 py-4 text-sm">{category.slug}</td>
                   <td className="px-6 py-4">
-                    <span
-                      className={`rounded px-2 py-1 text-xs ${
-                        category.isActive
-                          ? 'bg-green-500/20 text-green-700'
-                          : 'bg-red-500/20 text-red-700'
-                      }`}
-                    >
-                      {category.isActive ? 'Active' : 'Inactive'}
-                    </span>
+                    <span className={`rounded px-2 py-1 text-xs ${category.isActive ? 'bg-green-500/20 text-green-700' : 'bg-red-500/20 text-red-700'}`}>{category.isActive ? 'Active' : 'Inactive'}</span>
                   </td>
                   <td className="space-x-2 px-6 py-4">
                     <Button variant="outline" size="sm" onClick={() => handleEdit(category)}>
                       Edit
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDelete(category.id)}
-                      className="text-red-600"
-                    >
+                    <Button variant="outline" size="sm" onClick={() => handleDelete(category.id)} className="text-red-600">
                       Delete
                     </Button>
                   </td>

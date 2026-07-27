@@ -1,6 +1,6 @@
 'use client';
 import Image from 'next/image';
-import logo from '../assets/logo.svg';
+import logo from '../../../assets/logo.svg';
 const SOCIALS = [
   {
     href: '#',
@@ -65,16 +65,8 @@ export default function Footer() {
       <div className="mx-auto max-w-7xl px-6 pt-16 lg:px-10">
         <div className="grid grid-cols-2 gap-10 sm:grid-cols-3 lg:grid-cols-7">
           <div className="col-span-2 sm:col-span-3 lg:col-span-2">
-            <Image
-              width={200}
-              height={100}
-              className="h-auto w-32 object-contain"
-              src={logo}
-              alt="ChunkNChop Logo"
-            />
-            <p className="mt-4  text-sm leading-relaxed text-neutral-400">
-              Premium meat, expertly portioned and delivered fresh across Lagos.
-            </p>
+            <Image width={200} height={100} className="h-auto w-32 object-contain" src={logo} alt="ChunkNChop Logo" />
+            <p className="mt-4 text-sm leading-relaxed text-neutral-400">Premium meat, expertly portioned and delivered fresh across Lagos.</p>
           </div>
 
           {FOOTER_COLUMNS.map((col) => (
@@ -83,10 +75,7 @@ export default function Footer() {
               <ul className="mt-4 space-y-3">
                 {col.links.map((link) => (
                   <li key={link}>
-                    <a
-                      href="#"
-                      className="text-sm text-neutral-400 transition-colors hover:text-white"
-                    >
+                    <a href="#" className="text-sm text-neutral-400 transition-colors hover:text-white">
                       {link}
                     </a>
                   </li>
@@ -99,12 +88,7 @@ export default function Footer() {
             <p className="text-sm font-bold text-white">Follow us</p>
             <div className="mt-4 flex flex-nowrap gap-2.5">
               {SOCIALS.map(({ icon, href, label }, i) => (
-                <a
-                  key={i}
-                  href={href}
-                  aria-label={label}
-                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white transition-opacity hover:opacity-80"
-                >
+                <a key={i} href={href} aria-label={label} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white transition-opacity hover:opacity-80">
                   {icon}
                 </a>
               ))}

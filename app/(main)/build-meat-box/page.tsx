@@ -12,17 +12,7 @@ interface BoxItem {
   preparation: string;
 }
 
-const MEAT_TYPES = [
-  'BEEF',
-  'CHICKEN',
-  'SEAFOOD',
-  'GOAT',
-  'PORK',
-  'TURKEY',
-  'BBQ',
-  'SAUSAGE',
-  'SPICE',
-];
+const MEAT_TYPES = ['BEEF', 'CHICKEN', 'SEAFOOD', 'GOAT', 'PORK', 'TURKEY', 'BBQ', 'SAUSAGE', 'SPICE'];
 const PREPARATIONS = ['minced', 'cubbed', 'boneless', 'sliced', 'whole'];
 
 export default function BuildMeatBoxPage() {
@@ -90,9 +80,7 @@ export default function BuildMeatBoxPage() {
     <div className="bg-background min-h-screen p-4 md:p-8">
       <div className="mx-auto max-w-6xl">
         <h1 className="text-foreground mb-2 text-3xl font-bold">Build Your Meat Box</h1>
-        <p className="text-muted-foreground mb-8">
-          Create a custom selection of premium meats delivered to your door
-        </p>
+        <p className="text-muted-foreground mb-8">Create a custom selection of premium meats delivered to your door</p>
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
           {/* Builder Section */}
@@ -102,15 +90,7 @@ export default function BuildMeatBoxPage() {
               <h2 className="text-foreground mb-4 font-semibold">Select Meat Type</h2>
               <div className="grid grid-cols-3 gap-2 md:grid-cols-5">
                 {MEAT_TYPES.map((type) => (
-                  <button
-                    key={type}
-                    onClick={() => setSelectedMeatType(type)}
-                    className={`rounded-lg p-3 transition-colors ${
-                      selectedMeatType === type
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                    }`}
-                  >
+                  <button key={type} onClick={() => setSelectedMeatType(type)} className={`rounded-lg p-3 transition-colors ${selectedMeatType === type ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}>
                     {type}
                   </button>
                 ))}
@@ -122,15 +102,7 @@ export default function BuildMeatBoxPage() {
               <h2 className="text-foreground mb-4 font-semibold">Preparation Style</h2>
               <div className="grid grid-cols-2 gap-2 md:grid-cols-5">
                 {PREPARATIONS.map((prep) => (
-                  <button
-                    key={prep}
-                    onClick={() => setSelectedPrep(prep)}
-                    className={`rounded-lg p-3 capitalize transition-colors ${
-                      selectedPrep === prep
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                    }`}
-                  >
+                  <button key={prep} onClick={() => setSelectedPrep(prep)} className={`rounded-lg p-3 capitalize transition-colors ${selectedPrep === prep ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}>
                     {prep}
                   </button>
                 ))}
@@ -143,19 +115,12 @@ export default function BuildMeatBoxPage() {
               {products && products.length > 0 ? (
                 <div className="space-y-3">
                   {products.map((product: any) => (
-                    <div
-                      key={product.id}
-                      className="border-border flex items-center justify-between rounded border p-3"
-                    >
+                    <div key={product.id} className="border-border flex items-center justify-between rounded border p-3">
                       <div className="flex-1">
                         <p className="text-foreground font-medium">{product.name}</p>
                         <p className="text-muted-foreground text-sm">${product.basePrice}</p>
                       </div>
-                      <Button
-                        onClick={() => handleAddItem(product.id)}
-                        size="sm"
-                        disabled={!product.inStock}
-                      >
+                      <Button onClick={() => handleAddItem(product.id)} size="sm" disabled={!product.inStock}>
                         {product.inStock ? 'Add' : 'Out of Stock'}
                       </Button>
                     </div>
@@ -174,16 +139,8 @@ export default function BuildMeatBoxPage() {
 
               {/* Custom Name */}
               <div className="mb-4">
-                <label className="text-foreground mb-2 block text-sm font-medium">
-                  Box Name (Optional)
-                </label>
-                <input
-                  type="text"
-                  value={customBoxName}
-                  onChange={(e) => setCustomBoxName(e.target.value)}
-                  placeholder="e.g., Grilling Essentials"
-                  className="border-border bg-background text-foreground w-full rounded-lg border px-3 py-2"
-                />
+                <label className="text-foreground mb-2 block text-sm font-medium">Box Name (Optional)</label>
+                <input type="text" value={customBoxName} onChange={(e) => setCustomBoxName(e.target.value)} placeholder="e.g., Grilling Essentials" className="border-border bg-background text-foreground w-full rounded-lg border px-3 py-2" />
               </div>
 
               {/* Items List */}
@@ -193,22 +150,14 @@ export default function BuildMeatBoxPage() {
                 ) : (
                   <div className="space-y-2">
                     {boxItems.map((item, index) => (
-                      <div
-                        key={index}
-                        className="bg-muted flex items-center justify-between rounded p-2 text-sm"
-                      >
+                      <div key={index} className="bg-muted flex items-center justify-between rounded p-2 text-sm">
                         <div>
                           <p className="text-foreground font-medium">{item.meatType}</p>
-                          <p className="text-muted-foreground text-xs capitalize">
-                            {item.preparation}
-                          </p>
+                          <p className="text-muted-foreground text-xs capitalize">{item.preparation}</p>
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="text-foreground">×{item.quantity}</span>
-                          <button
-                            onClick={() => handleRemoveItem(index)}
-                            className="text-red-500 hover:text-red-700"
-                          >
+                          <button onClick={() => handleRemoveItem(index)} className="text-red-500 hover:text-red-700">
                             ✕
                           </button>
                         </div>
@@ -222,11 +171,7 @@ export default function BuildMeatBoxPage() {
                 <p className="text-muted-foreground mb-4 text-sm">
                   Total Items: <span className="text-foreground font-bold">{totalItems}</span>
                 </p>
-                <Button
-                  onClick={handleCreateBox}
-                  disabled={isCreating || boxItems.length === 0}
-                  className="w-full"
-                >
+                <Button onClick={handleCreateBox} disabled={isCreating || boxItems.length === 0} className="w-full">
                   {isCreating ? 'Creating...' : 'Create Box & Add to Cart'}
                 </Button>
               </div>

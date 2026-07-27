@@ -12,20 +12,23 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const cookieStore = await cookies();
   const token = cookieStore.get('accessToken')?.value;
 
-  console.log('TOKEN PRESENT:', !!token);
-  console.log('TOKEN VALUE:', token);
   if (!token) {
     redirect('/auth/login');
   }
 
-  const decoded = verifyToken(token); // sync, no await
+  let decoded;
+  try {
+    decoded = verifyToken(token);
+  } catch {
+    redirect('/auth/login');
+  }
 
   if (!decoded || decoded.role !== 'ADMIN') {
     redirect('/');
   }
 
   return (
-    <div className="bg-background flex h-screen">
+    <div className="bg-sand flex min-h-screen flex-col">
       <AdminNav />
       <div className="flex-1 overflow-auto">{children}</div>
     </div>

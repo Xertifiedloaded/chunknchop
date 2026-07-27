@@ -53,11 +53,7 @@ export default function ReportsPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-foreground text-3xl font-bold">Reports & Analytics</h1>
         <div className="flex gap-2">
-          <select
-            value={period}
-            onChange={(e) => setPeriod(e.target.value)}
-            className="border-border bg-background text-foreground rounded-lg border px-3 py-2"
-          >
+          <select value={period} onChange={(e) => setPeriod(e.target.value)} className="border-border bg-background text-foreground rounded-lg border px-3 py-2">
             <option value="daily">Daily</option>
             <option value="weekly">Weekly</option>
             <option value="monthly">Monthly</option>
@@ -85,9 +81,7 @@ export default function ReportsPage() {
         </div>
         <div className="bg-card border-border rounded-lg border p-6">
           <p className="text-muted-foreground mb-2 text-sm">Average Order Value</p>
-          <p className="text-foreground text-3xl font-bold">
-            ${reports.averageOrderValue.toFixed(2)}
-          </p>
+          <p className="text-foreground text-3xl font-bold">${reports.averageOrderValue.toFixed(2)}</p>
         </div>
         <div className="bg-card border-border rounded-lg border p-6">
           <p className="text-muted-foreground mb-2 text-sm">New Customers</p>

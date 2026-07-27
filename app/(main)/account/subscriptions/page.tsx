@@ -105,33 +105,20 @@ export default function SubscriptionsPage() {
                 <div className="mb-4 flex items-start justify-between">
                   <div>
                     <h3 className="text-lg font-bold">{subscription.productTier.product.name}</h3>
-                    <p className="text-muted-foreground text-sm">
-                      {subscription.productTier.name} Tier
-                    </p>
+                    <p className="text-muted-foreground text-sm">{subscription.productTier.name} Tier</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-2xl font-bold">
-                      ${subscription.productTier.price.toFixed(2)}
-                    </p>
-                    <p className="text-muted-foreground text-sm capitalize">
-                      {subscription.frequency}
-                    </p>
+                    <p className="text-2xl font-bold">${subscription.productTier.price.toFixed(2)}</p>
+                    <p className="text-muted-foreground text-sm capitalize">{subscription.frequency}</p>
                   </div>
                 </div>
 
                 <div className="border-border mb-4 border-t pt-4">
                   <div className="mb-2 flex items-center gap-2 text-sm">
                     <Calendar className="text-muted-foreground h-4 w-4" />
-                    <span className="text-muted-foreground">
-                      Next delivery: {new Date(subscription.nextDeliveryDate).toLocaleDateString()}
-                    </span>
+                    <span className="text-muted-foreground">Next delivery: {new Date(subscription.nextDeliveryDate).toLocaleDateString()}</span>
                   </div>
-                  <p
-                    className={`text-sm font-medium ${subscription.status === 'ACTIVE' ? 'text-green-600' : 'text-yellow-600'
-                      }`}
-                  >
-                    Status: {subscription.status}
-                  </p>
+                  <p className={`text-sm font-medium ${subscription.status === 'ACTIVE' ? 'text-green-600' : 'text-yellow-600'}`}>Status: {subscription.status}</p>
                 </div>
 
                 <div className="flex gap-2">
@@ -139,11 +126,7 @@ export default function SubscriptionsPage() {
                     <Pause className="mr-2 h-4 w-4" />
                     Pause
                   </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleCancelSubscription(subscription.id)}
-                  >
+                  <Button variant="ghost" size="sm" onClick={() => handleCancelSubscription(subscription.id)}>
                     <Trash2 className="mr-2 h-4 w-4 text-red-500" />
                     Cancel
                   </Button>

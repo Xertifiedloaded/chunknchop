@@ -101,27 +101,17 @@ export default function PaymentMethodsPage() {
       <div className="mx-auto max-w-2xl">
         <div className="mb-8 flex items-center justify-between">
           <h1 className="text-foreground text-3xl font-bold">Payment Methods</h1>
-          <Button onClick={() => setShowForm(!showForm)}>
-            {showForm ? 'Cancel' : '+ Add Method'}
-          </Button>
+          <Button onClick={() => setShowForm(!showForm)}>{showForm ? 'Cancel' : '+ Add Method'}</Button>
         </div>
 
         {/* Add Form */}
         {showForm && (
-          <form
-            onSubmit={handleSubmit}
-            className="bg-card border-border mb-8 rounded-lg border p-6"
-          >
+          <form onSubmit={handleSubmit} className="bg-card border-border mb-8 rounded-lg border p-6">
             <h2 className="text-foreground mb-4 font-semibold">Add Payment Method</h2>
 
             <div className="mb-4">
               <label className="text-foreground mb-2 block text-sm font-medium">Payment Type</label>
-              <select
-                name="type"
-                value={formData.type}
-                onChange={handleInputChange}
-                className="border-border bg-background text-foreground w-full rounded-lg border px-3 py-2"
-              >
+              <select name="type" value={formData.type} onChange={handleInputChange} className="border-border bg-background text-foreground w-full rounded-lg border px-3 py-2">
                 <option value="CARD">Credit/Debit Card</option>
                 <option value="BANK_TRANSFER">Bank Transfer</option>
                 <option value="DIGITAL_WALLET">Digital Wallet</option>
@@ -131,24 +121,12 @@ export default function PaymentMethodsPage() {
             {formData.type === 'CARD' && (
               <>
                 <div className="mb-4">
-                  <label className="text-foreground mb-2 block text-sm font-medium">
-                    Cardholder Name
-                  </label>
-                  <input
-                    type="text"
-                    name="cardName"
-                    placeholder="John Doe"
-                    value={formData.cardName}
-                    onChange={handleInputChange}
-                    required
-                    className="border-border bg-background text-foreground w-full rounded-lg border px-3 py-2"
-                  />
+                  <label className="text-foreground mb-2 block text-sm font-medium">Cardholder Name</label>
+                  <input type="text" name="cardName" placeholder="John Doe" value={formData.cardName} onChange={handleInputChange} required className="border-border bg-background text-foreground w-full rounded-lg border px-3 py-2" />
                 </div>
 
                 <div className="mb-4">
-                  <label className="text-foreground mb-2 block text-sm font-medium">
-                    Card Number
-                  </label>
+                  <label className="text-foreground mb-2 block text-sm font-medium">Card Number</label>
                   <input
                     type="text"
                     name="cardNumber"
@@ -167,18 +145,8 @@ export default function PaymentMethodsPage() {
 
                 <div className="mb-4 grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-foreground mb-2 block text-sm font-medium">
-                      Expiry (MM/YY)
-                    </label>
-                    <input
-                      type="text"
-                      name="cardExpiry"
-                      placeholder="12/25"
-                      value={formData.cardExpiry}
-                      onChange={handleInputChange}
-                      required
-                      className="border-border bg-background text-foreground w-full rounded-lg border px-3 py-2"
-                    />
+                    <label className="text-foreground mb-2 block text-sm font-medium">Expiry (MM/YY)</label>
+                    <input type="text" name="cardExpiry" placeholder="12/25" value={formData.cardExpiry} onChange={handleInputChange} required className="border-border bg-background text-foreground w-full rounded-lg border px-3 py-2" />
                   </div>
                   <div>
                     <label className="text-foreground mb-2 block text-sm font-medium">CVC</label>
@@ -202,17 +170,8 @@ export default function PaymentMethodsPage() {
             )}
 
             <div className="mb-4">
-              <label className="text-foreground mb-2 block text-sm font-medium">
-                Label (Optional)
-              </label>
-              <input
-                type="text"
-                name="label"
-                placeholder="e.g., Personal, Work"
-                value={formData.label}
-                onChange={handleInputChange}
-                className="border-border bg-background text-foreground w-full rounded-lg border px-3 py-2"
-              />
+              <label className="text-foreground mb-2 block text-sm font-medium">Label (Optional)</label>
+              <input type="text" name="label" placeholder="e.g., Personal, Work" value={formData.label} onChange={handleInputChange} className="border-border bg-background text-foreground w-full rounded-lg border px-3 py-2" />
             </div>
 
             <Button type="submit" disabled={isSubmitting} className="w-full">
@@ -229,49 +188,21 @@ export default function PaymentMethodsPage() {
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="mb-2 flex items-center gap-2">
-                      <span className="text-2xl">
-                        {method.type === 'CARD'
-                          ? '💳'
-                          : method.type === 'BANK_TRANSFER'
-                            ? '🏦'
-                            : '📱'}
-                      </span>
+                      <span className="text-2xl">{method.type === 'CARD' ? '💳' : method.type === 'BANK_TRANSFER' ? '🏦' : '📱'}</span>
                       <div>
-                        <h3 className="text-foreground font-semibold">
-                          {method.label ||
-                            (method.type === 'CARD'
-                              ? `${method.cardBrand} ending in ${method.cardLast4}`
-                              : method.type)}
-                        </h3>
-                        {method.type === 'CARD' && method.cardExpiry && (
-                          <p className="text-muted-foreground text-sm">
-                            Expires {method.cardExpiry}
-                          </p>
-                        )}
+                        <h3 className="text-foreground font-semibold">{method.label || (method.type === 'CARD' ? `${method.cardBrand} ending in ${method.cardLast4}` : method.type)}</h3>
+                        {method.type === 'CARD' && method.cardExpiry && <p className="text-muted-foreground text-sm">Expires {method.cardExpiry}</p>}
                       </div>
                     </div>
-                    {method.isDefault && (
-                      <span className="mt-2 inline-block rounded bg-blue-500/20 px-2 py-1 text-xs text-blue-700">
-                        Default
-                      </span>
-                    )}
+                    {method.isDefault && <span className="mt-2 inline-block rounded bg-blue-500/20 px-2 py-1 text-xs text-blue-700">Default</span>}
                   </div>
                   <div className="flex gap-2">
                     {!method.isDefault && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleSetDefault(method.id)}
-                      >
+                      <Button variant="outline" size="sm" onClick={() => handleSetDefault(method.id)}>
                         Set Default
                       </Button>
                     )}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDelete(method.id)}
-                      className="text-red-600 hover:bg-red-50"
-                    >
+                    <Button variant="outline" size="sm" onClick={() => handleDelete(method.id)} className="text-red-600 hover:bg-red-50">
                       Delete
                     </Button>
                   </div>

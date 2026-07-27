@@ -81,15 +81,7 @@ function LoginForm() {
               <label className="mb-2 block text-sm font-medium">Email Address</label>
               <div className="relative">
                 <Mail className="text-muted-foreground absolute top-3 left-3 h-5 w-5" />
-                <Input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  placeholder="you@example.com"
-                  className="pl-10"
-                  required
-                />
+                <Input type="email" name="email" value={formData.email} onChange={handleInputChange} placeholder="you@example.com" className="pl-10" required />
               </div>
             </div>
 
@@ -97,24 +89,12 @@ function LoginForm() {
               <label className="mb-2 block text-sm font-medium">Password</label>
               <div className="relative">
                 <Lock className="text-muted-foreground absolute top-3 left-3 h-5 w-5" />
-                <Input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  placeholder="••••••••"
-                  className="pl-10"
-                  required
-                />
+                <Input type="password" name="password" value={formData.password} onChange={handleInputChange} placeholder="••••••••" className="pl-10" required />
               </div>
               {error && <p className="text-destructive mt-1.5 text-sm">{error}</p>}
             </div>
 
-            <Button
-              type="submit"
-              disabled={loading}
-              className="bg-accent text-accent-foreground hover:bg-accent/90 w-full"
-            >
+            <Button type="submit" disabled={loading} className="bg-accent text-accent-foreground hover:bg-accent/90 w-full">
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

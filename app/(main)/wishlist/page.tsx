@@ -75,20 +75,8 @@ export default function WishlistPage() {
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           {wishlist.map((item: WishlistItem) => (
-            <div
-              key={item.productId}
-              className="border-border overflow-hidden rounded-lg border transition-shadow hover:shadow-lg"
-            >
-              <div className="bg-muted relative aspect-square">
-                {item.product.images[0] && (
-                  <img
-                    loading="lazy"
-                    src={item.product.images[0]}
-                    alt={item.product.name}
-                    className="h-full w-full object-cover"
-                  />
-                )}
-              </div>
+            <div key={item.productId} className="border-border overflow-hidden rounded-lg border transition-shadow hover:shadow-lg">
+              <div className="bg-muted relative aspect-square">{item.product.images[0] && <img loading="lazy" src={item.product.images[0]} alt={item.product.name} className="h-full w-full object-cover" />}</div>
               <div className="p-4">
                 <h3 className="text-foreground truncate font-semibold">{item.product.name}</h3>
                 <p className="text-muted-foreground mb-2 text-sm">{item.product.meatType}</p>
@@ -100,19 +88,10 @@ export default function WishlistPage() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Button
-                    onClick={() => handleAddToCart(item.productId)}
-                    className="w-full"
-                    disabled={!item.product.inStock}
-                  >
+                  <Button onClick={() => handleAddToCart(item.productId)} className="w-full" disabled={!item.product.inStock}>
                     {item.product.inStock ? 'Add to Cart' : 'Out of Stock'}
                   </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => handleRemove(item.productId)}
-                    disabled={isRemoving === item.productId}
-                    className="w-full"
-                  >
+                  <Button variant="outline" onClick={() => handleRemove(item.productId)} disabled={isRemoving === item.productId} className="w-full">
                     {isRemoving === item.productId ? 'Removing...' : 'Remove'}
                   </Button>
                 </div>

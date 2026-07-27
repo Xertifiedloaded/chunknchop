@@ -1,7 +1,13 @@
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import MobileAppPromo from '@/components/MobileApp';
+import Header from '@/components/sections/common/Header';
+import Footer from '@/components/sections/common/Footer';
+import MobileAppPromo from '@/components/sections/main/MobileApp';
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
+  return (
+    <div className="bg-white text-charcoal">
+      <Header />
+      {children}
+      <Footer />
+    </div>
+  );
 }

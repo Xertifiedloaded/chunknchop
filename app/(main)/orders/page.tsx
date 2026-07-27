@@ -77,10 +77,7 @@ export default function OrdersPage() {
   return (
     <div className="bg-background min-h-screen">
       <div className="mx-auto max-w-4xl px-4 py-8">
-        <Link
-          href="/"
-          className="text-muted-foreground hover:text-foreground mb-8 flex items-center gap-2"
-        >
+        <Link href="/" className="text-muted-foreground hover:text-foreground mb-8 flex items-center gap-2">
           <ArrowLeft className="h-4 w-4" />
           Back to Store
         </Link>
@@ -134,9 +131,7 @@ export default function OrdersPage() {
                 </div>
 
                 <div className="flex items-center justify-between text-sm">
-                  <p className="text-muted-foreground">
-                    Placed on {new Date(order.createdAt).toLocaleDateString()}
-                  </p>
+                  <p className="text-muted-foreground">Placed on {new Date(order.createdAt).toLocaleDateString()}</p>
                   <Button variant="outline" size="sm">
                     View Details
                   </Button>

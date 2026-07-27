@@ -49,26 +49,18 @@ export default function AdminCustomers() {
               <th className="px-6 py-3 text-left text-sm font-semibold text-slate-900">Name</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-slate-900">Email</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-slate-900">Orders</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-slate-900">
-                Total Spent
-              </th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-slate-900">Total Spent</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-slate-900">Joined</th>
             </tr>
           </thead>
           <tbody>
             {customers.map((customer) => (
               <tr key={customer.id} className="border-b border-slate-200 hover:bg-slate-50">
-                <td className="px-6 py-3 text-sm font-medium text-slate-900">
-                  {customer.name || 'N/A'}
-                </td>
+                <td className="px-6 py-3 text-sm font-medium text-slate-900">{customer.name || 'N/A'}</td>
                 <td className="px-6 py-3 text-sm text-slate-600">{customer.email}</td>
                 <td className="px-6 py-3 text-sm text-slate-900">{customer.orderCount}</td>
-                <td className="px-6 py-3 text-sm font-semibold text-slate-900">
-                  ${customer.totalSpent.toFixed(2)}
-                </td>
-                <td className="px-6 py-3 text-sm text-slate-600">
-                  {new Date(customer.createdAt).toLocaleDateString()}
-                </td>
+                <td className="px-6 py-3 text-sm font-semibold text-slate-900">${customer.totalSpent.toFixed(2)}</td>
+                <td className="px-6 py-3 text-sm text-slate-600">{new Date(customer.createdAt).toLocaleDateString()}</td>
               </tr>
             ))}
           </tbody>

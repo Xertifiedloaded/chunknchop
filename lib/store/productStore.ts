@@ -7,8 +7,17 @@ export interface Product {
   images: string[];
   basePrice: number;
   stock: number;
+  inStock: boolean;
   category: string;
+  meatType: string;
+  tags: string[];
+  preparations: string[];
+  isNewArrival: boolean;
+  isBestSeller: boolean;
+  sameDayDelivery: boolean;
   rating: number;
+  reviewCount: number;
+  createdAt: string;
   tiers: Array<{
     id: string;
     name: string;

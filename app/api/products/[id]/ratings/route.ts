@@ -41,7 +41,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ error: 'Score must be between 1 and 5' }, { status: 400 });
     }
 
-    // Check if user already rated this product
     const existingRating = await prisma.rating.findUnique({
       where: {
         productId_userId: {
@@ -53,7 +52,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     let rating;
     if (existingRating) {
-      // Update existing rating
       rating = await prisma.rating.update({
         where: { id: existingRating.id },
         data: {
@@ -63,7 +61,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         },
       });
     } else {
-      // Create new rating
       rating = await prisma.rating.create({
         data: {
           productId: id,
@@ -81,10 +78,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       select: { score: true },
     });
 
-    const averageRating =
-      allRatings.length > 0
-        ? allRatings.reduce((acc, r) => acc + r.score, 0) / allRatings.length
-        : 5.0;
+    const averageRating = allRatings.length > 0 ? allRatings.reduce((acc, r) => acc + r.score, 0) / allRatings.length : 5.0;
 
     await prisma.product.update({
       where: { id },

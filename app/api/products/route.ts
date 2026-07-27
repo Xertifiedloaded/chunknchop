@@ -1,63 +1,42 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 
-export async function GET(req: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
-    const url = new URL(req.url);
-    const category = url.searchParams.get('category');
-    const search = url.searchParams.get('search');
-    const page = parseInt(url.searchParams.get('page') || '1');
-    const limit = parseInt(url.searchParams.get('limit') || '20');
+    const { searchParams } = new URL(request.url);
+    const category = searchParams.get('category');
+    const meatType = searchParams.get('meatType');
 
-    const skip = (page - 1) * limit;
-
-    const where: any = { isActive: true };
-    if (category) where.category = category;
-    if (search) {
-      where.OR = [
-        { name: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } },
-      ];
-    }
-
-    const [products, total] = await Promise.all([
-      prisma.product.findMany({
-        where,
-        skip,
-        take: limit,
-        include: {
-          tiers: true,
-          variants: true,
-          supplier: {
-            select: {
-              id: true,
-              name: true,
-              supplierProfile: {
-                select: {
-                  storeName: true,
-                  logo: true,
-                  rating: true,
-                },
-              },
-            },
-          },
-        },
-        orderBy: { createdAt: 'desc' },
-      }),
-      prisma.product.count({ where }),
-    ]);
-
-    return NextResponse.json({
-      products,
-      pagination: {
-        total,
-        page,
-        limit,
-        pages: Math.ceil(total / limit),
+    const products = await prisma.product.findMany({
+      where: {
+        ...(category ? { category } : {}),
+        ...(meatType ? { meatType } : {}),
       },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        images: true,
+        basePrice: true,
+        stock: true,
+        inStock: true,
+        category: true,
+        meatType: true,
+        tags: true,
+        preparations: true,
+        isNewArrival: true,
+        isBestSeller: true,
+        sameDayDelivery: true,
+        rating: true,
+        reviewCount: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: 'desc' },
     });
+
+    return NextResponse.json({ products });
   } catch (error) {
-    console.error('[v0] Get products error:', error);
-    return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 });
+    console.error('Error fetching products:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

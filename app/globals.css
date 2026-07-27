@@ -11,11 +11,12 @@
   --font-sora: var(--font-sora), sans-serif;
   --font-worksans: var(--font-work-sans), sans-serif;
 
-  /* Brand colors */
   --color-brand: #e86b3e;
   --color-brand-foreground: #ffffff;
   --color-ink: #717171;
   --color-charcoal: #25211e;
+  --color-nigeria: #16a34a;
+  --color-lemon-nigeria: #f0fdf4;
   --color-cream: #ffedd5;
   --color-sand: #f5ece6;
   --color-slate-custom: #334155;

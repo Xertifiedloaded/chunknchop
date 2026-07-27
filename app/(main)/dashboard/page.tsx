@@ -46,9 +46,7 @@ export default function CustomerDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-muted-foreground mb-1 text-sm">Total Orders</p>
-                <p className="text-foreground text-2xl font-bold">
-                  {isLoading ? '-' : stats?.totalOrders || 0}
-                </p>
+                <p className="text-foreground text-2xl font-bold">{isLoading ? '-' : stats?.totalOrders || 0}</p>
               </div>
               <div className="text-muted-foreground text-4xl">📦</div>
             </div>
@@ -58,9 +56,7 @@ export default function CustomerDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-muted-foreground mb-1 text-sm">Total Spent</p>
-                <p className="text-foreground text-2xl font-bold">
-                  ${isLoading ? '-' : (stats?.totalSpent || 0).toFixed(2)}
-                </p>
+                <p className="text-foreground text-2xl font-bold">${isLoading ? '-' : (stats?.totalSpent || 0).toFixed(2)}</p>
               </div>
               <div className="text-muted-foreground text-4xl">💳</div>
             </div>
@@ -70,9 +66,7 @@ export default function CustomerDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-muted-foreground mb-1 text-sm">Active Subscriptions</p>
-                <p className="text-foreground text-2xl font-bold">
-                  {isLoading ? '-' : stats?.activeSubscriptions || 0}
-                </p>
+                <p className="text-foreground text-2xl font-bold">{isLoading ? '-' : stats?.activeSubscriptions || 0}</p>
               </div>
               <div className="text-muted-foreground text-4xl">🔄</div>
             </div>
@@ -114,15 +108,10 @@ export default function CustomerDashboard() {
           ) : stats?.recentOrders && stats.recentOrders.length > 0 ? (
             <div className="space-y-3">
               {stats.recentOrders.map((order: any) => (
-                <div
-                  key={order.id}
-                  className="border-border flex items-center justify-between rounded border p-3"
-                >
+                <div key={order.id} className="border-border flex items-center justify-between rounded border p-3">
                   <div>
                     <p className="text-foreground font-medium">Order #{order.orderNumber}</p>
-                    <p className="text-muted-foreground text-sm">
-                      {new Date(order.createdAt).toLocaleDateString()}
-                    </p>
+                    <p className="text-muted-foreground text-sm">{new Date(order.createdAt).toLocaleDateString()}</p>
                   </div>
                   <div className="text-right">
                     <p className="text-foreground font-semibold">${order.totalAmount.toFixed(2)}</p>

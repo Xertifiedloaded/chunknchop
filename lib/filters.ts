@@ -1,104 +1,68 @@
-import { Category, Preparation, Product, Weight } from './products';
+import { Product } from '@/lib/store/productStore';
 
-export type SortOption = 'Newest' | 'Price: Low to High' | 'Price: High to Low' | 'Top Rated';
+export const SORT_OPTIONS = ['Newest', 'Price: Low to High', 'Price: High to Low', 'Top Rated'] as const;
+export type SortOption = (typeof SORT_OPTIONS)[number];
 
-export const SORT_OPTIONS: SortOption[] = [
-  'Newest',
-  'Price: Low to High',
-  'Price: High to Low',
-  'Top Rated',
-];
+export const PRICE_MIN = 0;
+export const PRICE_MAX = 50000;
 
 export interface FilterState {
   search: string;
-  category: Category | 'All';
-  minPrice: number;
+  sort: SortOption;
+  category: string | 'All';
   maxPrice: number;
-  weights: Weight[];
-  preparations: Preparation[];
+  preparations: string[];
   inStock: boolean;
   sameDayDelivery: boolean;
   newArrival: boolean;
   bestSeller: boolean;
-  sort: SortOption;
 }
-
-export const PRICE_MIN = 1000;
-export const PRICE_MAX = 50000;
 
 export const DEFAULT_FILTERS: FilterState = {
   search: '',
+  sort: 'Newest',
   category: 'All',
-  minPrice: PRICE_MIN,
   maxPrice: PRICE_MAX,
-  weights: [],
   preparations: [],
   inStock: false,
   sameDayDelivery: false,
   newArrival: false,
   bestSeller: false,
-  sort: 'Newest',
 };
 
-export function isDefaultFilters(f: FilterState): boolean {
-  return (
-    f.search === '' &&
-    f.category === 'All' &&
-    f.minPrice === PRICE_MIN &&
-    f.maxPrice === PRICE_MAX &&
-    f.weights.length === 0 &&
-    f.preparations.length === 0 &&
-    !f.inStock &&
-    !f.sameDayDelivery &&
-    !f.newArrival &&
-    !f.bestSeller
-  );
-}
-
-export function countActiveFilters(f: FilterState): number {
+export function countActiveFilters(f: FilterState) {
   let count = 0;
-  if (f.category !== 'All') count += 1;
-  if (f.minPrice !== PRICE_MIN || f.maxPrice !== PRICE_MAX) count += 1;
-  count += f.weights.length;
-  count += f.preparations.length;
-  if (f.inStock) count += 1;
-  if (f.sameDayDelivery) count += 1;
-  if (f.newArrival) count += 1;
-  if (f.bestSeller) count += 1;
+  if (f.category !== 'All') count++;
+  if (f.maxPrice < PRICE_MAX) count++;
+  if (f.preparations.length) count++;
+  if (f.inStock) count++;
+  if (f.sameDayDelivery) count++;
+  if (f.newArrival) count++;
+  if (f.bestSeller) count++;
   return count;
 }
 
 export function filterProducts(products: Product[], f: FilterState): Product[] {
-  let result = products.filter((p) => {
-    if (f.search.trim() && !p.name.toLowerCase().includes(f.search.trim().toLowerCase())) {
-      return false;
-    }
+  const result = products.filter((p) => {
     if (f.category !== 'All' && p.category !== f.category) return false;
-    if (p.price < f.minPrice || p.price > f.maxPrice) return false;
-    if (f.weights.length > 0 && !f.weights.includes(p.weight)) return false;
-    if (f.preparations.length > 0 && !f.preparations.includes(p.preparation)) return false;
+    if (p.basePrice > f.maxPrice) return false;
+    if (f.preparations.length && !f.preparations.some((prep) => p.preparations.includes(prep))) return false;
     if (f.inStock && !p.inStock) return false;
     if (f.sameDayDelivery && !p.sameDayDelivery) return false;
-    if (f.newArrival && !p.newArrival) return false;
-    if (f.bestSeller && !p.bestSeller) return false;
+    if (f.newArrival && !p.isNewArrival) return false;
+    if (f.bestSeller && !p.isBestSeller) return false;
+    if (f.search && !p.name.toLowerCase().includes(f.search.toLowerCase())) return false;
     return true;
   });
 
   switch (f.sort) {
     case 'Price: Low to High':
-      result = [...result].sort((a, b) => a.price - b.price);
-      break;
+      return [...result].sort((a, b) => a.basePrice - b.basePrice);
     case 'Price: High to Low':
-      result = [...result].sort((a, b) => b.price - a.price);
-      break;
+      return [...result].sort((a, b) => b.basePrice - a.basePrice);
     case 'Top Rated':
-      result = [...result].sort((a, b) => b.rating - a.rating);
-      break;
-    case 'Newest':
+      return [...result].sort((a, b) => b.rating - a.rating);
     default:
-      result = [...result].sort((a, b) => a.addedDaysAgo - b.addedDaysAgo);
-      break;
+      return [...result].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }
-
-  return result;
 }

@@ -51,74 +51,37 @@ export default function AdminSettings() {
           {/* Store Name */}
           <div>
             <label className="mb-2 block text-sm font-medium text-slate-900">Store Name</label>
-            <input
-              type="text"
-              value={settings.storeName}
-              onChange={(e) => handleChange('storeName', e.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-4 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-            />
+            <input type="text" value={settings.storeName} onChange={(e) => handleChange('storeName', e.target.value)} className="w-full rounded-lg border border-slate-300 px-4 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
           </div>
 
           {/* Support Email */}
           <div>
             <label className="mb-2 block text-sm font-medium text-slate-900">Support Email</label>
-            <input
-              type="email"
-              value={settings.supportEmail}
-              onChange={(e) => handleChange('supportEmail', e.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-4 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-            />
+            <input type="email" value={settings.supportEmail} onChange={(e) => handleChange('supportEmail', e.target.value)} className="w-full rounded-lg border border-slate-300 px-4 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
           </div>
 
           {/* Same Day Delivery Fee */}
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-900">
-              Same Day Delivery Fee ($)
-            </label>
-            <input
-              type="number"
-              step="0.01"
-              value={settings.sameDayDeliveryFee}
-              onChange={(e) => handleChange('sameDayDeliveryFee', parseFloat(e.target.value))}
-              className="w-full rounded-lg border border-slate-300 px-4 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-            />
+            <label className="mb-2 block text-sm font-medium text-slate-900">Same Day Delivery Fee ($)</label>
+            <input type="number" step="0.01" value={settings.sameDayDeliveryFee} onChange={(e) => handleChange('sameDayDeliveryFee', parseFloat(e.target.value))} className="w-full rounded-lg border border-slate-300 px-4 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
           </div>
 
           {/* Minimum Order Amount */}
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-900">
-              Minimum Order Amount ($)
-            </label>
-            <input
-              type="number"
-              step="0.01"
-              value={settings.minimumOrderAmount}
-              onChange={(e) => handleChange('minimumOrderAmount', parseFloat(e.target.value))}
-              className="w-full rounded-lg border border-slate-300 px-4 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-            />
+            <label className="mb-2 block text-sm font-medium text-slate-900">Minimum Order Amount ($)</label>
+            <input type="number" step="0.01" value={settings.minimumOrderAmount} onChange={(e) => handleChange('minimumOrderAmount', parseFloat(e.target.value))} className="w-full rounded-lg border border-slate-300 px-4 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
           </div>
 
           {/* Tax Rate */}
           <div>
             <label className="mb-2 block text-sm font-medium text-slate-900">Tax Rate (%)</label>
-            <input
-              type="number"
-              step="0.01"
-              value={settings.taxRate * 100}
-              onChange={(e) => handleChange('taxRate', parseFloat(e.target.value) / 100)}
-              className="w-full rounded-lg border border-slate-300 px-4 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-            />
+            <input type="number" step="0.01" value={settings.taxRate * 100} onChange={(e) => handleChange('taxRate', parseFloat(e.target.value) / 100)} className="w-full rounded-lg border border-slate-300 px-4 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
           </div>
         </div>
 
         <div className="flex items-center justify-between border-t border-slate-200 px-6 py-4">
-          {saved && (
-            <p className="text-sm font-medium text-emerald-600">Settings saved successfully!</p>
-          )}
-          <button
-            onClick={handleSave}
-            className="ml-auto flex items-center gap-2 rounded-lg bg-emerald-600 px-6 py-2 text-white hover:bg-emerald-700"
-          >
+          {saved && <p className="text-sm font-medium text-emerald-600">Settings saved successfully!</p>}
+          <button onClick={handleSave} className="ml-auto flex items-center gap-2 rounded-lg bg-emerald-600 px-6 py-2 text-white hover:bg-emerald-700">
             <Save size={18} />
             Save Settings
           </button>

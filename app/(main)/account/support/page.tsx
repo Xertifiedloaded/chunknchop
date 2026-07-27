@@ -114,50 +114,28 @@ export default function SupportPage() {
       <div className="mx-auto max-w-4xl px-4 py-8">
         <div className="mb-8 flex items-center justify-between">
           <h1 className="text-3xl font-bold">Support Center</h1>
-          <Button
-            onClick={() => setShowForm(!showForm)}
-            className="bg-accent text-accent-foreground hover:bg-accent/90"
-          >
+          <Button onClick={() => setShowForm(!showForm)} className="bg-accent text-accent-foreground hover:bg-accent/90">
             <Plus className="mr-2 h-4 w-4" />
             New Ticket
           </Button>
         </div>
 
         {showForm && (
-          <form
-            onSubmit={handleSubmit}
-            className="bg-card border-border mb-8 space-y-4 rounded-lg border p-6"
-          >
+          <form onSubmit={handleSubmit} className="bg-card border-border mb-8 space-y-4 rounded-lg border p-6">
             <div>
               <label className="mb-2 block text-sm font-medium">Subject *</label>
-              <Input
-                value={formData.subject}
-                onChange={(e) => setFormData((prev) => ({ ...prev, subject: e.target.value }))}
-                placeholder="Brief description of your issue"
-                required
-              />
+              <Input value={formData.subject} onChange={(e) => setFormData((prev) => ({ ...prev, subject: e.target.value }))} placeholder="Brief description of your issue" required />
             </div>
 
             <div>
               <label className="mb-2 block text-sm font-medium">Description *</label>
-              <textarea
-                value={formData.description}
-                onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
-                placeholder="Please provide as much detail as possible..."
-                className="border-border bg-background text-foreground w-full rounded-md border px-3 py-2"
-                rows={5}
-                required
-              />
+              <textarea value={formData.description} onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))} placeholder="Please provide as much detail as possible..." className="border-border bg-background text-foreground w-full rounded-md border px-3 py-2" rows={5} required />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="mb-2 block text-sm font-medium">Category</label>
-                <select
-                  value={formData.category}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, category: e.target.value }))}
-                  className="border-border bg-background text-foreground w-full rounded-md border px-3 py-2"
-                >
+                <select value={formData.category} onChange={(e) => setFormData((prev) => ({ ...prev, category: e.target.value }))} className="border-border bg-background text-foreground w-full rounded-md border px-3 py-2">
                   <option value="GENERAL">General</option>
                   <option value="ORDER">Order Issue</option>
                   <option value="PRODUCT">Product Question</option>
@@ -168,11 +146,7 @@ export default function SupportPage() {
 
               <div>
                 <label className="mb-2 block text-sm font-medium">Priority</label>
-                <select
-                  value={formData.priority}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, priority: e.target.value }))}
-                  className="border-border bg-background text-foreground w-full rounded-md border px-3 py-2"
-                >
+                <select value={formData.priority} onChange={(e) => setFormData((prev) => ({ ...prev, priority: e.target.value }))} className="border-border bg-background text-foreground w-full rounded-md border px-3 py-2">
                   <option value="LOW">Low</option>
                   <option value="NORMAL">Normal</option>
                   <option value="HIGH">High</option>
@@ -211,15 +185,11 @@ export default function SupportPage() {
                       <p className="font-medium">{ticket.subject}</p>
                     </div>
                     <div className="text-right">
-                      <p className={`text-sm font-medium ${getPriorityColor(ticket.priority)}`}>
-                        {ticket.priority}
-                      </p>
+                      <p className={`text-sm font-medium ${getPriorityColor(ticket.priority)}`}>{ticket.priority}</p>
                       <p className="text-muted-foreground text-sm">{ticket.status}</p>
                     </div>
                   </div>
-                  <p className="text-muted-foreground text-xs">
-                    {new Date(ticket.createdAt).toLocaleDateString()}
-                  </p>
+                  <p className="text-muted-foreground text-xs">{new Date(ticket.createdAt).toLocaleDateString()}</p>
                 </div>
               </Link>
             ))}

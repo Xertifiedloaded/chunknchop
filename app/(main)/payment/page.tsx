@@ -78,12 +78,8 @@ function PaymentContent() {
             <div className="flex gap-3 rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-950">
               <CheckCircle className="mt-0.5 h-5 w-5 shrink-0 text-green-600 dark:text-green-400" />
               <div>
-                <p className="font-medium text-green-900 dark:text-green-100">
-                  Payment Successful!
-                </p>
-                <p className="text-sm text-green-700 dark:text-green-300">
-                  Your order has been placed successfully.
-                </p>
+                <p className="font-medium text-green-900 dark:text-green-100">Payment Successful!</p>
+                <p className="text-sm text-green-700 dark:text-green-300">Your order has been placed successfully.</p>
               </div>
             </div>
           )}
@@ -93,9 +89,7 @@ function PaymentContent() {
               <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-600 dark:text-red-400" />
               <div>
                 <p className="font-medium text-red-900 dark:text-red-100">Payment Failed</p>
-                <p className="text-sm text-red-700 dark:text-red-300">
-                  Please try again or contact support.
-                </p>
+                <p className="text-sm text-red-700 dark:text-red-300">Please try again or contact support.</p>
               </div>
             </div>
           )}
@@ -107,16 +101,9 @@ function PaymentContent() {
                 <p className="text-3xl font-bold">$XXX.XX</p>
               </div>
 
-              <div className="text-muted-foreground text-center text-sm">
-                Your payment information is secure and encrypted. Click the button below to complete
-                your purchase.
-              </div>
+              <div className="text-muted-foreground text-center text-sm">Your payment information is secure and encrypted. Click the button below to complete your purchase.</div>
 
-              <Button
-                onClick={handlePayment}
-                disabled={loading}
-                className="bg-accent text-accent-foreground hover:bg-accent/90 w-full"
-              >
+              <Button onClick={handlePayment} disabled={loading} className="bg-accent text-accent-foreground hover:bg-accent/90 w-full">
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

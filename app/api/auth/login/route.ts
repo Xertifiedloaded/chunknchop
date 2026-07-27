@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
     }
 
-    const accessToken = generateAccessToken(user.id, user.email, user.role); // no await — sync
+    const accessToken = generateAccessToken(user.id, user.email, user.role);
     const refreshToken = generateRefreshToken();
 
     await prisma.refreshToken.create({
@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 24 * 60 * 60, // matches JWT_EXPIRY = '24h' in lib/auth.ts
+      maxAge: 24 * 60 * 60,
       path: '/',
     });
 

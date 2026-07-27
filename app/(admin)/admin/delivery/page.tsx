@@ -31,9 +31,7 @@ export default function DeliveryPage() {
     isActive: true,
   });
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
-  ) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
     setFormData({
       ...formData,
@@ -61,9 +59,7 @@ export default function DeliveryPage() {
         isActive: formData.isActive,
       };
 
-      const url = editingId
-        ? `/api/admin/delivery-zones/${editingId}`
-        : '/api/admin/delivery-zones';
+      const url = editingId ? `/api/admin/delivery-zones/${editingId}` : '/api/admin/delivery-zones';
 
       const method = editingId ? 'PUT' : 'POST';
 
@@ -139,100 +135,39 @@ export default function DeliveryPage() {
           <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
               <label className="text-foreground mb-2 block text-sm font-medium">Zone Name *</label>
-              <input
-                type="text"
-                name="name"
-                placeholder="e.g., North Texas"
-                value={formData.name}
-                onChange={handleInputChange}
-                required
-                className="border-border bg-background text-foreground w-full rounded-lg border px-3 py-2"
-              />
+              <input type="text" name="name" placeholder="e.g., North Texas" value={formData.name} onChange={handleInputChange} required className="border-border bg-background text-foreground w-full rounded-lg border px-3 py-2" />
             </div>
 
             <div>
               <label className="text-foreground mb-2 block text-sm font-medium">State</label>
-              <input
-                type="text"
-                name="state"
-                placeholder="e.g., TX"
-                value={formData.state}
-                onChange={handleInputChange}
-                className="border-border bg-background text-foreground w-full rounded-lg border px-3 py-2"
-              />
+              <input type="text" name="state" placeholder="e.g., TX" value={formData.state} onChange={handleInputChange} className="border-border bg-background text-foreground w-full rounded-lg border px-3 py-2" />
             </div>
           </div>
 
           <div className="mb-4">
-            <label className="text-foreground mb-2 block text-sm font-medium">
-              Zip Codes (comma-separated) *
-            </label>
-            <textarea
-              name="zipCodes"
-              placeholder="75001, 75002, 75003"
-              value={formData.zipCodes}
-              onChange={handleInputChange}
-              required
-              className="border-border bg-background text-foreground h-20 w-full rounded-lg border px-3 py-2"
-            />
+            <label className="text-foreground mb-2 block text-sm font-medium">Zip Codes (comma-separated) *</label>
+            <textarea name="zipCodes" placeholder="75001, 75002, 75003" value={formData.zipCodes} onChange={handleInputChange} required className="border-border bg-background text-foreground h-20 w-full rounded-lg border px-3 py-2" />
           </div>
 
           <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-3">
             <div>
-              <label className="text-foreground mb-2 block text-sm font-medium">
-                Base Cost ($) *
-              </label>
-              <input
-                type="number"
-                name="baseCost"
-                placeholder="5.99"
-                step="0.01"
-                value={formData.baseCost}
-                onChange={handleInputChange}
-                required
-                className="border-border bg-background text-foreground w-full rounded-lg border px-3 py-2"
-              />
+              <label className="text-foreground mb-2 block text-sm font-medium">Base Cost ($) *</label>
+              <input type="number" name="baseCost" placeholder="5.99" step="0.01" value={formData.baseCost} onChange={handleInputChange} required className="border-border bg-background text-foreground w-full rounded-lg border px-3 py-2" />
             </div>
 
             <div>
-              <label className="text-foreground mb-2 block text-sm font-medium">
-                Free Delivery Over ($)
-              </label>
-              <input
-                type="number"
-                name="freeDeliveryOver"
-                placeholder="50"
-                step="0.01"
-                value={formData.freeDeliveryOver}
-                onChange={handleInputChange}
-                className="border-border bg-background text-foreground w-full rounded-lg border px-3 py-2"
-              />
+              <label className="text-foreground mb-2 block text-sm font-medium">Free Delivery Over ($)</label>
+              <input type="number" name="freeDeliveryOver" placeholder="50" step="0.01" value={formData.freeDeliveryOver} onChange={handleInputChange} className="border-border bg-background text-foreground w-full rounded-lg border px-3 py-2" />
             </div>
 
             <div>
-              <label className="text-foreground mb-2 block text-sm font-medium">
-                Estimated Days *
-              </label>
-              <input
-                type="number"
-                name="estimatedDays"
-                placeholder="2"
-                value={formData.estimatedDays}
-                onChange={handleInputChange}
-                required
-                className="border-border bg-background text-foreground w-full rounded-lg border px-3 py-2"
-              />
+              <label className="text-foreground mb-2 block text-sm font-medium">Estimated Days *</label>
+              <input type="number" name="estimatedDays" placeholder="2" value={formData.estimatedDays} onChange={handleInputChange} required className="border-border bg-background text-foreground w-full rounded-lg border px-3 py-2" />
             </div>
           </div>
 
           <label className="mb-4 flex items-center gap-2">
-            <input
-              type="checkbox"
-              name="isActive"
-              checked={formData.isActive}
-              onChange={handleInputChange}
-              className="h-4 w-4"
-            />
+            <input type="checkbox" name="isActive" checked={formData.isActive} onChange={handleInputChange} className="h-4 w-4" />
             <span className="text-foreground">Active</span>
           </label>
 
@@ -250,18 +185,10 @@ export default function DeliveryPage() {
               <tr>
                 <th className="text-foreground px-6 py-3 text-left text-sm font-semibold">Zone</th>
                 <th className="text-foreground px-6 py-3 text-left text-sm font-semibold">State</th>
-                <th className="text-foreground px-6 py-3 text-left text-sm font-semibold">
-                  Base Cost
-                </th>
-                <th className="text-foreground px-6 py-3 text-left text-sm font-semibold">
-                  Est. Days
-                </th>
-                <th className="text-foreground px-6 py-3 text-left text-sm font-semibold">
-                  Status
-                </th>
-                <th className="text-foreground px-6 py-3 text-left text-sm font-semibold">
-                  Actions
-                </th>
+                <th className="text-foreground px-6 py-3 text-left text-sm font-semibold">Base Cost</th>
+                <th className="text-foreground px-6 py-3 text-left text-sm font-semibold">Est. Days</th>
+                <th className="text-foreground px-6 py-3 text-left text-sm font-semibold">Status</th>
+                <th className="text-foreground px-6 py-3 text-left text-sm font-semibold">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-border divide-y">
@@ -269,33 +196,16 @@ export default function DeliveryPage() {
                 <tr key={zone.id} className="hover:bg-muted/50">
                   <td className="text-foreground px-6 py-4 font-medium">{zone.name}</td>
                   <td className="text-muted-foreground px-6 py-4 text-sm">{zone.state || '-'}</td>
-                  <td className="text-muted-foreground px-6 py-4 text-sm">
-                    ${zone.baseCost.toFixed(2)}
-                  </td>
-                  <td className="text-muted-foreground px-6 py-4 text-sm">
-                    {zone.estimatedDays} days
-                  </td>
+                  <td className="text-muted-foreground px-6 py-4 text-sm">${zone.baseCost.toFixed(2)}</td>
+                  <td className="text-muted-foreground px-6 py-4 text-sm">{zone.estimatedDays} days</td>
                   <td className="px-6 py-4">
-                    <span
-                      className={`rounded px-2 py-1 text-xs ${
-                        zone.isActive
-                          ? 'bg-green-500/20 text-green-700'
-                          : 'bg-red-500/20 text-red-700'
-                      }`}
-                    >
-                      {zone.isActive ? 'Active' : 'Inactive'}
-                    </span>
+                    <span className={`rounded px-2 py-1 text-xs ${zone.isActive ? 'bg-green-500/20 text-green-700' : 'bg-red-500/20 text-red-700'}`}>{zone.isActive ? 'Active' : 'Inactive'}</span>
                   </td>
                   <td className="space-x-2 px-6 py-4">
                     <Button variant="outline" size="sm" onClick={() => handleEdit(zone)}>
                       Edit
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDelete(zone.id)}
-                      className="text-red-600"
-                    >
+                    <Button variant="outline" size="sm" onClick={() => handleDelete(zone.id)} className="text-red-600">
                       Delete
                     </Button>
                   </td>

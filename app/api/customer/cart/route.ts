@@ -2,16 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { getUserFromRequest } from '@/lib/request';
 
-// GET: Fetch user's cart
 export async function GET(req: NextRequest) {
   try {
     const user = getUserFromRequest(req);
+
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const cartItems = await prisma.cartItem.findMany({
-      where: { userId: user.id },
+      where: {
+        userId: user.id,
+      },
       include: {
         product: {
           include: {
@@ -21,7 +23,112 @@ export async function GET(req: NextRequest) {
               select: {
                 id: true,
                 supplierProfile: {
-                  select: { storeName: true },
+                  select: {
+                    storeName: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        id: 'desc',
+      },
+    });
+
+    return NextResponse.json({
+      cartItems,
+    });
+  } catch (error) {
+    console.error('[cart GET] Failed:', error);
+
+    return NextResponse.json(
+      {
+        error: 'Failed to fetch cart',
+      },
+      {
+        status: 500,
+      }
+    );
+  }
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const user = getUserFromRequest(req);
+
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const body = await req.json();
+
+    const { productId, quantity, selectedTier, selectedPreparation, selectedVariants } = body;
+
+    if (!productId) {
+      return NextResponse.json({ error: 'Product ID is required' }, { status: 400 });
+    }
+
+    if (!quantity || quantity < 1) {
+      return NextResponse.json({ error: 'Invalid quantity' }, { status: 400 });
+    }
+
+    const product = await prisma.product.findUnique({
+      where: {
+        id: productId,
+      },
+    });
+
+    if (!product) {
+      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+    }
+
+    if (quantity > product.stock) {
+      return NextResponse.json(
+        {
+          error: `Only ${product.stock} items available`,
+        },
+        { status: 400 }
+      );
+    }
+
+    const cartItem = await prisma.cartItem.upsert({
+      where: {
+        userId_productId: {
+          userId: user.id,
+          productId,
+        },
+      },
+
+      create: {
+        userId: user.id,
+        productId,
+        quantity,
+        selectedTier: selectedTier || null,
+        selectedPreparation: selectedPreparation || null,
+        selectedVariants: selectedVariants || [],
+      },
+
+      update: {
+        quantity,
+        selectedTier: selectedTier || null,
+        selectedPreparation: selectedPreparation || null,
+        selectedVariants: selectedVariants || [],
+      },
+
+      include: {
+        product: {
+          include: {
+            tiers: true,
+            variants: true,
+            supplier: {
+              select: {
+                id: true,
+                supplierProfile: {
+                  select: {
+                    storeName: true,
+                  },
                 },
               },
             },
@@ -30,63 +137,15 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({ cartItems });
+    return NextResponse.json(cartItem, { status: 200 });
   } catch (error) {
-    console.error('[v0] Get cart error:', error);
-    return NextResponse.json({ error: 'Failed to fetch cart' }, { status: 500 });
-  }
-}
+    console.error('[cart] add/update error:', error);
 
-// POST: Add or update item in cart
-export async function POST(req: NextRequest) {
-  try {
-    const user = getUserFromRequest(req);
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const body = await req.json();
-    const { productId, quantity, selectedTier, selectedVariants } = body;
-
-    // Check if product exists
-    const product = await prisma.product.findUnique({
-      where: { id: productId },
-    });
-
-    if (!product) {
-      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
-    }
-
-    // Upsert cart item
-    const cartItem = await prisma.cartItem.upsert({
-      where: {
-        userId_productId: { userId: user.id, productId },
+    return NextResponse.json(
+      {
+        error: 'Failed to update cart',
       },
-      create: {
-        userId: user.id,
-        productId,
-        quantity,
-        selectedTier: selectedTier || null,
-        selectedVariants: selectedVariants || [],
-      },
-      update: {
-        quantity,
-        selectedTier: selectedTier || null,
-        selectedVariants: selectedVariants || [],
-      },
-      include: {
-        product: {
-          include: {
-            tiers: true,
-            variants: true,
-          },
-        },
-      },
-    });
-
-    return NextResponse.json(cartItem);
-  } catch (error) {
-    console.error('[v0] Add to cart error:', error);
-    return NextResponse.json({ error: 'Failed to add to cart' }, { status: 500 });
+      { status: 500 }
+    );
   }
 }

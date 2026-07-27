@@ -2,9 +2,9 @@ import { Analytics } from '@vercel/analytics/next';
 import type { Metadata, Viewport } from 'next';
 import { Sora, Inter, Work_Sans } from 'next/font/google';
 import './globals.css';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import MobileAppPromo from '@/components/MobileApp';
+import Header from '@/components/sections/common/Header';
+import Footer from '@/components/sections/common/Footer';
+import MobileAppPromo from '@/components/sections/main/MobileApp';
 
 const sora = Sora({
   subsets: ['latin'],
@@ -46,15 +46,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`bg-background ${sora.variable} ${inter.variable} ${workSans.variable}`}
-    >
+    <html lang="en" className={` ${sora.variable} ${inter.variable} ${workSans.variable}`}>
       <body className="antialiased">
-        <Header />
+        {/* <Header /> */}
         {children}
         {process.env.NODE_ENV === 'production' && <Analytics />}
-        <Footer />
+        {/* <Footer /> */}
       </body>
     </html>
   );

@@ -73,20 +73,12 @@ export default function InventoryPage() {
           <table className="w-full">
             <thead className="bg-muted border-border border-b">
               <tr>
-                <th className="text-foreground px-6 py-3 text-left text-sm font-semibold">
-                  Product
-                </th>
+                <th className="text-foreground px-6 py-3 text-left text-sm font-semibold">Product</th>
                 <th className="text-foreground px-6 py-3 text-left text-sm font-semibold">Type</th>
                 <th className="text-foreground px-6 py-3 text-left text-sm font-semibold">SKU</th>
-                <th className="text-foreground px-6 py-3 text-left text-sm font-semibold">
-                  Current Stock
-                </th>
-                <th className="text-foreground px-6 py-3 text-left text-sm font-semibold">
-                  Status
-                </th>
-                <th className="text-foreground px-6 py-3 text-left text-sm font-semibold">
-                  Actions
-                </th>
+                <th className="text-foreground px-6 py-3 text-left text-sm font-semibold">Current Stock</th>
+                <th className="text-foreground px-6 py-3 text-left text-sm font-semibold">Status</th>
+                <th className="text-foreground px-6 py-3 text-left text-sm font-semibold">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-border divide-y">
@@ -100,38 +92,20 @@ export default function InventoryPage() {
                   <td className={`px-6 py-4 ${getLowStockWarning(product.stock)}`}>
                     {editingId === product.id ? (
                       <div className="flex gap-2">
-                        <input
-                          type="number"
-                          value={newStock}
-                          onChange={(e) => setNewStock(e.target.value)}
-                          placeholder="New amount"
-                          className="border-border bg-background text-foreground w-20 rounded border px-2 py-1"
-                        />
+                        <input type="number" value={newStock} onChange={(e) => setNewStock(e.target.value)} placeholder="New amount" className="border-border bg-background text-foreground w-20 rounded border px-2 py-1" />
                       </div>
                     ) : (
                       <span>{product.stock} units</span>
                     )}
                   </td>
                   <td className="px-6 py-4">
-                    <span
-                      className={`rounded px-2 py-1 text-xs ${
-                        product.inStock
-                          ? 'bg-green-500/20 text-green-700'
-                          : 'bg-red-500/20 text-red-700'
-                      }`}
-                    >
-                      {product.inStock ? 'In Stock' : 'Out of Stock'}
-                    </span>
+                    <span className={`rounded px-2 py-1 text-xs ${product.inStock ? 'bg-green-500/20 text-green-700' : 'bg-red-500/20 text-red-700'}`}>{product.inStock ? 'In Stock' : 'Out of Stock'}</span>
                   </td>
                   <td className="px-6 py-4">
                     {editingId === product.id ? (
                       <div className="space-y-2">
                         <div>
-                          <select
-                            value={reason}
-                            onChange={(e) => setReason(e.target.value)}
-                            className="border-border bg-background text-foreground w-full rounded border px-2 py-1 text-xs"
-                          >
+                          <select value={reason} onChange={(e) => setReason(e.target.value)} className="border-border bg-background text-foreground w-full rounded border px-2 py-1 text-xs">
                             <option value="ADJUSTMENT">Adjustment</option>
                             <option value="RESTOCK">Restock</option>
                             <option value="DAMAGE">Damage</option>
@@ -139,19 +113,9 @@ export default function InventoryPage() {
                             <option value="RETURN">Return</option>
                           </select>
                         </div>
-                        <input
-                          type="text"
-                          value={notes}
-                          onChange={(e) => setNotes(e.target.value)}
-                          placeholder="Notes"
-                          className="border-border bg-background text-foreground w-full rounded border px-2 py-1 text-xs"
-                        />
+                        <input type="text" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Notes" className="border-border bg-background text-foreground w-full rounded border px-2 py-1 text-xs" />
                         <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            onClick={() => handleUpdateStock(product.id)}
-                            disabled={isSubmitting}
-                          >
+                          <Button size="sm" onClick={() => handleUpdateStock(product.id)} disabled={isSubmitting}>
                             Save
                           </Button>
                           <Button

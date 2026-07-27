@@ -110,100 +110,33 @@ export default function AddressBookPage() {
       <div className="mx-auto max-w-2xl">
         <div className="mb-8 flex items-center justify-between">
           <h1 className="text-foreground text-3xl font-bold">Address Book</h1>
-          <Button onClick={() => setShowForm(!showForm)}>
-            {showForm ? 'Cancel' : '+ Add Address'}
-          </Button>
+          <Button onClick={() => setShowForm(!showForm)}>{showForm ? 'Cancel' : '+ Add Address'}</Button>
         </div>
 
         {/* Add/Edit Form */}
         {showForm && (
-          <form
-            onSubmit={handleSubmit}
-            className="bg-card border-border mb-8 rounded-lg border p-6"
-          >
-            <h2 className="text-foreground mb-4 font-semibold">
-              {editingId ? 'Edit Address' : 'Add New Address'}
-            </h2>
+          <form onSubmit={handleSubmit} className="bg-card border-border mb-8 rounded-lg border p-6">
+            <h2 className="text-foreground mb-4 font-semibold">{editingId ? 'Edit Address' : 'Add New Address'}</h2>
 
             <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-              <input
-                type="text"
-                name="label"
-                placeholder="Label (e.g., Home, Office)"
-                value={formData.label || ''}
-                onChange={handleInputChange}
-                className="border-border bg-background text-foreground rounded-lg border px-3 py-2"
-              />
-              <input
-                type="text"
-                name="fullName"
-                placeholder="Full Name"
-                value={formData.fullName || ''}
-                onChange={handleInputChange}
-                required
-                className="border-border bg-background text-foreground rounded-lg border px-3 py-2"
-              />
+              <input type="text" name="label" placeholder="Label (e.g., Home, Office)" value={formData.label || ''} onChange={handleInputChange} className="border-border bg-background text-foreground rounded-lg border px-3 py-2" />
+              <input type="text" name="fullName" placeholder="Full Name" value={formData.fullName || ''} onChange={handleInputChange} required className="border-border bg-background text-foreground rounded-lg border px-3 py-2" />
             </div>
 
             <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-              <input
-                type="tel"
-                name="phone"
-                placeholder="Phone Number"
-                value={formData.phone || ''}
-                onChange={handleInputChange}
-                className="border-border bg-background text-foreground rounded-lg border px-3 py-2"
-              />
-              <input
-                type="text"
-                name="street"
-                placeholder="Street Address"
-                value={formData.street || ''}
-                onChange={handleInputChange}
-                required
-                className="border-border bg-background text-foreground rounded-lg border px-3 py-2"
-              />
+              <input type="tel" name="phone" placeholder="Phone Number" value={formData.phone || ''} onChange={handleInputChange} className="border-border bg-background text-foreground rounded-lg border px-3 py-2" />
+              <input type="text" name="street" placeholder="Street Address" value={formData.street || ''} onChange={handleInputChange} required className="border-border bg-background text-foreground rounded-lg border px-3 py-2" />
             </div>
 
             <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-3">
-              <input
-                type="text"
-                name="city"
-                placeholder="City"
-                value={formData.city || ''}
-                onChange={handleInputChange}
-                required
-                className="border-border bg-background text-foreground rounded-lg border px-3 py-2"
-              />
-              <input
-                type="text"
-                name="state"
-                placeholder="State"
-                value={formData.state || ''}
-                onChange={handleInputChange}
-                required
-                className="border-border bg-background text-foreground rounded-lg border px-3 py-2"
-              />
-              <input
-                type="text"
-                name="zipCode"
-                placeholder="Zip Code"
-                value={formData.zipCode || ''}
-                onChange={handleInputChange}
-                required
-                className="border-border bg-background text-foreground rounded-lg border px-3 py-2"
-              />
+              <input type="text" name="city" placeholder="City" value={formData.city || ''} onChange={handleInputChange} required className="border-border bg-background text-foreground rounded-lg border px-3 py-2" />
+              <input type="text" name="state" placeholder="State" value={formData.state || ''} onChange={handleInputChange} required className="border-border bg-background text-foreground rounded-lg border px-3 py-2" />
+              <input type="text" name="zipCode" placeholder="Zip Code" value={formData.zipCode || ''} onChange={handleInputChange} required className="border-border bg-background text-foreground rounded-lg border px-3 py-2" />
             </div>
 
             <div className="mb-4">
               <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  name="isDefault"
-                  checked={formData.isDefault || false}
-                  onChange={handleInputChange}
-                  className="h-4 w-4"
-                />
+                <input type="checkbox" name="isDefault" checked={formData.isDefault || false} onChange={handleInputChange} className="h-4 w-4" />
                 <span className="text-foreground">Set as default address</span>
               </label>
             </div>
@@ -222,19 +155,11 @@ export default function AddressBookPage() {
                 <div className="mb-3 flex items-start justify-between">
                   <div className="flex-1">
                     <div className="mb-2 flex items-center gap-2">
-                      <h3 className="text-foreground font-semibold">
-                        {address.label || 'Address'}
-                      </h3>
-                      {address.isDefault && (
-                        <span className="rounded bg-green-500/20 px-2 py-1 text-xs text-green-700">
-                          Default
-                        </span>
-                      )}
+                      <h3 className="text-foreground font-semibold">{address.label || 'Address'}</h3>
+                      {address.isDefault && <span className="rounded bg-green-500/20 px-2 py-1 text-xs text-green-700">Default</span>}
                     </div>
                     <p className="text-foreground">{address.fullName}</p>
-                    {address.phone && (
-                      <p className="text-muted-foreground text-sm">{address.phone}</p>
-                    )}
+                    {address.phone && <p className="text-muted-foreground text-sm">{address.phone}</p>}
                     <p className="text-muted-foreground text-sm">{address.street}</p>
                     <p className="text-muted-foreground text-sm">
                       {address.city}, {address.state} {address.zipCode}
@@ -244,12 +169,7 @@ export default function AddressBookPage() {
                     <Button variant="outline" size="sm" onClick={() => handleEdit(address)}>
                       Edit
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDelete(address.id)}
-                      className="text-red-600 hover:bg-red-50"
-                    >
+                    <Button variant="outline" size="sm" onClick={() => handleDelete(address.id)} className="text-red-600 hover:bg-red-50">
                       Delete
                     </Button>
                   </div>

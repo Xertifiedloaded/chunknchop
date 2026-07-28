@@ -1,7 +1,5 @@
-'use client';
+import prisma from '@/lib/db';
 
-import { useState, useEffect } from 'react';
-import { useProductStore } from '@/lib/store/productStore';
 import Header from '@/components/sections/common/Header';
 import Hero from '@/components/sections/main/Hero';
 import About from '@/components/sections/main/About';
@@ -10,40 +8,56 @@ import Categories from '@/components/sections/main/Categories';
 import HowItWorks from '@/components/sections/main/HowItWorks';
 import MeatBox from '@/components/sections/main/MeatBox';
 import DeliveryCoverage from '@/components/sections/main/DeliveryCoverage';
-import Testimonials from '@/components/sections/main/Testimonial';
 import MobileAppPromo from '@/components/sections/main/MobileApp';
 import Footer from '@/components/sections/common/Footer';
-export default function HomePage() {
-  const { products, setProducts } = useProductStore();
-  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
+import Reviews, { ReviewsSkeleton } from '@/components/sections/main/Reviews';
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
+export default async function HomePage() {
+  let reviews = null;
 
-  const fetchProducts = async () => {
-    try {
-      setIsLoadingProducts(true);
-      const res = await fetch('/api/products');
-      const data = await res.json();
-      setProducts(data.products || []);
-    } catch (error) {
-      console.error('Failed to fetch products:', error);
-    } finally {
-      setIsLoadingProducts(false);
-    }
-  };
+  try {
+    reviews = await prisma.rating.findMany({
+      where: {
+        comment: {
+          not: null,
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: 6,
+      include: {
+        user: true,
+        product: true,
+      },
+    });
+  } catch (error) {
+    console.error('Failed to load reviews:', error);
+  }
 
   return (
     <div className="min-h-screen">
-      <Hero />
+      <Hero
+        title={<>Premium Quality Meat, <span className="text-brand">Delivered Fresh</span> Across Lagos.</>}
+        paragraph="Certified, hygienically processed livestock products expertly portioned, carefully packaged, and delivered to your doorstep or picked up at a ChunkNChop counter near you."
+        isCenter={false}
+        features={true}
+      />
       <About />
       <WhyUs />
       <Categories />
       <HowItWorks />
       <MeatBox />
       <DeliveryCoverage />
-      <Testimonials />
+      {reviews === null ? (
+        <ReviewsSkeleton />
+      ) : (
+        <Reviews reviews={reviews} />
+      )}
+      <MobileAppPromo />
     </div>
   );
 }
+
+
+

@@ -99,23 +99,57 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
   try {
     const user = getUserFromRequest(req);
+
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json(
+        {
+          error: 'Unauthorized',
+        },
+        {
+          status: 401,
+        }
+      );
     }
 
     const orders = await prisma.order.findMany({
-      where: { customerId: user.id },
+      where: {
+        customerId: user.id,
+      },
       include: {
         items: {
-          include: { product: true },
+          include: {
+            product: true,
+          },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: {
+        createdAt: 'desc',
+      },
     });
 
-    return NextResponse.json({ orders });
+    // No orders is a valid state.
+    // Prisma returns [] when there are no matching records.
+    return NextResponse.json(
+      {
+        orders: orders ?? [],
+      },
+      {
+        status: 200,
+      }
+    );
   } catch (error) {
-    console.error('[v0] Get orders error:', error);
-    return NextResponse.json({ error: 'Failed to fetch orders' }, { status: 500 });
+    console.error('[GET /api/customer/orders]', error);
+
+    return NextResponse.json(
+      {
+        error: 'Failed to fetch orders',
+        orders: [],
+      },
+      {
+        status: 500,
+      }
+    );
   }
 }
+
+

@@ -1,6 +1,8 @@
 'use client';
+
 import Image from 'next/image';
 import logo from '../../../assets/logo.svg';
+import Link from 'next/link';
 const SOCIALS = [
   {
     href: '#',
@@ -75,9 +77,9 @@ export default function Footer() {
               <ul className="mt-4 space-y-3">
                 {col.links.map((link) => (
                   <li key={link}>
-                    <a href="#" className="text-sm text-neutral-400 transition-colors hover:text-white">
+                    <Link href="#" className="text-sm text-neutral-400 transition-colors hover:text-white">
                       {link}
-                    </a>
+                    </Link>
                   </li>
                 ))}
               </ul>

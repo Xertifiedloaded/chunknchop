@@ -60,7 +60,7 @@ export default function ProductCard({ product }: { product: Product }) {
         }))
       );
     } catch (error) {
-      console.error('[cart] failed to refresh cart:', error);
+      console.error('failed to refresh cart:', error);
     }
   };
 
@@ -107,7 +107,7 @@ export default function ProductCard({ product }: { product: Product }) {
       await refreshCart();
       toast.success('Added to cart');
     } catch (error) {
-      console.error('[cart] failed to add item:', error);
+      console.error('failed to add item:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to add item to cart');
     } finally {
       setIsAdding(false);

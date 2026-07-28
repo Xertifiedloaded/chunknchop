@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import Meat from '@/assets/header-logo.svg';
+import Meat from '@/assets/knife.png';
 
 interface EmptyStateProps {
   onClear: () => void;
@@ -16,7 +16,7 @@ export default function EmptyState({ onClear }: EmptyStateProps) {
           alt="No products found"
           width={28}
           height={28}
-          className="h-7 w-7 object-contain"
+          className="h-9 w-9 object-contain"
         />
       </div>
 

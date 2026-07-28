@@ -5,6 +5,10 @@ import './globals.css';
 import Header from '@/components/sections/common/Header';
 import Footer from '@/components/sections/common/Footer';
 import MobileAppPromo from '@/components/sections/main/MobileApp';
+import { ScrollToTop } from '@/lib/scroll';
+import { Toaster } from 'react-hot-toast';
+
+
 
 const sora = Sora({
   subsets: ['latin'],
@@ -48,10 +52,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={` ${sora.variable} ${inter.variable} ${workSans.variable}`}>
       <body className="antialiased">
-        {/* <Header /> */}
+             <Toaster />
+        <ScrollToTop/>
         {children}
         {process.env.NODE_ENV === 'production' && <Analytics />}
-        {/* <Footer /> */}
       </body>
     </html>
   );

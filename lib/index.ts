@@ -50,29 +50,7 @@ const FEATURES = [
     icon: Leaf,
   },
 ];
-const TESTIMONIALS = [
-  {
-    quote: 'The freshness is unreal. My weekend jollof-and-suya nights are on a whole other level.',
-    name: 'Adaeze O.',
-    location: 'Lekki, Lagos',
-    initial: 'A',
-    avatarBg: 'bg-[#F5D7C8] text-[#B5502E]',
-  },
-  {
-    quote: 'Cleanly packaged, always on time, and portions are exactly what I ask for. Never going back.',
-    name: 'Tunde B.',
-    location: 'Ikoyi, Lagos',
-    initial: 'T',
-    avatarBg: 'bg-neutral-200 text-neutral-500',
-  },
-  {
-    quote: 'Feeding a family of five just got easier. The subscription is genuinely worth every naira.',
-    name: 'Chiamaka E.',
-    location: 'Yaba, Lagos',
-    initial: 'C',
-    avatarBg: 'bg-[#F7D9CF] text-[#C4593A]',
-  },
-];
+
 const REASONS = [
   {
     title: 'Certified Quality',
@@ -99,4 +77,60 @@ const REASONS = [
     description: 'We help households, restaurants, and food businesses enjoy safe, consistent, and premium-quality meat every day.',
   },
 ];
-export { BADGES, REASONS, STEPS, FEATURES, statusSteps, TESTIMONIALS };
+ const NAV_LINKS = [
+  {
+    label: 'About',
+    href: '/about',
+  },
+  {
+    label: 'Categories',
+    href: '/categories',
+  },
+  {
+    label: 'Wholesale',
+    href: '/wholesale',
+  },
+  {
+    label: 'Recipes',
+    href: '/recipes',
+  },
+  {
+    label: 'Contact',
+    href: '/contact',
+  },
+  {
+    label: 'Shop',
+    href: '/shop',
+  },
+];
+
+
+const ROLE_STYLES: Record<
+  string,
+  {
+    label: string;
+    avatar: string; // avatar circle background
+    badge: string; // text/background for the small role badge
+    mobileAccent: string; // background/border used for mobile menu links tied to this role
+  }
+> = {
+  ADMIN: {
+    label: 'Admin',
+    avatar: 'bg-red-500',
+    badge: 'bg-red-50 text-red-600',
+    mobileAccent: 'bg-red-500 text-white',
+  },
+  SUPPLIER: {
+    label: 'Supplier',
+    avatar: 'bg-blue-500',
+    badge: 'bg-blue-50 text-blue-600',
+    mobileAccent: 'bg-blue-50 text-blue-700 border border-blue-100',
+  },
+  CUSTOMER: {
+    label: 'Customer',
+    avatar: 'bg-brand',
+    badge: 'bg-brand/10 text-brand',
+    mobileAccent: 'bg-neutral-50 text-[#2D2D2D]',
+  },
+};
+export {NAV_LINKS,ROLE_STYLES, BADGES, REASONS, STEPS, FEATURES, statusSteps, TESTIMONIALS };

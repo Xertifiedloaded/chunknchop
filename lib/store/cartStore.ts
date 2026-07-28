@@ -43,19 +43,13 @@ interface CartState {
   items: CartItem[];
   isLoading: boolean;
   error: string | null;
-
-  // Actions
   setItems: (items: CartItem[]) => void;
   addItem: (item: CartItem) => void;
   removeItem: (itemId: string) => void;
   updateQuantity: (itemId: string, quantity: number) => void;
   clearCart: () => void;
-
-  // Loading / error
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
-
-  // Computed
   getTotalItems: () => number;
   getTotalPrice: () => number;
 }

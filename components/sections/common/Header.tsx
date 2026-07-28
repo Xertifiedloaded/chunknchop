@@ -1,75 +1,36 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-
 import { Search, User, ShoppingBag, Menu, X, LogOut, Package } from 'lucide-react';
-
 import toast from 'react-hot-toast';
-
 import logo from '../../../assets/header-logo.svg';
-
 import { useAuthStore } from '@/lib/store/authStore';
 import { useCartStore } from '@/lib/store/cartStore';
 import CartDropdown from './CartDropdown';
+import { NAV_LINKS, ROLE_STYLES } from '@/lib';
 
-const NAV_LINKS = [
-  {
-    label: 'About',
-    href: '/about',
-  },
-  {
-    label: 'Categories',
-    href: '/categories',
-  },
-  {
-    label: 'Wholesale',
-    href: '/wholesale',
-  },
-  {
-    label: 'Recipes',
-    href: '/recipes',
-  },
-  {
-    label: 'Contact',
-    href: '/contact',
-  },
-  {
-    label: 'Shop',
-    href: '/shop',
-  },
-];
+function getRoleStyle(role?: string) {
+  return ROLE_STYLES[role ?? ''] ?? ROLE_STYLES.CUSTOMER;
+}
 
 export default function Header() {
   const router = useRouter();
-
   const { user, logout } = useAuthStore();
-
   const { items: cartItems, setItems: setCartItems } = useCartStore();
-
   const [menuOpen, setMenuOpen] = useState(false);
-
   const [searchOpen, setSearchOpen] = useState(false);
-
   const [cartOpen, setCartOpen] = useState(false);
-
   const [accountOpen, setAccountOpen] = useState(false);
-
   const [query, setQuery] = useState('');
-
   const searchInputRef = useRef<HTMLInputElement>(null);
-
   const accountRef = useRef<HTMLDivElement>(null);
-
   const isSupplier = user?.role === 'SUPPLIER';
-
   const isAdmin = user?.role === 'ADMIN';
-
+  const roleStyle = getRoleStyle(user?.role);
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-
   useEffect(() => {
     if (searchOpen) {
       searchInputRef.current?.focus();
@@ -84,30 +45,21 @@ export default function Header() {
         setAccountOpen(false);
       }
     }
-
     if (accountOpen) {
       document.addEventListener('mousedown', handleClick);
     }
-
     return () => {
       document.removeEventListener('mousedown', handleClick);
     };
   }, [accountOpen]);
 
-  /**
-   * SEARCH
-   */
   function handleSearchSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
     const trimmedQuery = query.trim();
-
     if (!trimmedQuery) {
       return;
     }
-
     router.push(`/shop?search=${encodeURIComponent(trimmedQuery)}`);
-
     setSearchOpen(false);
     setMenuOpen(false);
   }
@@ -134,9 +86,6 @@ export default function Header() {
     }
   }
 
-  /**
-   * CLOSE ALL MENUS
-   */
   function closeMobileMenu() {
     setMenuOpen(false);
     setSearchOpen(false);
@@ -146,7 +95,7 @@ export default function Header() {
 
   return (
     <header className="relative z-50 border-b border-neutral-100 bg-white">
-      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6 lg:px-10">
+      <div className="mx-auto flex py-2 max-w-7xl items-center justify-between px-6 lg:px-10">
         <Link href="/" onClick={closeMobileMenu} className="shrink-0">
           <Image src={logo} alt="ChunkNChop" priority className="h-auto w-32 sm:w-40" />
         </Link>
@@ -154,20 +103,20 @@ export default function Header() {
         <nav className="hidden items-center gap-6 lg:flex">
           {!isSupplier &&
             NAV_LINKS.map((link) => (
-              <Link key={link.label} href={link.href} className="text-sm text-[#2D2D2D] transition-colors hover:text-neutral-900">
+              <Link key={link.label} href={link.href} className="text-sm text-charcoal transition-colors hover:text-neutral-900">
                 {link.label}
               </Link>
             ))}
 
           {isSupplier && (
-            <Link href="/supplier/dashboard" className="flex items-center gap-2 text-sm text-[#2D2D2D]">
+            <Link href="/supplier/dashboard" className="flex items-center gap-2 text-sm text-charcoal">
               <Package size={16} />
               Dashboard
             </Link>
           )}
 
           {isAdmin && (
-            <Link href="/admin" className="text-sm text-[#2D2D2D]">
+            <Link href="/admin" className="text-sm text-charcoal">
               Admin
             </Link>
           )}
@@ -202,30 +151,50 @@ export default function Header() {
                     setSearchOpen(false);
                   }}
                   aria-label="Open account menu"
-                  className="text-neutral-500 transition hover:text-neutral-900"
+                  className="flex items-center gap-2 text-neutral-500 transition hover:text-neutral-900"
                 >
-                  <User size={20} />
+                  <span className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold uppercase text-white ${roleStyle.avatar}`}>
+                    {(user.name?.trim()?.[0] ?? user.email[0]).toUpperCase()}
+                  </span>
+
+                  <span className="hidden flex-col items-start md:flex">
+                    <span className="max-w-30 truncate text-xs font-medium text-charcoal">
+                      {user.name?.split(' ')[0] ?? user.email.split('@')[0]}
+                    </span>
+
+                    {(isAdmin || isSupplier) && (
+                      <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold leading-tight ${roleStyle.badge}`}>
+                        {roleStyle.label}
+                      </span>
+                    )}
+                  </span>
                 </button>
 
                 {accountOpen && (
                   <div className="absolute right-0 mt-3 w-52 overflow-hidden rounded-lg border border-neutral-100 bg-white shadow-lg">
-                    <div className="truncate border-b border-neutral-100 px-4 py-2.5 text-xs text-neutral-400">{user.email}</div>
+                    <div className="border-b border-neutral-100 px-4 py-2.5">
+                      <p className="truncate text-xs text-neutral-400">{user.email}</p>
+
+                      <span className={`mt-1 inline-block rounded px-1.5 py-0.5 text-[10px] font-semibold ${roleStyle.badge}`}>
+                        {roleStyle.label}
+                      </span>
+                    </div>
 
                     {!isSupplier && (
                       <>
-                        <Link href="/orders" onClick={() => setAccountOpen(false)} className="block px-4 py-2.5 text-sm text-[#2D2D2D] hover:bg-neutral-50">
+                        <Link href="/orders" onClick={() => setAccountOpen(false)} className="block px-4 py-2.5 text-sm text-charcoal hover:bg-neutral-50">
                           Orders
                         </Link>
 
-                        <Link href="/account/subscriptions" onClick={() => setAccountOpen(false)} className="block px-4 py-2.5 text-sm text-[#2D2D2D] hover:bg-neutral-50">
+                        <Link href="/account/subscriptions" onClick={() => setAccountOpen(false)} className="block px-4 py-2.5 text-sm text-charcoal hover:bg-neutral-50">
                           Subscriptions
                         </Link>
 
-                        <Link href="/account/wholesale" onClick={() => setAccountOpen(false)} className="block px-4 py-2.5 text-sm text-[#2D2D2D] hover:bg-neutral-50">
+                        <Link href="/account/wholesale" onClick={() => setAccountOpen(false)} className="block px-4 py-2.5 text-sm text-charcoal hover:bg-neutral-50">
                           Wholesale
                         </Link>
 
-                        <Link href="/account/support" onClick={() => setAccountOpen(false)} className="block px-4 py-2.5 text-sm text-[#2D2D2D] hover:bg-neutral-50">
+                        <Link href="/account/support" onClick={() => setAccountOpen(false)} className="block px-4 py-2.5 text-sm text-charcoal hover:bg-neutral-50">
                           Support
                         </Link>
                       </>
@@ -240,7 +209,7 @@ export default function Header() {
               </>
             ) : (
               <div className="flex items-center gap-3">
-                <Link href="/auth/login" className="text-sm text-[#2D2D2D]">
+                <Link href="/auth/login" className="text-sm text-charcoal">
                   Sign In
                 </Link>
 
@@ -279,7 +248,7 @@ export default function Header() {
               setAccountOpen(false);
             }}
             aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-            className="text-[#2D2D2D] lg:hidden"
+            className="text-charcoal lg:hidden"
           >
             {menuOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
@@ -291,38 +260,63 @@ export default function Header() {
           <form onSubmit={handleSearchSubmit} className="mx-auto flex max-w-7xl items-center gap-3 px-6 py-3 lg:px-10">
             <Search size={18} className="text-neutral-400" />
 
-            <input ref={searchInputRef} type="text" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search premium meat..." aria-label="Search products" className="w-full bg-transparent text-sm text-[#2D2D2D] outline-none placeholder:text-neutral-400" />
+            <input ref={searchInputRef} type="text" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search premium meat..." aria-label="Search products" className="w-full bg-transparent text-sm text-charcoal outline-none placeholder:text-neutral-400" />
           </form>
         </div>
       )}
 
       {!isSupplier && <CartDropdown isOpen={cartOpen} onClose={() => setCartOpen(false)} />}
-
-      <div className={`overflow-hidden border-t border-neutral-100 transition-all duration-300 lg:hidden ${menuOpen ? 'max-h-150 opacity-100' : 'max-h-0 opacity-0'}`}>
+      <div className={`overflow-hidden border-t border-neutral-100 transition-all duration-300 lg:hidden ${menuOpen ? 'max-h-170 opacity-100' : 'max-h-0 opacity-0'}`}>
         <nav className="flex flex-col px-6 py-4">
-          {!isSupplier &&
-            NAV_LINKS.map((link) => (
-              <Link key={link.label} href={link.href} onClick={() => setMenuOpen(false)} className="border-b border-neutral-100 py-3 text-sm text-[#2D2D2D]">
-                {link.label}
-              </Link>
-            ))}
+          {user && (
+            <div className="mb-3 flex items-center gap-3 border-b border-neutral-100 pb-3">
+              <span className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold uppercase text-white ${roleStyle.avatar}`}>
+                {(user.name?.trim()?.[0] ?? user.email[0]).toUpperCase()}
+              </span>
+
+              <div className="flex flex-col">
+                <span className="truncate text-sm font-medium text-charcoal">
+                  {user.name?.split(' ')[0] ?? user.email.split('@')[0]}
+                </span>
+
+                <span className={`mt-0.5 inline-block w-fit rounded px-1.5 py-0.5 text-[10px] font-semibold ${roleStyle.badge}`}>
+                  {roleStyle.label}
+                </span>
+              </div>
+            </div>
+          )}
 
           {isSupplier && (
-            <Link href="/supplier/dashboard" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 border-b border-neutral-100 py-3 text-sm text-[#2D2D2D]">
+            <Link
+              href="/supplier/dashboard"
+              onClick={() => setMenuOpen(false)}
+              className={`mb-2 flex items-center gap-2 rounded-lg px-3 py-3 text-sm font-medium ${roleStyle.mobileAccent}`}
+            >
               <Package size={16} />
               Dashboard
             </Link>
           )}
 
           {isAdmin && (
-            <Link href="/admin" onClick={() => setMenuOpen(false)} className="border-b border-neutral-100 py-3 text-sm text-[#2D2D2D]">
+            <Link
+              href="/admin"
+              onClick={() => setMenuOpen(false)}
+              className={`mb-2 rounded-lg px-3 py-3 text-sm font-medium ${roleStyle.mobileAccent}`}
+            >
               Admin
             </Link>
           )}
 
+          {!isSupplier &&
+            NAV_LINKS.map((link) => (
+              <Link key={link.label} href={link.href} onClick={() => setMenuOpen(false)} className="border-b border-neutral-100 py-3 text-sm text-charcoal">
+                {link.label}
+              </Link>
+            ))}
+
           {!user ? (
             <div className="flex gap-3 py-4 sm:hidden">
-              <Link href="/auth/login" onClick={() => setMenuOpen(false)} className="flex-1 rounded-md border border-neutral-200 px-4 py-2 text-center text-sm font-medium text-[#2D2D2D]">
+              <Link href="/auth/login" onClick={() => setMenuOpen(false)} className="flex-1 rounded-md border border-neutral-200 px-4 py-2 text-center text-sm font-medium text-charcoal">
                 Sign In
               </Link>
 
@@ -332,23 +326,21 @@ export default function Header() {
             </div>
           ) : (
             <div className="py-4 sm:hidden">
-              <p className="mb-3 truncate text-xs text-neutral-400">{user.email}</p>
-
               {!isSupplier && (
                 <div className="flex flex-col">
-                  <Link href="/orders" onClick={() => setMenuOpen(false)} className="py-2 text-sm text-[#2D2D2D]">
+                  <Link href="/orders" onClick={() => setMenuOpen(false)} className="py-2 text-sm text-charcoal">
                     Orders
                   </Link>
 
-                  <Link href="/account/subscriptions" onClick={() => setMenuOpen(false)} className="py-2 text-sm text-[#2D2D2D]">
+                  <Link href="/account/subscriptions" onClick={() => setMenuOpen(false)} className="py-2 text-sm text-charcoal">
                     Subscriptions
                   </Link>
 
-                  <Link href="/account/wholesale" onClick={() => setMenuOpen(false)} className="py-2 text-sm text-[#2D2D2D]">
+                  <Link href="/account/wholesale" onClick={() => setMenuOpen(false)} className="py-2 text-sm text-charcoal">
                     Wholesale
                   </Link>
 
-                  <Link href="/account/support" onClick={() => setMenuOpen(false)} className="py-2 text-sm text-[#2D2D2D]">
+                  <Link href="/account/support" onClick={() => setMenuOpen(false)} className="py-2 text-sm text-charcoal">
                     Support
                   </Link>
                 </div>

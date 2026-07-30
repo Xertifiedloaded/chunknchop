@@ -11,7 +11,6 @@ export const CATEGORY_SLUG_MAP: Record<string, string> = {
   spices: 'Spices',
 };
 
-
 export const CATEGORIES: string[] = Object.values(CATEGORY_SLUG_MAP);
 
 export function resolveCategoryFromSlug(slugOrName: string | null): string {

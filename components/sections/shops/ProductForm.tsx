@@ -212,16 +212,7 @@ export default function ProductForm({ mode, productId, initial, initialImages }:
             <label htmlFor="category" className={labelClass}>
               Category
             </label>
-            <input
-              id="category"
-              type="text"
-              list="category-options"
-              value={form.category}
-              onChange={(e) => update('category', e.target.value)}
-              placeholder="Steaks"
-              className={inputClass}
-              autoComplete="off"
-            />
+            <input id="category" type="text" list="category-options" value={form.category} onChange={(e) => update('category', e.target.value)} placeholder="Steaks" className={inputClass} autoComplete="off" />
             <datalist id="category-options">
               {CATEGORIES.map((cat) => (
                 <option key={cat} value={cat} />
@@ -254,16 +245,7 @@ export default function ProductForm({ mode, productId, initial, initialImages }:
             <label htmlFor="preparations" className={labelClass}>
               Preparations <span className="text-ink font-normal">(comma-separated)</span>
             </label>
-            <input
-              id="preparations"
-              type="text"
-              list="preparation-options"
-              value={form.preparations}
-              onChange={(e) => update('preparations', e.target.value)}
-              placeholder="whole, sliced, marinated"
-              className={inputClass}
-              autoComplete="off"
-            />
+            <input id="preparations" type="text" list="preparation-options" value={form.preparations} onChange={(e) => update('preparations', e.target.value)} placeholder="whole, sliced, marinated" className={inputClass} autoComplete="off" />
             <datalist id="preparation-options">
               {PREPARATIONS.map((p) => (
                 <option key={p} value={p} />

@@ -95,7 +95,7 @@ export default function Header() {
 
   return (
     <header className="relative z-50 border-b border-neutral-100 bg-white">
-      <div className="mx-auto flex py-2 max-w-7xl items-center justify-between px-6 lg:px-10">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-2 lg:px-10">
         <Link href="/" onClick={closeMobileMenu} className="shrink-0">
           <Image src={logo} alt="ChunkNChop" priority className="h-auto w-32 sm:w-40" />
         </Link>
@@ -103,20 +103,20 @@ export default function Header() {
         <nav className="hidden items-center gap-6 lg:flex">
           {!isSupplier &&
             NAV_LINKS.map((link) => (
-              <Link key={link.label} href={link.href} className="text-sm text-charcoal transition-colors hover:text-neutral-900">
+              <Link key={link.label} href={link.href} className="text-charcoal text-sm transition-colors hover:text-neutral-900">
                 {link.label}
               </Link>
             ))}
 
           {isSupplier && (
-            <Link href="/supplier/dashboard" className="flex items-center gap-2 text-sm text-charcoal">
+            <Link href="/supplier/dashboard" className="text-charcoal flex items-center gap-2 text-sm">
               <Package size={16} />
               Dashboard
             </Link>
           )}
 
           {isAdmin && (
-            <Link href="/admin" className="text-sm text-charcoal">
+            <Link href="/admin" className="text-charcoal text-sm">
               Admin
             </Link>
           )}
@@ -153,20 +153,12 @@ export default function Header() {
                   aria-label="Open account menu"
                   className="flex items-center gap-2 text-neutral-500 transition hover:text-neutral-900"
                 >
-                  <span className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold uppercase text-white ${roleStyle.avatar}`}>
-                    {(user.name?.trim()?.[0] ?? user.email[0]).toUpperCase()}
-                  </span>
+                  <span className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold text-white uppercase ${roleStyle.avatar}`}>{(user.name?.trim()?.[0] ?? user.email[0]).toUpperCase()}</span>
 
                   <span className="hidden flex-col items-start md:flex">
-                    <span className="max-w-30 truncate text-xs font-medium text-charcoal">
-                      {user.name?.split(' ')[0] ?? user.email.split('@')[0]}
-                    </span>
+                    <span className="text-charcoal max-w-30 truncate text-xs font-medium">{user.name?.split(' ')[0] ?? user.email.split('@')[0]}</span>
 
-                    {(isAdmin || isSupplier) && (
-                      <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold leading-tight ${roleStyle.badge}`}>
-                        {roleStyle.label}
-                      </span>
-                    )}
+                    {(isAdmin || isSupplier) && <span className={`rounded px-1.5 py-0.5 text-[10px] leading-tight font-semibold ${roleStyle.badge}`}>{roleStyle.label}</span>}
                   </span>
                 </button>
 
@@ -175,26 +167,24 @@ export default function Header() {
                     <div className="border-b border-neutral-100 px-4 py-2.5">
                       <p className="truncate text-xs text-neutral-400">{user.email}</p>
 
-                      <span className={`mt-1 inline-block rounded px-1.5 py-0.5 text-[10px] font-semibold ${roleStyle.badge}`}>
-                        {roleStyle.label}
-                      </span>
+                      <span className={`mt-1 inline-block rounded px-1.5 py-0.5 text-[10px] font-semibold ${roleStyle.badge}`}>{roleStyle.label}</span>
                     </div>
 
                     {!isSupplier && (
                       <>
-                        <Link href="/orders" onClick={() => setAccountOpen(false)} className="block px-4 py-2.5 text-sm text-charcoal hover:bg-neutral-50">
+                        <Link href="/orders" onClick={() => setAccountOpen(false)} className="text-charcoal block px-4 py-2.5 text-sm hover:bg-neutral-50">
                           Orders
                         </Link>
 
-                        <Link href="/account/subscriptions" onClick={() => setAccountOpen(false)} className="block px-4 py-2.5 text-sm text-charcoal hover:bg-neutral-50">
+                        <Link href="/account/subscriptions" onClick={() => setAccountOpen(false)} className="text-charcoal block px-4 py-2.5 text-sm hover:bg-neutral-50">
                           Subscriptions
                         </Link>
 
-                        <Link href="/account/wholesale" onClick={() => setAccountOpen(false)} className="block px-4 py-2.5 text-sm text-charcoal hover:bg-neutral-50">
+                        <Link href="/account/wholesale" onClick={() => setAccountOpen(false)} className="text-charcoal block px-4 py-2.5 text-sm hover:bg-neutral-50">
                           Wholesale
                         </Link>
 
-                        <Link href="/account/support" onClick={() => setAccountOpen(false)} className="block px-4 py-2.5 text-sm text-charcoal hover:bg-neutral-50">
+                        <Link href="/account/support" onClick={() => setAccountOpen(false)} className="text-charcoal block px-4 py-2.5 text-sm hover:bg-neutral-50">
                           Support
                         </Link>
                       </>
@@ -209,7 +199,7 @@ export default function Header() {
               </>
             ) : (
               <div className="flex items-center gap-3">
-                <Link href="/auth/login" className="text-sm text-charcoal">
+                <Link href="/auth/login" className="text-charcoal text-sm">
                   Sign In
                 </Link>
 
@@ -260,7 +250,7 @@ export default function Header() {
           <form onSubmit={handleSearchSubmit} className="mx-auto flex max-w-7xl items-center gap-3 px-6 py-3 lg:px-10">
             <Search size={18} className="text-neutral-400" />
 
-            <input ref={searchInputRef} type="text" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search premium meat..." aria-label="Search products" className="w-full bg-transparent text-sm text-charcoal outline-none placeholder:text-neutral-400" />
+            <input ref={searchInputRef} type="text" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search premium meat..." aria-label="Search products" className="text-charcoal w-full bg-transparent text-sm outline-none placeholder:text-neutral-400" />
           </form>
         </div>
       )}
@@ -270,53 +260,39 @@ export default function Header() {
         <nav className="flex flex-col px-6 py-4">
           {user && (
             <div className="mb-3 flex items-center gap-3 border-b border-neutral-100 pb-3">
-              <span className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold uppercase text-white ${roleStyle.avatar}`}>
-                {(user.name?.trim()?.[0] ?? user.email[0]).toUpperCase()}
-              </span>
+              <span className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold text-white uppercase ${roleStyle.avatar}`}>{(user.name?.trim()?.[0] ?? user.email[0]).toUpperCase()}</span>
 
               <div className="flex flex-col">
-                <span className="truncate text-sm font-medium text-charcoal">
-                  {user.name?.split(' ')[0] ?? user.email.split('@')[0]}
-                </span>
+                <span className="text-charcoal truncate text-sm font-medium">{user.name?.split(' ')[0] ?? user.email.split('@')[0]}</span>
 
-                <span className={`mt-0.5 inline-block w-fit rounded px-1.5 py-0.5 text-[10px] font-semibold ${roleStyle.badge}`}>
-                  {roleStyle.label}
-                </span>
+                <span className={`mt-0.5 inline-block w-fit rounded px-1.5 py-0.5 text-[10px] font-semibold ${roleStyle.badge}`}>{roleStyle.label}</span>
               </div>
             </div>
           )}
 
           {isSupplier && (
-            <Link
-              href="/supplier/dashboard"
-              onClick={() => setMenuOpen(false)}
-              className={`mb-2 flex items-center gap-2 rounded-lg px-3 py-3 text-sm font-medium ${roleStyle.mobileAccent}`}
-            >
+            <Link href="/supplier/dashboard" onClick={() => setMenuOpen(false)} className={`mb-2 flex items-center gap-2 rounded-lg px-3 py-3 text-sm font-medium ${roleStyle.mobileAccent}`}>
               <Package size={16} />
               Dashboard
             </Link>
           )}
 
           {isAdmin && (
-            <Link
-              href="/admin"
-              onClick={() => setMenuOpen(false)}
-              className={`mb-2 rounded-lg px-3 py-3 text-sm font-medium ${roleStyle.mobileAccent}`}
-            >
+            <Link href="/admin" onClick={() => setMenuOpen(false)} className={`mb-2 rounded-lg px-3 py-3 text-sm font-medium ${roleStyle.mobileAccent}`}>
               Admin
             </Link>
           )}
 
           {!isSupplier &&
             NAV_LINKS.map((link) => (
-              <Link key={link.label} href={link.href} onClick={() => setMenuOpen(false)} className="border-b border-neutral-100 py-3 text-sm text-charcoal">
+              <Link key={link.label} href={link.href} onClick={() => setMenuOpen(false)} className="text-charcoal border-b border-neutral-100 py-3 text-sm">
                 {link.label}
               </Link>
             ))}
 
           {!user ? (
             <div className="flex gap-3 py-4 sm:hidden">
-              <Link href="/auth/login" onClick={() => setMenuOpen(false)} className="flex-1 rounded-md border border-neutral-200 px-4 py-2 text-center text-sm font-medium text-charcoal">
+              <Link href="/auth/login" onClick={() => setMenuOpen(false)} className="text-charcoal flex-1 rounded-md border border-neutral-200 px-4 py-2 text-center text-sm font-medium">
                 Sign In
               </Link>
 
@@ -328,19 +304,19 @@ export default function Header() {
             <div className="py-4 sm:hidden">
               {!isSupplier && (
                 <div className="flex flex-col">
-                  <Link href="/orders" onClick={() => setMenuOpen(false)} className="py-2 text-sm text-charcoal">
+                  <Link href="/orders" onClick={() => setMenuOpen(false)} className="text-charcoal py-2 text-sm">
                     Orders
                   </Link>
 
-                  <Link href="/account/subscriptions" onClick={() => setMenuOpen(false)} className="py-2 text-sm text-charcoal">
+                  <Link href="/account/subscriptions" onClick={() => setMenuOpen(false)} className="text-charcoal py-2 text-sm">
                     Subscriptions
                   </Link>
 
-                  <Link href="/account/wholesale" onClick={() => setMenuOpen(false)} className="py-2 text-sm text-charcoal">
+                  <Link href="/account/wholesale" onClick={() => setMenuOpen(false)} className="text-charcoal py-2 text-sm">
                     Wholesale
                   </Link>
 
-                  <Link href="/account/support" onClick={() => setMenuOpen(false)} className="py-2 text-sm text-charcoal">
+                  <Link href="/account/support" onClick={() => setMenuOpen(false)} className="text-charcoal py-2 text-sm">
                     Support
                   </Link>
                 </div>

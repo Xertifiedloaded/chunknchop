@@ -38,7 +38,11 @@ export default async function HomePage() {
   return (
     <div className="min-h-screen">
       <Hero
-        title={<>Premium Quality Meat, <span className="text-brand">Delivered Fresh</span> Across Lagos.</>}
+        title={
+          <>
+            Premium Quality Meat, <span className="text-brand">Delivered Fresh</span> Across Lagos.
+          </>
+        }
         paragraph="Certified, hygienically processed livestock products expertly portioned, carefully packaged, and delivered to your doorstep or picked up at a ChunkNChop counter near you."
         isCenter={false}
         features={true}
@@ -49,15 +53,8 @@ export default async function HomePage() {
       <HowItWorks />
       <MeatBox />
       <DeliveryCoverage />
-      {reviews === null ? (
-        <ReviewsSkeleton />
-      ) : (
-        <Reviews reviews={reviews} />
-      )}
+      {reviews === null ? <ReviewsSkeleton /> : <Reviews reviews={reviews} />}
       <MobileAppPromo />
     </div>
   );
 }
-
-
-

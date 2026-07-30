@@ -17,7 +17,7 @@ export default function ProductSection({ title, description, products, viewAllHr
   }
 
   return (
-    <section className=" mx-auto max-w-7xl space-y-16 px-4 py-16 sm:px-6  text-black lg:px-8">
+    <section className="mx-auto max-w-7xl space-y-16 px-4 py-16 text-black sm:px-6 lg:px-8">
       <div className="mb-6 flex items-end justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold tracking-tight text-gray-900">{title}</h2>

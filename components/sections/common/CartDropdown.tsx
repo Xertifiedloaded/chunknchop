@@ -47,6 +47,13 @@ export default function CartDropdown({ isOpen, onClose }: CartDropdownProps) {
       if (!res.ok) {
         const error = await res.json().catch(() => null);
 
+        if (error?.code === 'TOKEN_EXPIRED' || error?.code === 'NO_TOKEN') {
+          useAuthStore.getState().logout();
+          toast.error('Your session expired — please sign in again');
+          setCartItems([]);
+          return;
+        }
+
         throw new Error(error?.error || 'Failed to fetch cart');
       }
 

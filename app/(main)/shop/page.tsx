@@ -7,7 +7,11 @@ export default function ShopPage() {
   return (
     <Suspense fallback={<EmptyState />}>
       <Hero
-        title={<>Shop Fresh. <span className="text-brand">Cook Better.</span></>}
+        title={
+          <>
+            Shop Fresh. <span className="text-brand">Cook Better.</span>
+          </>
+        }
         paragraph="Premium beef, chicken, seafood, goat meat, pork and more — expertly portioned and delivered fresh to your doorstep."
         isCenter={true}
         features={false}
@@ -16,5 +20,3 @@ export default function ShopPage() {
     </Suspense>
   );
 }
-
-

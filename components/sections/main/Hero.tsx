@@ -13,33 +13,13 @@ export default function Hero({ title, paragraph, isCenter = false, features = tr
   return (
     <section className="bg-brand-foreground relative w-full">
       <div className="bg-ink relative min-h-140 w-full overflow-hidden sm:min-h-160 lg:min-h-180">
-        {!imageFailed && (
-          <Image
-            src={hero}
-            alt=""
-            fill
-            priority
-            className="object-cover"
-            onError={() => setImageFailed(true)}
-          />
-        )}
-        <div
-          className={
-            centerOnly
-              ? 'absolute inset-0 mx-auto flex max-w-7xl flex-col items-center justify-center px-6 text-center lg:px-10'
-              : `relative mx-auto flex h-full max-w-7xl flex-col justify-center px-6 py-16 sm:py-20 lg:px-10 lg:py-24 ${
-                  isCenter ? 'items-center text-center' : ''
-                }`
-          }
-        >
+        {!imageFailed && <Image src={hero} alt="" fill priority className="object-cover" onError={() => setImageFailed(true)} />}
+        <div className={centerOnly ? 'absolute inset-0 mx-auto flex max-w-7xl flex-col items-center justify-center px-6 text-center lg:px-10' : `relative mx-auto flex h-full max-w-7xl flex-col justify-center px-6 py-16 sm:py-20 lg:px-10 lg:py-24 ${isCenter ? 'items-center text-center' : ''}`}>
           <div className={`max-w-2xl ${isCenter ? 'flex flex-col items-center justify-center text-center' : ''}`}>
             {centerOnly && (
               <div className="mb-6 flex flex-wrap justify-center gap-2 sm:gap-3">
                 {BADGES.map((badge) => (
-                  <span
-                    key={badge.label}
-                    className="flex items-center gap-1.5 text-xs rounded-full bg-white/10 px-3 py-1.5 text-[11px] font-medium text-white backdrop-blur-sm sm:gap-2 sm:px-4 sm:py-2 "
-                  >
+                  <span key={badge.label} className="flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-xs text-[11px] font-medium text-white backdrop-blur-sm sm:gap-2 sm:px-4 sm:py-2">
                     <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full">
                       <CheckCircle size={14} />
                     </span>
@@ -49,30 +29,16 @@ export default function Hero({ title, paragraph, isCenter = false, features = tr
               </div>
             )}
 
-            <h1
-              className={`font-sora text-4xl leading-[1.1] font-extrabold sm:text-6xl lg:text-7xl lg:leading-[1.08] ${
-                centerOnly ? 'text-white' : 'text-brand-foreground'
-              }`}
-            >
-              {title}
-            </h1>
+            <h1 className={`font-sora text-4xl leading-[1.1] font-extrabold sm:text-6xl lg:text-7xl lg:leading-[1.08] ${centerOnly ? 'text-white' : 'text-brand-foreground'}`}>{title}</h1>
 
-            <p
-              className={`mt-5 max-w-lg text-sm leading-relaxed sm:mt-6 sm:text-[15px] ${
-                centerOnly ? 'text-white/85' : 'text-brand-foreground/85'
-              }`}
-            >
-              {paragraph}
-            </p>
+            <p className={`mt-5 max-w-lg text-sm leading-relaxed sm:mt-6 sm:text-[15px] ${centerOnly ? 'text-white/85' : 'text-brand-foreground/85'}`}>{paragraph}</p>
 
             <div className={`mt-7 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4 ${isCenter ? 'sm:justify-center' : ''}`}>
               <button className="bg-brand text-brand-foreground hover:bg-brand/90 flex items-center justify-center gap-2 rounded-md px-6 py-3 text-sm font-semibold transition-colors sm:hover:bg-[#c8692f]">
                 Shop Now
                 <ArrowRight size={16} strokeWidth={2.2} />
               </button>
-              <button className="bg-brand-foreground text-ink hover:bg-brand-foreground/90 rounded-md px-6 py-3 text-sm font-semibold transition-colors sm:hover:bg-neutral-100">
-                Browse Categories
-              </button>
+              <button className="bg-brand-foreground text-ink hover:bg-brand-foreground/90 rounded-md px-6 py-3 text-sm font-semibold transition-colors sm:hover:bg-neutral-100">Browse Categories</button>
             </div>
 
             {!centerOnly && (

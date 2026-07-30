@@ -77,7 +77,7 @@ const REASONS = [
     description: 'We help households, restaurants, and food businesses enjoy safe, consistent, and premium-quality meat every day.',
   },
 ];
- const NAV_LINKS = [
+const NAV_LINKS = [
   {
     label: 'About',
     href: '/about',
@@ -103,7 +103,6 @@ const REASONS = [
     href: '/shop',
   },
 ];
-
 
 const ROLE_STYLES: Record<
   string,
@@ -133,4 +132,4 @@ const ROLE_STYLES: Record<
     mobileAccent: 'bg-neutral-50 text-[#2D2D2D]',
   },
 };
-export {NAV_LINKS,ROLE_STYLES, BADGES, REASONS, STEPS, FEATURES, statusSteps, TESTIMONIALS };
+export { NAV_LINKS, ROLE_STYLES, BADGES, REASONS, STEPS, FEATURES, statusSteps, TESTIMONIALS };

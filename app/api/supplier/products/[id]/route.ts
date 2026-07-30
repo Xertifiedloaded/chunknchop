@@ -1,21 +1,14 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserFromRequest } from '@/lib/request';
 import prisma from '@/lib/db';
 import { uploadProductImage } from '@/lib/storage';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const user = getUserFromRequest(request);
 
     if (!user || user.role !== 'SUPPLIER') {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { id } = await params;
@@ -58,10 +51,7 @@ export async function GET(
 
     // Supplier can only access their own product
     if (!product || product.supplierId !== user.id) {
-      return NextResponse.json(
-        { error: 'Product not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
 
     return NextResponse.json({
@@ -85,18 +75,12 @@ export async function GET(
   }
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const user = getUserFromRequest(request);
 
     if (!user || user.role !== 'SUPPLIER') {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { id } = await params;
@@ -113,21 +97,14 @@ export async function PUT(
     });
 
     if (!existing || existing.supplierId !== user.id) {
-      return NextResponse.json(
-        { error: 'Product not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
 
     const formData = await request.formData();
 
-    const name = String(
-      formData.get('name') ?? ''
-    ).trim();
+    const name = String(formData.get('name') ?? '').trim();
 
-    const meatType = String(
-      formData.get('meatType') ?? ''
-    );
+    const meatType = String(formData.get('meatType') ?? '');
 
     if (!name) {
       return NextResponse.json(
@@ -151,22 +128,14 @@ export async function PUT(
       );
     }
 
-    const basePrice = Number(
-      formData.get('basePrice')
-    );
+    const basePrice = Number(formData.get('basePrice'));
 
-    const stock = Number(
-      formData.get('stock')
-    );
+    const stock = Number(formData.get('stock'));
 
-    if (
-      !Number.isFinite(basePrice) ||
-      basePrice < 0
-    ) {
+    if (!Number.isFinite(basePrice) || basePrice < 0) {
       return NextResponse.json(
         {
-          error:
-            'Base price must be a valid non-negative number',
+          error: 'Base price must be a valid non-negative number',
         },
         {
           status: 400,
@@ -174,15 +143,10 @@ export async function PUT(
       );
     }
 
-    if (
-      !Number.isFinite(stock) ||
-      stock < 0 ||
-      !Number.isInteger(stock)
-    ) {
+    if (!Number.isFinite(stock) || stock < 0 || !Number.isInteger(stock)) {
       return NextResponse.json(
         {
-          error:
-            'Stock must be a valid non-negative whole number',
+          error: 'Stock must be a valid non-negative whole number',
         },
         {
           status: 400,
@@ -195,28 +159,15 @@ export async function PUT(
     let existingImages: unknown = [];
 
     try {
-      tags = JSON.parse(
-        String(
-          formData.get('tags') ?? '[]'
-        )
-      );
+      tags = JSON.parse(String(formData.get('tags') ?? '[]'));
 
-      preparations = JSON.parse(
-        String(
-          formData.get('preparations') ?? '[]'
-        )
-      );
+      preparations = JSON.parse(String(formData.get('preparations') ?? '[]'));
 
-      existingImages = JSON.parse(
-        String(
-          formData.get('existingImages') ?? '[]'
-        )
-      );
+      existingImages = JSON.parse(String(formData.get('existingImages') ?? '[]'));
     } catch {
       return NextResponse.json(
         {
-          error:
-            'Malformed tags, preparations, or images data',
+          error: 'Malformed tags, preparations, or images data',
         },
         {
           status: 400,
@@ -224,28 +175,19 @@ export async function PUT(
       );
     }
 
-    const imageFiles = formData
-      .getAll('images')
-      .filter(
-        (value): value is File =>
-          value instanceof File
-      );
+    const imageFiles = formData.getAll('images').filter((value): value is File => value instanceof File);
 
     const uploadedUrls: string[] = [];
 
     for (const file of imageFiles) {
       try {
-        const imageUrl =
-          await uploadProductImage(file);
+        const imageUrl = await uploadProductImage(file);
 
         uploadedUrls.push(imageUrl);
       } catch (error) {
         return NextResponse.json(
           {
-            error:
-              error instanceof Error
-                ? error.message
-                : 'Image upload failed',
+            error: error instanceof Error ? error.message : 'Image upload failed',
           },
           {
             status: 400,
@@ -254,85 +196,52 @@ export async function PUT(
       }
     }
 
-    const product =
-      await prisma.product.update({
-        where: {
-          id,
-        },
-        data: {
-          name,
+    const product = await prisma.product.update({
+      where: {
+        id,
+      },
+      data: {
+        name,
 
-          description: String(
-            formData.get('description') ?? ''
-          ),
+        description: String(formData.get('description') ?? ''),
 
-          meatType,
+        meatType,
 
-          category: String(
-            formData.get('category') ?? ''
-          ),
+        category: String(formData.get('category') ?? ''),
 
-          basePrice,
+        basePrice,
 
-          stock,
+        stock,
 
-          inStock: stock > 0,
+        inStock: stock > 0,
 
-          tags: Array.isArray(tags)
-            ? tags
-            : [],
+        tags: Array.isArray(tags) ? tags : [],
 
-          preparations:
-            Array.isArray(preparations)
-              ? preparations
-              : [],
+        preparations: Array.isArray(preparations) ? preparations : [],
 
-          isNewArrival:
-            formData.get(
-              'isNewArrival'
-            ) === 'true',
+        isNewArrival: formData.get('isNewArrival') === 'true',
 
-          isBestSeller:
-            formData.get(
-              'isBestSeller'
-            ) === 'true',
+        isBestSeller: formData.get('isBestSeller') === 'true',
 
-          sameDayDelivery:
-            formData.get(
-              'sameDayDelivery'
-            ) === 'true',
+        sameDayDelivery: formData.get('sameDayDelivery') === 'true',
 
-          images: [
-            ...(Array.isArray(
-              existingImages
-            )
-              ? existingImages
-              : []),
-            ...uploadedUrls,
-          ],
-        },
-        include: {
-          tiers: true,
-          variants: true,
-        },
-      });
+        images: [...(Array.isArray(existingImages) ? existingImages : []), ...uploadedUrls],
+      },
+      include: {
+        tiers: true,
+        variants: true,
+      },
+    });
 
     return NextResponse.json({
       ...product,
-      basePrice: Number(
-        product.basePrice
-      ),
+      basePrice: Number(product.basePrice),
       stock: Number(product.stock),
       rating: Number(product.rating),
-      reviewCount: Number(
-        product.reviewCount
-      ),
+      reviewCount: Number(product.reviewCount),
     });
   } catch (error) {
-    console.error(
-      'Error updating supplier product:',
-      error
-    );
+    console.error('Error updating supplier product:', error);
 
     return NextResponse.json(
       {
@@ -345,18 +254,12 @@ export async function PUT(
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const user = getUserFromRequest(request);
 
     if (!user || user.role !== 'SUPPLIER') {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { id } = await params;
@@ -393,10 +296,7 @@ export async function DELETE(
       success: true,
     });
   } catch (error) {
-    console.error(
-      'Error deleting supplier product:',
-      error
-    );
+    console.error('Error deleting supplier product:', error);
 
     return NextResponse.json(
       {
@@ -408,4 +308,3 @@ export async function DELETE(
     );
   }
 }
-

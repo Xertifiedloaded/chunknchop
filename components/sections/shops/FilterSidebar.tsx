@@ -104,7 +104,7 @@ export function MobileFilterDrawer({ open, onClose, filters, onChange, onClearAl
   return (
     <div className="fixed inset-0 z-50 lg:hidden">
       <div className="bg-ink/40 absolute inset-0 backdrop-blur-sm" onClick={onClose} aria-hidden="true" />
-      <div className="bg-white absolute inset-y-0 left-0 flex w-[85vw] max-w-sm flex-col shadow-2xl">
+      <div className="absolute inset-y-0 left-0 flex w-[85vw] max-w-sm flex-col bg-white shadow-2xl">
         <div className="border-ink/10 flex items-center justify-between border-b px-5 py-4">
           <span className="text-ink text-base font-bold">Filters</span>
           <button type="button" onClick={onClose} aria-label="Close filters" className="hover:bg-ink/5 text-charcoal flex h-9 w-9 items-center justify-center rounded-full">
@@ -114,7 +114,6 @@ export function MobileFilterDrawer({ open, onClose, filters, onChange, onClearAl
         <div className="flex-1 scrollbar-thin overflow-y-auto px-5 py-5">
           <FilterSidebar filters={filters} onChange={onChange} onClearAll={onClearAll} hideHeader />
         </div>
-
       </div>
     </div>
   );

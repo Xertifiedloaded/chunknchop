@@ -8,8 +8,6 @@ import MobileAppPromo from '@/components/sections/main/MobileApp';
 import { ScrollToTop } from '@/lib/scroll';
 import { Toaster } from 'react-hot-toast';
 
-
-
 const sora = Sora({
   subsets: ['latin'],
   variable: '--font-sora',
@@ -52,8 +50,8 @@ export default function RootLayout({
   return (
     <html lang="en" className={` ${sora.variable} ${inter.variable} ${workSans.variable}`}>
       <body className="antialiased">
-             <Toaster />
-        <ScrollToTop/>
+        <Toaster />
+        <ScrollToTop />
         {children}
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>

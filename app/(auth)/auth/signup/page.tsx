@@ -4,11 +4,11 @@ import { Suspense, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Loader2, Lock, Mail, User, Store } from 'lucide-react';
-
 import { useAuthStore } from '@/lib/store/authStore';
 import { Button } from '@/components/ui/button';
 import AuthInput, { AuthField } from '@/components/auth/AuthInput';
-
+import Image from 'next/image';
+import google from '../../../../assets/google.png';
 const FIELDS: AuthField[] = [
   {
     name: 'name',
@@ -189,14 +189,11 @@ function SignupForm() {
 
   return (
     <>
-      {/* Header */}
       <div className="mb-7 text-center">
-        <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Create Your Account</h2>
+        <h2 className="font-sora text-2xl font-bold sm:text-2xl">Create Your Account</h2>
 
-        <p className="text-muted-foreground mt-2 text-sm sm:text-base">Join ChunkNChop and start shopping today</p>
+        <p className="text-muted-foreground mt-2 text-xs">Join ChunkNChop and start shopping today</p>
       </div>
-
-      {/* Form Error */}
       {errors.form && (
         <div role="alert" className="border-destructive/20 bg-destructive/10 text-destructive mb-5 rounded-lg border px-4 py-3 text-sm">
           {errors.form}
@@ -204,46 +201,28 @@ function SignupForm() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-5">
-        {/* Account Type */}
-        <div className="space-y-2">
-          <label htmlFor="role" className="text-sm font-medium">
-            Account Type
-          </label>
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium">Account Type</label>
 
-          <div className="grid grid-cols-2 gap-3">
-            <label className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition ${formData.role === 'CUSTOMER' ? 'border-primary bg-primary/5 ring-primary ring-1' : 'hover:bg-muted/50'}`}>
+          <div className="grid grid-cols-2 gap-2">
+            <label className={`flex h-10 cursor-pointer items-center justify-center gap-1.5 rounded-md border px-2 transition ${formData.role === 'CUSTOMER' ? 'border-primary bg-primary/5 text-primary' : 'border-border text-muted-foreground hover:bg-muted/40'}`}>
               <input type="radio" name="role" value="CUSTOMER" checked={formData.role === 'CUSTOMER'} onChange={handleInputChange} className="sr-only" />
 
-              <div className="bg-muted flex h-9 w-9 shrink-0 items-center justify-center rounded-lg">
-                <User className="h-4 w-4" />
-              </div>
-
-              <div>
-                <p className="text-sm font-medium">Customer</p>
-                <p className="text-muted-foreground text-xs">Shop products</p>
-              </div>
+              <User className="h-3 w-3 shrink-0" />
+              <span className="truncate text-[11px] leading-none font-medium">Customer</span>
             </label>
-
-            <label className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition ${formData.role === 'SUPPLIER' ? 'border-primary bg-primary/5 ring-primary ring-1' : 'hover:bg-muted/50'}`}>
+            <label className={`flex h-10 cursor-pointer items-center justify-center gap-1.5 rounded-md border px-2 transition ${formData.role === 'SUPPLIER' ? 'border-primary bg-primary/5 text-primary' : 'border-border text-muted-foreground hover:bg-muted/40'}`}>
               <input type="radio" name="role" value="SUPPLIER" checked={formData.role === 'SUPPLIER'} onChange={handleInputChange} className="sr-only" />
 
-              <div className="bg-muted flex h-9 w-9 shrink-0 items-center justify-center rounded-lg">
-                <Store className="h-4 w-4" />
-              </div>
-
-              <div>
-                <p className="text-sm font-medium">Supplier</p>
-                <p className="text-muted-foreground text-xs">Sell products</p>
-              </div>
+              <Store className="h-3 w-3 shrink-0" />
+              <span className="truncate text-[11px] leading-none font-medium">Supplier</span>
             </label>
           </div>
         </div>
-
         {FIELDS.map((field) => (
           <AuthInput key={field.name} {...field} value={formData[field.name as keyof typeof formData]} error={errors[field.name]} onChange={handleInputChange} />
         ))}
 
-        {/* Submit */}
         <Button type="submit" disabled={loading} className="h-11 w-full">
           {loading ? (
             <>
@@ -254,13 +233,19 @@ function SignupForm() {
             'Create Account'
           )}
         </Button>
+        <fieldset className="border-sand border-0 border-t">
+          <legend className="text-ink mx-auto px-3 text-xs font-medium tracking-wide uppercase">Or</legend>
+        </fieldset>
+        <Button type="button" variant="outline" className="text-charcoal hover:text-charcoal animate-out h-11 w-full border-[#E5E7EB] bg-white text-sm font-bold transition-all hover:bg-gray-50">
+          <Image src={google} alt="Google" width={18} height={18} className="mr-2" />
+          Continue with Google
+        </Button>
       </form>
 
-      {/* Login */}
-      <div className="mt-7 border-t pt-6 text-center">
-        <p className="text-muted-foreground text-sm">
+      <div className="mt-6 text-center">
+        <p className="text-charcoal font-sora text-xs">
           Already have an account?{' '}
-          <Link href="/auth/login" className="text-primary font-medium hover:underline">
+          <Link className="text-brand font-bold" href="/auth/login">
             Sign In
           </Link>
         </p>

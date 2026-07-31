@@ -4,11 +4,11 @@ import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Loader2, LockOpen, Mail } from 'lucide-react';
-
 import { useAuthStore } from '@/lib/store/authStore';
 import { Button } from '@/components/ui/button';
 import AuthInput, { AuthField } from '@/components/auth/AuthInput';
-
+import Image from 'next/image';
+import google from '../../../../assets/google.png';
 const FIELDS: AuthField[] = [
   {
     name: 'email',
@@ -117,11 +117,11 @@ function LoginForm() {
   return (
     <>
       <div className="mb-8 text-center">
-        <h2 className="text-2xl font-bold font-sora  sm:text-2xl">Welcome Back</h2>
-        <p className="text-ink font-worksans mt-2 text-sm sm:text-base">Sign in to your ChunkNChop account</p>
+        <h2 className="font-sora text-2xl font-bold sm:text-2xl">Welcome Back</h2>
+        <p className="text-ink font-worksans mt-2 text-xs">Sign in to your ChunkNChop account</p>
       </div>
       {error && (
-        <div role="alert" className="border-destructive/20 bg-destructive/10 text-destructive mb-5 rounded-lg border px-4 py-3 text-sm">
+        <div role="alert" className="border-destructive/20 bg-destructive/10 text-destructive mb-5 rounded-lg border px-4 py-3 text-xs">
           {error}
         </div>
       )}
@@ -142,20 +142,21 @@ function LoginForm() {
         </Button>
       </form>
 
-      <div className="my-7 flex items-center gap-4">
-        <div className="bg-border h-px flex-1" />
-        <span className="text-muted-foreground text-xs">OR</span>
-        <div className="bg-border h-px flex-1" />
-      </div>
+      <fieldset className="border-sand my-7 border-0 border-t">
+        <legend className="text-ink mx-auto px-3 text-xs font-medium tracking-wide uppercase">Or</legend>
+      </fieldset>
 
-      <div className="text-center">
-        <p className="text-brand font-medium text-xs">New to ChunkNChop?</p>
-
-        <Link href="/auth/signup" className="mt-3 block">
-          <Button type="button"  className="h-11 bg-white hover:bg-charcoal hover:text-white text-charcoal text-sm border-2 border-[#F3F4F6] w-full">
+      <Button type="button" variant="outline" className="text-charcoal hover:text-charcoal animate-out h-11 w-full border-[#E5E7EB] bg-white text-sm font-bold transition-all hover:bg-gray-50">
+        <Image src={google} alt="Google" width={18} height={18} className="mr-2" />
+        Continue with Google
+      </Button>
+      <div className="mt-6 text-center">
+        <p className="text-charcoal font-sora text-xs">
+          New to ChunkNChop?{' '}
+          <Link className="text-brand font-bold" href="/auth/signup">
             Create Account
-          </Button>
-        </Link>
+          </Link>
+        </p>
       </div>
     </>
   );

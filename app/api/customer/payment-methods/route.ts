@@ -30,6 +30,10 @@ export async function POST(request: NextRequest) {
 
     const data = await request.json();
 
+    if (!data.paystackAuthorizationCode) {
+      return NextResponse.json({ error: 'Missing Paystack authorization code' }, { status: 400 });
+    }
+
     if (data.isDefault) {
       await prisma.paymentMethod.updateMany({
         where: { userId: user.id },
@@ -37,14 +41,23 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const paymentMethod = await prisma.paymentMethod.create({
-      data: {
+    const paymentMethod = await prisma.paymentMethod.upsert({
+      where: { paystackAuthorizationCode: data.paystackAuthorizationCode },
+      update: {
+        isDefault: data.isDefault || false,
+        isActive: true,
+      },
+      create: {
         userId: user.id,
-        type: data.type,
+        type: data.type ?? 'CARD',
         label: data.label,
-        cardLast4: data.cardNumber?.slice(-4),
+        cardLast4: data.cardLast4,
         cardBrand: data.cardBrand,
         cardExpiry: data.cardExpiry,
+        bankName: data.bankName,
+        bankAccountLast4: data.bankAccountLast4,
+        paystackAuthorizationCode: data.paystackAuthorizationCode,
+        paystackCustomerCode: data.paystackCustomerCode,
         isDefault: data.isDefault || false,
         isActive: true,
       },

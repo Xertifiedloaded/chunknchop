@@ -86,6 +86,7 @@ model Product {
   rating      Float    @default(5.0)
   reviewCount Int      @default(0)
   ratings     Rating[]
+  wishlistedBy Wishlist[]
 
   isActive Boolean @default(true)
 
@@ -170,7 +171,7 @@ model Order {
   status          OrderStatus   @default(PENDING)
   paymentStatus   PaymentStatus @default(PENDING)
   paymentMethod   String?
-  paymentIntentId String? // Stripe
+paystackReference String? @unique
   shippingAddress String
   shippingCity    String
   shippingState   String
@@ -231,7 +232,7 @@ model Subscription {
   billingCycle Int // Days
 
   status               SubscriptionStatus @default(ACTIVE)
-  stripeSubscriptionId String?
+paystackSubscriptionCode String?
 
   nextBillingDate DateTime
   cancelledAt     DateTime?
@@ -402,13 +403,16 @@ enum PromotionType {
 }
 
 model Wishlist {
-  id     String @id @default(cuid())
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
+
   @@unique([userId, productId])
   @@index([userId])
+  @@index([productId])
 }
 
 model DeliveryZone {
@@ -447,16 +451,16 @@ model PaymentMethod {
   id     String @id @default(cuid())
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  type  PaymentMethodType // CARD, BANK_TRANSFER
+  type  PaymentMethodType // CARD, BANK_TRANSFER, DIGITAL_WALLET
   label String? // "Visa ending in 4242"
-
-  // Card details (encrypted)
   cardLast4  String?
-  cardBrand  String? // visa, mastercard
-  cardExpiry String? // MM/YY
+  cardBrand  String? // visa, mastercard, verve
+  cardExpiry String? // MM/YY, derived from exp_month/exp_year
+  paystackAuthorizationCode String? @unique
+  paystackCustomerCode String?
 
-  stripePaymentMethodId String?
+  bankName          String? // for BANK_TRANSFER type
+  bankAccountLast4  String?
 
   isDefault Boolean @default(false)
   isActive  Boolean @default(true)
@@ -465,6 +469,7 @@ model PaymentMethod {
   updatedAt DateTime @updatedAt
 
   @@index([userId])
+  @@index([paystackCustomerCode])
 }
 
 enum PaymentMethodType {
@@ -472,3 +477,4 @@ enum PaymentMethodType {
   BANK_TRANSFER
   DIGITAL_WALLET
 }
+

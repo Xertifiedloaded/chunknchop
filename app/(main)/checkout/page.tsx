@@ -191,21 +191,17 @@ export default function CheckoutPage() {
         },
 
         body: JSON.stringify({
-          items,
+          // Backend expects an array of cart item IDs, not the full cart objects
+          items: items.map((item) => item.id),
 
-          shippingAddress: {
-            fullName: formData.fullName,
-
-            address: formData.address,
-
-            city: formData.city,
-
-            state: formData.state,
-
-            zipCode: formData.zipCode,
-
-            country: formData.country,
-          },
+          // Backend/Order model expects flat shipping fields.
+          // The Order model has no separate "recipient name" column,
+          // so we fold fullName into the address string.
+          shippingAddress: `${formData.fullName}, ${formData.address}`,
+          shippingCity: formData.city,
+          shippingState: formData.state,
+          shippingZip: formData.zipCode,
+          shippingCountry: formData.country,
         }),
       });
 
@@ -215,24 +211,22 @@ export default function CheckoutPage() {
         throw new Error(data?.error || 'Failed to create order');
       }
 
-      const { clientSecret } = data;
+      const { authorizationUrl } = data;
 
-      if (!clientSecret) {
-        throw new Error('Payment information was not returned.');
+      if (!authorizationUrl) {
+        throw new Error('Payment link was not returned.');
       }
 
-      /*
-       * Clear the cart after the order
-       * has been successfully created.
-       */
       clearCart();
 
-      toast.success('Order created. Please complete payment.');
+      toast.success('Order created. Redirecting to Paystack...');
 
-      router.push(`/payment?client_secret=${encodeURIComponent(clientSecret)}`);
+      // Full page navigation — this is Paystack's own hosted checkout page.
+      // The customer picks Card, Bank Transfer, USSD, or Mobile Money there.
+      // No card data ever touches our own server.
+      window.location.href = authorizationUrl;
     } catch (error) {
       console.error('Checkout error:', error);
-
       toast.error(error instanceof Error ? error.message : 'Failed to process checkout');
     } finally {
       setLoading(false);
@@ -311,7 +305,7 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
-              <Button type="submit" disabled={loading} className="bg-accent text-accent-foreground hover:bg-accent/90 mt-8 w-full">
+              <Button type="submit" disabled={loading} className="bg-accent text-accent-foreground hover:bg-accent/90 mt-8 h-12 w-full">
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -332,15 +326,12 @@ export default function CheckoutPage() {
                 const itemPrice = getItemPrice(item);
 
                 return (
-                  <div key={item.id} className="border-border flex items-start justify-between border-b pb-4">
+                  <div key={item.id} className="border-border flex items-start justify-between border-b pb-4 text-white">
                     <div className="flex-1">
                       <p className="font-medium">{item.product.name}</p>
-
-                      {item.selectedTier && <p className="text-muted-foreground text-sm">Tier: {item.selectedTier}</p>}
-
-                      {item.selectedPreparation && <p className="text-muted-foreground text-sm">Preparation: {item.selectedPreparation}</p>}
-
-                      <p className="text-muted-foreground text-sm">Qty: {item.quantity}</p>
+                      {item.selectedTier && <p className="text-sm text-white">Tier: {item.selectedTier}</p>}
+                      {item.selectedPreparation && <p className="text-sm text-white">Preparation: {item.selectedPreparation}</p>}
+                      <p className="text-sm text-white">Qty: {item.quantity}</p>
                     </div>
 
                     <p className="font-medium">${(itemPrice * item.quantity).toFixed(2)}</p>
@@ -348,14 +339,14 @@ export default function CheckoutPage() {
                 );
               })}
 
-              <div className="space-y-2 pt-4">
+              <div className="space-y-2 pt-4 text-white">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
 
                   <span>${subtotal.toFixed(2)}</span>
                 </div>
 
-                <div className="text-muted-foreground flex justify-between">
+                <div className="flex justify-between text-white">
                   <span>Shipping</span>
 
                   <span>Calculated at next step</span>

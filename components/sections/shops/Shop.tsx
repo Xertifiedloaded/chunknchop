@@ -202,7 +202,7 @@ export default function Shop() {
                   <EmptyState onClear={clearAll} />
                 ) : (
                   <>
-                    <div className="grid  gap-5 grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+                    <div className="grid grid-cols-2 gap-5 xl:grid-cols-3 2xl:grid-cols-4">
                       {visibleProducts.map((product) => (
                         <ProductCard key={product.id} product={product} />
                       ))}

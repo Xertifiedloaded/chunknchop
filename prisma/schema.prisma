@@ -41,8 +41,8 @@ model SupplierProfile {
   user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   storeName        String
   description      String?
-  logo             String? 
-  banner           String? 
+  logo             String?
+  banner           String?
   website          String?
   rating           Float     @default(5.0)
   totalReviews     Int       @default(0)
@@ -83,9 +83,9 @@ model Product {
   tiers    ProductTier[]
   variants ProductVariant[]
 
-  rating      Float    @default(5.0)
-  reviewCount Int      @default(0)
-  ratings     Rating[]
+  rating       Float      @default(5.0)
+  reviewCount  Int        @default(0)
+  ratings      Rating[]
   wishlistedBy Wishlist[]
 
   isActive Boolean @default(true)
@@ -143,60 +143,92 @@ model ProductVariant {
 }
 
 model CartItem {
-  id String @id @default(cuid())
-  userId    String
-  productId String
-  quantity Int @default(1)
+  id                  String   @id @default(cuid())
+  userId              String
+  productId           String
+  quantity            Int      @default(1)
   selectedTier        String?
   selectedPreparation String?
-  selectedVariants Json?
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  selectedVariants    Json?
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product             Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
   @@unique([userId, productId])
   @@index([userId])
   @@index([productId])
 }
+model Rider {
+  id           String      @id @default(cuid())
+  name         String
+  phone        String      @unique
+  email        String?     @unique
+  vehicleType  String? // "Motorcycle", "Van", "Bicycle"
+  licensePlate String?
+
+  status   RiderStatus @default(AVAILABLE)
+  isActive Boolean     @default(true)
+
+  totalDeliveries Int   @default(0)
+  rating          Float @default(5.0)
+
+  orders Order[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+}
 
 model Order {
-  id         String @id @default(cuid())
-  customerId String
-  customer   User   @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  items OrderItem[]
-  subtotal Float
-  tax      Float @default(0)
-  shipping Float @default(0)
-  total    Float
-  status          OrderStatus   @default(PENDING)
-  paymentStatus   PaymentStatus @default(PENDING)
-  paymentMethod   String?
-paystackReference String? @unique
-  shippingAddress String
-  shippingCity    String
-  shippingState   String
-  shippingZip     String
-  shippingCountry String
+  id                String        @id @default(cuid())
+  customerId        String
+  customer          User          @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  items             OrderItem[]
+  subtotal          Float
+  tax               Float         @default(0)
+  shipping          Float         @default(0)
+  total             Float
+  status            OrderStatus   @default(PENDING)
+  paymentStatus     PaymentStatus @default(PENDING)
+  paymentMethod     String?
+  paystackReference String?       @unique
+  shippingAddress   String
+  shippingCity      String
+  shippingState     String
+  shippingZip       String
+  shippingCountry   String
   trackingNumber    String?
   estimatedDelivery DateTime?
-  createdAt   DateTime  @default(now())
-  paidAt      DateTime?
-  shippedAt   DateTime?
-  deliveredAt DateTime?
-  updatedAt   DateTime  @updatedAt
+  riderId String?
+  rider   Rider?  @relation(fields: [riderId], references: [id])
+  createdAt    DateTime  @default(now())
+  paidAt       DateTime?
+  shippedAt    DateTime?
+  deliveredAt  DateTime?
+  updatedAt    DateTime  @updatedAt
+
   @@index([customerId])
   @@index([status])
+  @@index([riderId])
 }
 
 enum OrderStatus {
   PENDING
   PROCESSING
-  SHIPPED
+  READY_FOR_DISPATCH 
+  OUT_FOR_DELIVERY  
   DELIVERED
   CANCELLED
   RETURNED
 }
 
+enum RiderStatus {
+  AVAILABLE
+  ON_DELIVERY
+  OFFLINE
+}
 enum PaymentStatus {
   PENDING
   PAID
@@ -204,36 +236,32 @@ enum PaymentStatus {
   REFUNDED
 }
 
+
 model OrderItem {
-  id String @id @default(cuid())
-  orderId String
-  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  productId String
-  product   Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+  id           String   @id @default(cuid())
+  orderId      String
+  order        Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId    String
+  product      Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
   quantity     Int
   pricePerUnit Float
   tier         String?
   variants     Json?
-  createdAt DateTime @default(now())
+  createdAt    DateTime @default(now())
+
   @@index([orderId])
   @@index([productId])
 }
-
 
 model Subscription {
   id         String @id @default(cuid())
   customerId String
   customer   User   @relation(fields: [customerId], references: [id], onDelete: Cascade)
-
-  type SubscriptionType
   tier String // Which tier (Basic, Pro, etc)
-
   price        Float
   billingCycle Int // Days
-
-  status               SubscriptionStatus @default(ACTIVE)
-paystackSubscriptionCode String?
-
+  status                   SubscriptionStatus @default(ACTIVE)
+  paystackSubscriptionCode String?
   nextBillingDate DateTime
   cancelledAt     DateTime?
 
@@ -294,52 +322,54 @@ enum TicketPriority {
   URGENT
 }
 
-
 model TicketMessage {
-  id       String        @id @default(cuid())
-  ticketId String
-  ticket   SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  id          String        @id @default(cuid())
+  ticketId    String
+  ticket      SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
   authorId    String
   message     String
   attachments String[]
-  createdAt DateTime @default(now())
+  createdAt   DateTime      @default(now())
+
   @@index([ticketId])
 }
 
 model Rating {
-  id        String  @id @default(cuid())
+  id        String   @id @default(cuid())
   productId String
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  score   Int     @db.SmallInt 
-  title   String?
-  comment String?
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  score     Int      @db.SmallInt
+  title     String?
+  comment   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
   @@unique([productId, userId])
   @@index([productId])
   @@index([userId])
 }
 
-
 model RefreshToken {
-  id     String @id @default(cuid())
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   token     String   @unique
   expiresAt DateTime
   createdAt DateTime @default(now())
+
   @@index([userId])
 }
 
 model AnalyticsEvent {
-  id        String  @id @default(cuid())
+  id        String   @id @default(cuid())
   eventType String // "product_view", "add_to_cart", "purchase", etc
   userId    String?
   productId String?
-  metadata String // JSON string for extra data
+  metadata  String // JSON string for extra data
   createdAt DateTime @default(now())
+
   @@index([eventType])
   @@index([userId])
   @@index([productId])
@@ -358,13 +388,14 @@ model Category {
 }
 
 model InventoryLog {
-  id        String @id @default(cuid())
-  productId String
+  id            String                @id @default(cuid())
+  productId     String
   previousStock Int
   newStock      Int
   changeReason  InventoryChangeReason
   notes         String?
-  createdAt DateTime @default(now())
+  createdAt     DateTime              @default(now())
+
   @@index([productId])
 }
 
@@ -378,21 +409,22 @@ enum InventoryChangeReason {
 }
 
 model Promotion {
-  id          String  @id @default(cuid())
-  code        String  @unique
-  description String?
-  type  PromotionType // PERCENTAGE, FIXED_AMOUNT
-  value Float // 10 for 10%, or 5 for $5 off
-  startDate      DateTime
-  endDate        DateTime
-  maxUses        Int?
-  currentUses    Int      @default(0)
-  minOrderAmount Float?
+  id                  String        @id @default(cuid())
+  code                String        @unique
+  description         String?
+  type                PromotionType // PERCENTAGE, FIXED_AMOUNT
+  value               Float // 10 for 10%, or 5 for $5 off
+  startDate           DateTime
+  endDate             DateTime
+  maxUses             Int?
+  currentUses         Int           @default(0)
+  minOrderAmount      Float?
   applicableProducts  String[] // Product IDs
   applicableMeatTypes String[] // MeatType values
-  isActive Boolean @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  isActive            Boolean       @default(true)
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
   @@index([code])
 }
 
@@ -416,51 +448,52 @@ model Wishlist {
 }
 
 model DeliveryZone {
-  id       String   @id @default(cuid())
-  name     String
-  zipCodes String[] // Delivery zones by zip code range
-  state    String?
+  id               String   @id @default(cuid())
+  name             String
+  zipCodes         String[] // Delivery zones by zip code range
+  state            String?
   baseCost         Float
   freeDeliveryOver Float? // Free delivery for orders over this amount
   estimatedDays    Int // Estimated delivery days
-  isActive Boolean @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }
 
 model Address {
-  id     String @id @default(cuid())
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  label    String? // "Home", "Office", etc
-  fullName String
-  phone    String?
-  street   String
-  city     String
-  state    String
-  zipCode  String
-  country  String  @default("USA")
-  isDefault Boolean @default(false)
+  id        String   @id @default(cuid())
+  userId    String
+  label     String
+  name      String
+  address   String
+  city      String
+  state     String
+  zipCode   String
+  phone     String
+  country   String   @default("Nigeria")
+  isDefault Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId])
+  @@index([userId, isDefault])
 }
 
-
 model PaymentMethod {
-  id     String @id @default(cuid())
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type  PaymentMethodType // CARD, BANK_TRANSFER, DIGITAL_WALLET
-  label String? // "Visa ending in 4242"
-  cardLast4  String?
-  cardBrand  String? // visa, mastercard, verve
-  cardExpiry String? // MM/YY, derived from exp_month/exp_year
-  paystackAuthorizationCode String? @unique
-  paystackCustomerCode String?
+  id                        String            @id @default(cuid())
+  userId                    String
+  user                      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type                      PaymentMethodType // CARD, BANK_TRANSFER, DIGITAL_WALLET
+  label                     String? // "Visa ending in 4242"
+  cardLast4                 String?
+  cardBrand                 String? // visa, mastercard, verve
+  cardExpiry                String? // MM/YY, derived from exp_month/exp_year
+  paystackAuthorizationCode String?           @unique
+  paystackCustomerCode      String?
 
-  bankName          String? // for BANK_TRANSFER type
-  bankAccountLast4  String?
+  bankName         String? // for BANK_TRANSFER type
+  bankAccountLast4 String?
 
   isDefault Boolean @default(false)
   isActive  Boolean @default(true)
@@ -477,4 +510,3 @@ enum PaymentMethodType {
   BANK_TRANSFER
   DIGITAL_WALLET
 }
-

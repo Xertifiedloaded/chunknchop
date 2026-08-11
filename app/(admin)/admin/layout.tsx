@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/auth';
-import AdminNav from '@/components/admin/AdminNav';
+import AdminNav, { AdminTopbar } from '@/components/admin/AdminNav';
 
 export const metadata = {
   title: 'Admin Dashboard - ChunkNChop',
@@ -12,25 +12,22 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const cookieStore = await cookies();
   const token = cookieStore.get('accessToken')?.value;
 
-  if (!token) {
-    redirect('/auth/login');
-  }
+  if (!token) redirect('/auth/login');
 
-  let decoded;
+  let decoded: any;
   try {
     decoded = verifyToken(token);
   } catch {
     redirect('/auth/login');
   }
 
-  if (!decoded || decoded.role !== 'ADMIN') {
-    redirect('/');
-  }
+  if (!decoded || decoded.role !== 'ADMIN') redirect('/');
 
   return (
-    <div className="bg-sand flex min-h-screen flex-col">
+    <div className="bg-sand min-h-screen">
       <AdminNav />
-      <div className="flex-1 overflow-auto">{children}</div>
+      <AdminTopbar />
+      <main className="min-h-screen pt-14 lg:pl-64">{children}</main>
     </div>
   );
 }

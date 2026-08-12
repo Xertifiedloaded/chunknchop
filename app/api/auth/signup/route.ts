@@ -56,6 +56,7 @@ export async function POST(req: NextRequest) {
       { status: 201 }
     );
 
+    // Set refresh token as httpOnly cookie (not accessible to JS)
     response.cookies.set('refreshToken', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -64,13 +65,18 @@ export async function POST(req: NextRequest) {
       path: '/',
     });
 
-    response.cookies.set('accessToken', accessToken, {
-      httpOnly: true,
+    // Set a CSRF cookie (readable by JS) for double-submit CSRF protection
+    const csrfToken = Math.random().toString(36).substring(2);
+    response.cookies.set('csrfToken', csrfToken, {
+      httpOnly: false,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 24 * 60 * 60,
+      maxAge: 7 * 24 * 60 * 60,
       path: '/',
     });
+
+    // NOTE: Access token is returned in the response body and SHOULD NOT be persisted to disk by the client.
+    // The server will not set an httpOnly accessToken cookie anymore.
 
     return response;
   } catch (error) {

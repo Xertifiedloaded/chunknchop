@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import Link from 'next/link';
+import { fetchWithAuth } from '@/lib/fetchClient';
 import { ArrowDownToLine, ArrowUpFromLine, Copy, Ellipsis, Filter, Grid2X2, List, Loader2, PackageX, Pencil, Plus, Search, Trash2 } from 'lucide-react';
 
 interface Product {
@@ -124,18 +125,14 @@ export default function AdminProductsPage() {
       setError(null);
 
       try {
-        const response = await fetch('/api/admin/products');
-                console.log(`admin product data ${response}`);
+        const response = await fetchWithAuth('/api/admin/products');
         const data = await response.json();
-        console.log('Products:', data);
-   
 
         if (!response.ok) {
           throw new Error(data.error || 'Could not load products.');
         }
 
         setProducts(data);
-     
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Could not load products.');
       } finally {
@@ -169,7 +166,7 @@ export default function AdminProductsPage() {
     setError(null);
 
     try {
-      const response = await fetch(`/api/admin/products/${id}`, {
+      const response = await fetchWithAuth(`/api/admin/products/${id}`, {
         method: 'DELETE',
       });
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { fetchWithAuth } from '@/lib/fetchClient';
 
 interface Analytics {
   totalRevenue: number;
@@ -17,7 +18,7 @@ export default function AdminAnalytics() {
   useEffect(() => {
     async function fetchAnalytics() {
       try {
-        const response = await fetch('/api/admin/analytics');
+        const response = await fetchWithAuth('/api/admin/analytics');
         const data = await response.json();
         setAnalytics(data);
       } catch (error) {

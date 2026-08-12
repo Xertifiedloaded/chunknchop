@@ -1,5 +1,7 @@
 'use client';
 
+import { fetchWithAuth } from '@/lib/fetchClient';
+
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -25,10 +27,8 @@ interface WishlistItem {
   };
 }
 
-const fetcher = async (url: string, accessToken?: string) => {
-  const res = await fetch(url, {
-    headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
-  });
+const fetcher = async (url: string) => {
+  const res = await fetchWithAuth(url);
 
   if (!res.ok) {
     throw new Error('Failed to fetch wishlist');
@@ -44,15 +44,14 @@ export default function WishlistPage() {
   const { user, accessToken } = useAuthStore();
   const { setItems: setCartItems } = useCartStore();
 
-  const { data: wishlist = [], mutate, error } = useSWR<WishlistItem[]>(accessToken ? ['/api/customer/wishlist', accessToken] : null, ([url, token]) => fetcher(url, token));
+  const { data: wishlist = [], mutate, error } = useSWR<WishlistItem[]>(accessToken ? '/api/customer/wishlist' : null, fetcher);
 
   const refreshCart = async () => {
     if (!accessToken || !user || user.role === 'SUPPLIER') return;
 
     try {
-      const res = await fetch('/api/customer/cart', {
+      const res = await fetchWithAuth('/api/customer/cart', {
         method: 'GET',
-        headers: { Authorization: `Bearer ${accessToken}` },
         cache: 'no-store',
       });
 
@@ -86,9 +85,8 @@ export default function WishlistPage() {
     setIsRemoving(productId);
 
     try {
-      const res = await fetch(`/api/customer/wishlist/${productId}`, {
+      const res = await fetchWithAuth(`/api/customer/wishlist/${productId}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${accessToken}` },
       });
 
       if (!res.ok) {
@@ -117,11 +115,11 @@ export default function WishlistPage() {
     }
 
     try {
-      const res = await fetch('/api/customer/cart', {
+      const res = await fetchWithAuth('/api/customer/cart', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
+
         },
         body: JSON.stringify({
           productId,
@@ -168,11 +166,11 @@ export default function WishlistPage() {
     try {
       const results = await Promise.allSettled(
         available.map((item) =>
-          fetch('/api/customer/cart', {
+          fetchWithAuth('/api/customer/cart', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              Authorization: `Bearer ${accessToken}`,
+
             },
             body: JSON.stringify({
               productId: item.productId,

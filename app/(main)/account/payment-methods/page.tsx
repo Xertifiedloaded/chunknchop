@@ -4,6 +4,7 @@ import { useState } from 'react';
 import useSWR from 'swr';
 import { Button } from '@/components/ui/button';
 import toast from 'react-hot-toast';
+import { fetchWithAuth } from '@/lib/fetchClient';
 
 interface PaymentMethod {
   id: string;
@@ -16,7 +17,7 @@ interface PaymentMethod {
 }
 
 export default function PaymentMethodsPage() {
-  const { data: paymentMethods, mutate } = useSWR('/api/customer/payment-methods');
+  const { data: paymentMethods, mutate } = useSWR('/api/customer/payment-methods', (url) => fetchWithAuth(url).then((res) => res.json()));
   const [showForm, setShowForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
@@ -38,7 +39,7 @@ export default function PaymentMethodsPage() {
     setIsSubmitting(true);
 
     try {
-      const res = await fetch('/api/customer/payment-methods', {
+      const res = await fetchWithAuth('/api/customer/payment-methods', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -68,7 +69,7 @@ export default function PaymentMethodsPage() {
     if (!confirm('Delete this payment method?')) return;
 
     try {
-      const res = await fetch(`/api/customer/payment-methods/${id}`, {
+      const res = await fetchWithAuth(`/api/customer/payment-methods/${id}`, {
         method: 'DELETE',
       });
 
@@ -83,7 +84,7 @@ export default function PaymentMethodsPage() {
 
   const handleSetDefault = async (id: string) => {
     try {
-      const res = await fetch(`/api/customer/payment-methods/${id}/set-default`, {
+      const res = await fetchWithAuth(`/api/customer/payment-methods/${id}/set-default`, {
         method: 'POST',
       });
 

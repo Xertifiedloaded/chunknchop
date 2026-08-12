@@ -1,6 +1,5 @@
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
-import { verifyToken } from '@/lib/auth';
 import AdminNav, { AdminTopbar } from '@/components/admin/AdminNav';
 
 export const metadata = {
@@ -10,18 +9,26 @@ export const metadata = {
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies();
-  const token = cookieStore.get('accessToken')?.value;
+  const refreshToken = cookieStore.get('refreshToken')?.value;
 
-  if (!token) redirect('/auth/login');
+  if (!refreshToken) redirect('/auth/login');
 
-  let decoded: any;
+  // validate refresh token by checking DB and expiry
   try {
-    decoded = verifyToken(token);
-  } catch {
+    const prisma = (await import('@/lib/db')).default;
+    const stored = await prisma.refreshToken.findUnique({ where: { token: refreshToken }, include: { user: true } });
+    if (!stored) redirect('/auth/login');
+    if (stored.expiresAt < new Date()) {
+      await prisma.refreshToken.delete({ where: { token: refreshToken } }).catch(() => null);
+      redirect('/auth/login');
+    }
+
+    const user = stored.user;
+    if (!user || user.role !== 'ADMIN') redirect('/');
+  } catch (e) {
+    console.error('Admin layout auth check failed', e);
     redirect('/auth/login');
   }
-
-  if (!decoded || decoded.role !== 'ADMIN') redirect('/');
 
   return (
     <div className="bg-sand min-h-screen">

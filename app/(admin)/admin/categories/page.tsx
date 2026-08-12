@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { ChevronDown, GripVertical, Loader2, Pencil, Plus, Trash2, X, Check } from 'lucide-react';
+import { fetchWithAuth } from '@/lib/fetchClient';
 
 interface Category {
   id: string;
@@ -406,7 +407,7 @@ export default function CategoriesPage() {
     setLoading(true);
     setLoadError(null);
     try {
-      const res = await fetch('/api/admin/categories');
+      const res = await fetchWithAuth('/api/admin/categories');
       if (!res.ok) {
         setLoadError(await parseError(res, 'Failed to load categories'));
         return;
@@ -426,7 +427,7 @@ export default function CategoriesPage() {
 
   async function handleSave(id: string, fields: EditableFields): Promise<string | null> {
     try {
-      const res = await fetch(`/api/admin/categories/${id}`, {
+      const res = await fetchWithAuth(`/api/admin/categories/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -465,7 +466,7 @@ export default function CategoriesPage() {
 
   async function handleDelete(id: string): Promise<string | null> {
     try {
-      const res = await fetch(`/api/admin/categories/${id}`, { method: 'DELETE' });
+      const res = await fetchWithAuth(`/api/admin/categories/${id}`, { method: 'DELETE' });
       if (!res.ok) return await parseError(res, 'Failed to delete category');
       setCategories((prev) => prev.filter((c) => c.id !== id));
       return null;
@@ -476,7 +477,7 @@ export default function CategoriesPage() {
 
   async function handleCreate(fields: EditableFields): Promise<string | null> {
     try {
-      const res = await fetch('/api/admin/categories', {
+      const res = await fetchWithAuth('/api/admin/categories', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

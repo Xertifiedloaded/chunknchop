@@ -66,8 +66,23 @@ export default function Header() {
 
   async function handleLogout() {
     try {
+      const csrf = (function () {
+        if (typeof document === 'undefined') return null;
+        const name = 'csrfToken=';
+        const ca = document.cookie.split(';');
+        for (let c of ca) {
+          c = c.trim();
+          if (c.indexOf(name) === 0) return c.substring(name.length, c.length);
+        }
+        return null;
+      })();
+
       await fetch('/api/auth/logout', {
         method: 'POST',
+        credentials: 'include',
+        headers: {
+          ...(csrf ? { 'X-CSRF-Token': csrf } : {}),
+        },
       });
     } catch (error) {
       console.error('Logout failed:', error);

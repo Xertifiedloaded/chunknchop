@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 
 import type { VerifyResult } from '@/components/checkout/types';
 import { PaymentStatusCard } from '@/components/checkout/PaymentStatusCard';
+import { fetchWithAuth } from '@/lib/fetchClient';
 
 function CheckoutCallbackContent() {
   const searchParams = useSearchParams();
@@ -31,7 +32,7 @@ function CheckoutCallbackContent() {
       try {
         setLoading(true);
 
-        const res = await fetch(`/api/customer/orders/verify?reference=${encodeURIComponent(reference)}`, {
+        const res = await fetchWithAuth(`/api/customer/orders/verify?reference=${encodeURIComponent(reference)}`, {
           method: 'GET',
           credentials: 'include',
           cache: 'no-store',

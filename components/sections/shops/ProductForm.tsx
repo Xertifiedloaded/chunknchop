@@ -4,28 +4,14 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2, ImagePlus, X } from 'lucide-react';
 import { PREPARATIONS } from '@/lib/categories';
+import { fetchWithAuth } from '@/lib/fetchClient';
 
 // Must match the Prisma `MeatType` enum exactly.
 const MEAT_TYPES = ['BEEF', 'CHICKEN', 'SEAFOOD', 'GOAT', 'PORK', 'TURKEY', 'BBQ', 'SAUSAGE', 'SPICE'];
 const UNITS = ['kg', 'g', 'lb', 'piece', 'pack'];
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
-export interface ProductFormData {
-  name: string;
-  description: string;
-  meatType: string;
-  categoryId: string;
-  basePrice: string;
-  stock: string;
-  unit: string;
-  reorderPoint: string;
-  locationId: string;
-  tags: string;
-  preparations: string;
-  isNewArrival: boolean;
-  isBestSeller: boolean;
-  sameDayDelivery: boolean;
-}
+import type { ProductFormData } from '@/lib/types/ui';
 
 interface ImageItem {
   id: string;
@@ -113,7 +99,7 @@ export default function ProductForm({ mode, productId, initial, initialImages }:
       setLocationsLoading(true);
       setLocationsError(null);
       try {
-        const response = await fetch('/api/admin/locations');
+        const response = await fetchWithAuth('/api/admin/locations');
         if (!response.ok) throw new Error('Failed to load storage locations.');
         const data: StorageLocationOption[] = await response.json();
         if (cancelled) return;
@@ -131,7 +117,7 @@ export default function ProductForm({ mode, productId, initial, initialImages }:
       setCategoriesLoading(true);
       setCategoriesError(null);
       try {
-        const response = await fetch('/api/admin/categories');
+        const response = await fetchWithAuth('/api/admin/categories');
         if (!response.ok) throw new Error('Failed to load categories.');
         const data: CategoryOption[] = await response.json();
         if (cancelled) return;

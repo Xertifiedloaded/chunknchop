@@ -1,5 +1,7 @@
 'use client';
 
+import { fetchWithAuth } from '@/lib/fetchClient';
+
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/store/authStore';
@@ -47,11 +49,11 @@ export default function NewProductPage() {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/supplier/products', {
+      const response = await fetchWithAuth('/api/supplier/products', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
+
         },
         body: JSON.stringify({
           name: formData.name,

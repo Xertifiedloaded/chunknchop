@@ -8,6 +8,7 @@ function getTokenFromRequest(req: NextRequest): string | null {
   if (authHeader?.startsWith('Bearer ')) {
     return authHeader.substring(7);
   }
+
   return req.cookies.get('accessToken')?.value || null;
 }
 
@@ -42,5 +43,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/api/customer/:path*', '/api/supplier/:path*'],
+  matcher: ['/api/customer/:path*', '/api/supplier/:path*', '/api/admin/:path*'],
 };

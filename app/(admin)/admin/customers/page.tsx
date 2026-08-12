@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { AlertCircle, ArrowUpDown, Download, Mail, Search, Users, Wallet, Repeat, ChevronDown } from 'lucide-react';
+import { fetchWithAuth } from '@/lib/fetchClient';
 
 interface Customer {
   id: string;
@@ -69,7 +70,7 @@ export default function CustomersPage() {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch('/api/admin/customers');
+        const response = await fetchWithAuth('/api/admin/customers');
         if (!response.ok) {
           throw new Error(`Request failed with status ${response.status}`);
         }

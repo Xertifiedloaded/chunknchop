@@ -7,6 +7,7 @@ import Footer from '@/components/sections/common/Footer';
 import MobileAppPromo from '@/components/sections/main/MobileApp';
 import { ScrollToTop } from '@/lib/scroll';
 import { Toaster } from 'react-hot-toast';
+import ClientAuthInit from '@/lib/ClientAuthInit';
 
 const sora = Sora({
   subsets: ['latin'],
@@ -52,6 +53,7 @@ export default function RootLayout({
       <body className="antialiased">
         <Toaster />
         <ScrollToTop />
+        <ClientAuthInit />
         {children}
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>

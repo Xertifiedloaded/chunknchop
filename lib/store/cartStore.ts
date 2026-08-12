@@ -1,43 +1,6 @@
 import { create } from 'zustand';
 
-export interface CartItem {
-  id: string;
-  userId: string;
-  productId: string;
-  quantity: number;
-
-  selectedTier?: string | null;
-  selectedPreparation?: string | null;
-  selectedVariants?: string[] | null;
-
-  product: {
-    id: string;
-    name: string;
-    basePrice: number;
-    images: string[];
-
-    tiers: Array<{
-      id: string;
-      name: string;
-      price: number;
-      features?: string[];
-    }>;
-
-    variants?: Array<{
-      id: string;
-      name: string;
-      value: string;
-      priceModifier: number;
-    }>;
-
-    supplier?: {
-      id?: string;
-      supplierProfile?: {
-        storeName: string;
-      };
-    };
-  };
-}
+import type { CartItem } from '@/lib/types/cart';
 
 interface CartState {
   items: CartItem[];

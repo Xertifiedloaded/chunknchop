@@ -1,5 +1,7 @@
 'use client';
 
+import { fetchWithAuth } from '@/lib/fetchClient';
+
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -159,12 +161,8 @@ export default function CheckoutPage() {
     const loadAddresses = async () => {
       try {
         setAddressesLoading(true);
-        const response = await fetch('/api/customer/addresses', {
+        const response = await fetchWithAuth('/api/customer/addresses', {
           method: 'GET',
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-
           cache: 'no-store',
         });
         const data = await response.json();
@@ -295,12 +293,11 @@ export default function CheckoutPage() {
     try {
       setAddressSaving(true);
 
-      const response = await fetch('/api/customer/addresses', {
+      const response = await fetchWithAuth('/api/customer/addresses', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
 
-          Authorization: `Bearer ${accessToken}`,
         },
 
         body: JSON.stringify(newAddress),
@@ -345,13 +342,12 @@ export default function CheckoutPage() {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/customer/orders', {
+      const response = await fetchWithAuth('/api/customer/orders', {
         method: 'POST',
 
         headers: {
           'Content-Type': 'application/json',
 
-          Authorization: `Bearer ${accessToken}`,
         },
 
         body: JSON.stringify({

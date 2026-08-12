@@ -1,5 +1,6 @@
 'use client';
 
+import { fetchWithAuth } from '@/lib/fetchClient';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/store/authStore';
@@ -43,11 +44,7 @@ export default function SupportPage() {
 
   const fetchTickets = async () => {
     try {
-      const response = await fetch('/api/customer/support-tickets', {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
+      const response = await fetchWithAuth('/api/customer/support-tickets');
 
       if (!response.ok) throw new Error('Failed to fetch tickets');
 
@@ -65,11 +62,10 @@ export default function SupportPage() {
     e.preventDefault();
 
     try {
-      const response = await fetch('/api/customer/support-tickets', {
+      const response = await fetchWithAuth('/api/customer/support-tickets', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
         body: JSON.stringify(formData),
       });

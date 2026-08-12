@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { ArrowUpRight, ArrowRight, CalendarDays, ChevronDown, Download, Package, Plus, RefreshCw, Send, ShoppingBag, ShoppingCart, Tag, Truck, Wallet, Clock3, CircleCheck, ChefHat, Inbox } from 'lucide-react';
 import { useAuthStore } from '@/lib/store/authStore';
+import { fetchWithAuth } from '@/lib/fetchClient';
 import type { Order } from '@/components/admin/types';
 
 interface DashboardStats {
@@ -68,7 +69,7 @@ export default function AdminDashboard() {
   }, []);
 
   useEffect(() => {
-    fetch('/api/admin/stats')
+    fetchWithAuth('/api/admin/stats')
       .then(async (r) => {
         const data = await r.json();
         if (!r.ok) throw new Error(data.error || 'Could not load dashboard stats.');

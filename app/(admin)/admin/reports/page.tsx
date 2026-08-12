@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import useSWR from 'swr';
 import { Button } from '@/components/ui/button';
+import { fetchWithAuth } from '@/lib/fetchClient';
 
 interface ReportData {
   period: string;
@@ -28,11 +29,11 @@ interface ReportData {
 
 export default function ReportsPage() {
   const [period, setPeriod] = useState('monthly');
-  const { data: reports } = useSWR(`/api/admin/reports?period=${period}`);
+  const { data: reports } = useSWR(`/api/admin/reports?period=${period}`, (url) => fetchWithAuth(url).then((res) => res.json()));
 
   const handleExport = async (format: 'csv' | 'pdf') => {
     try {
-      const res = await fetch(`/api/admin/reports/export?period=${period}&format=${format}`);
+      const res = await fetchWithAuth(`/api/admin/reports/export?period=${period}&format=${format}`);
       const blob = await res.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');

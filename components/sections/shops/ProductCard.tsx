@@ -5,10 +5,11 @@ import Link from 'next/link';
 import { Heart, Plus, Star, Clock, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-import { Product } from '@/lib/store/productStore';
+import type { Product } from '@/lib/types/product';
 import { formatNaira } from '@/lib/format';
 import { useAuthStore } from '@/lib/store/authStore';
 import { useCartStore } from '@/lib/store/cartStore';
+import { fetchWithAuth } from '@/lib/fetchClient';
 
 function daysAgoLabel(createdAt: string) {
   const days = Math.floor((Date.now() - new Date(createdAt).getTime()) / 86_400_000);
@@ -43,11 +44,7 @@ export default function ProductCard({ product, isWishlisted = false }: { product
     if (!accessToken || !user || user.role === 'SUPPLIER') return;
 
     try {
-      const res = await fetch('/api/customer/cart', {
-        method: 'GET',
-        headers: { Authorization: `Bearer ${accessToken}` },
-        cache: 'no-store',
-      });
+      const res = await fetchWithAuth('/api/customer/cart', { method: 'GET', cache: 'no-store' });
 
       if (!res.ok) return;
 
@@ -89,11 +86,11 @@ export default function ProductCard({ product, isWishlisted = false }: { product
     try {
       setIsAdding(true);
 
-      const res = await fetch('/api/customer/cart', {
+      const res = await fetchWithAuth('/api/customer/cart', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
+
         },
         body: JSON.stringify({
           productId: product.id,
@@ -143,11 +140,11 @@ export default function ProductCard({ product, isWishlisted = false }: { product
 
     try {
       if (!wasSaved) {
-        const res = await fetch('/api/customer/wishlist', {
+        const res = await fetchWithAuth('/api/customer/wishlist', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${accessToken}`,
+
           },
           body: JSON.stringify({ productId: product.id }),
         });
@@ -164,9 +161,8 @@ export default function ProductCard({ product, isWishlisted = false }: { product
 
         toast.success('Added to favorites');
       } else {
-        const res = await fetch(`/api/customer/wishlist/${product.id}`, {
+        const res = await fetchWithAuth(`/api/customer/wishlist/${product.id}`, {
           method: 'DELETE',
-          headers: { Authorization: `Bearer ${accessToken}` },
         });
 
         const data = await res.json().catch(() => ({}));

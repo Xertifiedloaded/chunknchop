@@ -87,6 +87,7 @@ function LoginForm() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
+        credentials: 'include', // ensure refresh cookie is accepted by the browser
       });
 
       const data = await response.json();
@@ -101,7 +102,7 @@ function LoginForm() {
       setUser(user);
       setAccessToken(accessToken);
 
-      localStorage.setItem('token', accessToken);
+      // Do NOT persist access token to localStorage or sessionStorage. Keep in-memory only.
 
       const redirect = searchParams.get('redirect') || '/';
 

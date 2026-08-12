@@ -1,5 +1,7 @@
 'use client';
 
+import { fetchWithAuth } from '@/lib/fetchClient';
+
 import { use, useEffect, useState } from 'react';
 import { CheckCircle2, CreditCard, MapPin, Clock3, Truck, ArrowRight, Loader2, Check, Package, Box, House } from 'lucide-react';
 import Link from 'next/link';
@@ -86,10 +88,7 @@ export default function OrderPage({ params }: Props) {
 
     async function fetchOrder() {
       try {
-        const res = await fetch(`/api/customer/orders/${orderId}`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
+        const res = await fetchWithAuth(`/api/customer/orders/${orderId}`, {
           cache: 'no-store',
         });
 

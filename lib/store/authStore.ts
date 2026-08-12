@@ -1,12 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export interface User {
-  id: string;
-  email: string;
-  name: string | null;
-  role: 'CUSTOMER' | 'SUPPLIER' | 'ADMIN';
-}
+import type { User } from '@/lib/types/user';
 
 interface AuthState {
   user: User | null;
@@ -38,8 +33,41 @@ export const useAuthStore = create<AuthState>()(
       name: 'auth-storage',
       partialize: (state) => ({
         user: state.user,
-        accessToken: state.accessToken,
       }),
     }
   )
 );
+
+export async function restoreSession() {
+  try {
+    const csrf = (function () {
+      if (typeof document === 'undefined') return null;
+      const name = 'csrfToken=';
+      const ca = document.cookie.split(';');
+      for (let c of ca) {
+        c = c.trim();
+        if (c.indexOf(name) === 0) return c.substring(name.length, c.length);
+      }
+      return null;
+    })();
+
+    const res = await fetch('/api/auth/refresh', {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(csrf ? { 'X-CSRF-Token': csrf } : {}),
+      },
+    });
+
+    if (!res.ok) return null;
+    const data = await res.json();
+    const accessToken = data?.accessToken || null;
+    if (accessToken) {
+      useAuthStore.getState().setAccessToken(accessToken);
+    }
+    return accessToken;
+  } catch {
+    return null;
+  }
+}

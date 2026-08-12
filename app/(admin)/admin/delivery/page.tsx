@@ -4,6 +4,7 @@ import { useState } from 'react';
 import useSWR from 'swr';
 import { Button } from '@/components/ui/button';
 import toast from 'react-hot-toast';
+import { fetchWithAuth } from '@/lib/fetchClient';
 
 interface DeliveryZone {
   id: string;
@@ -17,7 +18,7 @@ interface DeliveryZone {
 }
 
 export default function DeliveryPage() {
-  const { data: zones, mutate } = useSWR('/api/admin/delivery-zones');
+  const { data: zones, mutate } = useSWR('/api/admin/delivery-zones', (url) => fetchWithAuth(url).then((res) => res.json()));
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -63,7 +64,7 @@ export default function DeliveryPage() {
 
       const method = editingId ? 'PUT' : 'POST';
 
-      const res = await fetch(url, {
+      const res = await fetchWithAuth(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -95,7 +96,7 @@ export default function DeliveryPage() {
     if (!confirm('Delete this delivery zone?')) return;
 
     try {
-      const res = await fetch(`/api/admin/delivery-zones/${id}`, {
+      const res = await fetchWithAuth(`/api/admin/delivery-zones/${id}`, {
         method: 'DELETE',
       });
 

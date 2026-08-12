@@ -3,6 +3,7 @@
 import { ArrowLeft, Check, ChevronDown, Clock3, FileText, Mail, MapPin, Phone, Printer, RefreshCcw, Search, Truck, X } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
+import { fetchWithAuth } from '@/lib/fetchClient';
 
 type OrderItem = {
   id: string;
@@ -82,14 +83,6 @@ type Order = {
   estimatedDelivery: string | null;
 };
 
-// Ties the fetched order/error to the orderId it was fetched for.
-// This is the key to preventing the "stale flash" bug: if we tracked
-// `order`, `error`, and `loading` as three separate pieces of state,
-// there was a render window (when navigating between order ids) where
-// the old `error`/`order` from the previous id was still in state while
-// `loading` had already been reset — causing the old "not found" UI to
-// flash before the new fetch resolved. Bundling them together and keying
-// off `orderId` makes that window impossible.
 type FetchState = {
   orderId: string;
   order: Order | null;
@@ -273,11 +266,7 @@ export default function OrderDetailsPage() {
 
   const orderId = Array.isArray(params.id) ? params.id[0] : params.id;
 
-  // Single source of truth, keyed to the orderId it was fetched for.
   const [state, setState] = useState<FetchState | null>(null);
-
-  // Derived values — these can never show stale data from a previous
-  // orderId because they only "count" when state.orderId === orderId.
   const loading = !orderId || state === null || state.orderId !== orderId;
   const order = state && state.orderId === orderId ? state.order : null;
   const error = state && state.orderId === orderId ? state.error : null;
@@ -289,7 +278,7 @@ export default function OrderDetailsPage() {
 
     async function fetchOrder() {
       try {
-        const response = await fetch(`/api/admin/orders/${orderId}`, {
+        const response = await fetchWithAuth(`/api/admin/orders/${orderId}`, {
           method: 'GET',
           credentials: 'include',
           signal: controller.signal,

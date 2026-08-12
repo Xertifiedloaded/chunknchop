@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Save } from 'lucide-react';
+import { fetchWithAuth } from '@/lib/fetchClient';
 
 export default function AdminSettings() {
   const [settings, setSettings] = useState({
@@ -23,7 +24,7 @@ export default function AdminSettings() {
 
   const handleSave = async () => {
     try {
-      await fetch('/api/admin/settings', {
+      await fetchWithAuth('/api/admin/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(settings),

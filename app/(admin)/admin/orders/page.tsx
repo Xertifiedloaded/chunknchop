@@ -3,6 +3,7 @@
 import { CalendarDays, ChevronDown, Download, MoreVertical, SlidersHorizontal, Truck } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { fetchWithAuth } from '@/lib/fetchClient';
 
 interface Order {
   id: string;
@@ -97,7 +98,7 @@ export default function AdminOrdersPage() {
     async function fetchOrders() {
       try {
         setLoading(true);
-        const response = await fetch('/api/admin/orders');
+        const response = await fetchWithAuth('/api/admin/orders');
         if (!response.ok) {
           throw new Error(`Request failed with status ${response.status}`);
         }

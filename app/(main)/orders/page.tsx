@@ -1,5 +1,7 @@
 'use client';
 
+import { fetchWithAuth } from '@/lib/fetchClient';
+
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -185,10 +187,10 @@ export default function OrdersPage() {
       setLoading(true);
       setError('');
 
-      const response = await fetch('/api/customer/orders', {
+      const response = await fetchWithAuth('/api/customer/orders', {
         method: 'GET',
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+
           'Content-Type': 'application/json',
         },
         cache: 'no-store',

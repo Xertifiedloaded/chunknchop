@@ -1,5 +1,7 @@
 'use client';
 
+import { fetchWithAuth } from '@/lib/fetchClient';
+
 import { useEffect, useState } from 'react';
 import useSWR from 'swr';
 import { useParams } from 'next/navigation';
@@ -81,7 +83,7 @@ interface CartApiResponse {
 }
 
 const fetcher = async (url: string): Promise<Product> => {
-  const res = await fetch(url, {
+  const res = await fetchWithAuth(url, {
     cache: 'no-store',
   });
 
@@ -155,11 +157,8 @@ export default function ProductDetailPage() {
     }
 
     try {
-      const res = await fetch('/api/customer/cart', {
+      const res = await fetchWithAuth('/api/customer/cart', {
         method: 'GET',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
         cache: 'no-store',
       });
 
@@ -204,11 +203,11 @@ export default function ProductDetailPage() {
     try {
       setIsAddingToCart(true);
 
-      const res = await fetch('/api/customer/cart', {
+      const res = await fetchWithAuth('/api/customer/cart', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
+
         },
         body: JSON.stringify({
           productId: product.id,
@@ -257,11 +256,11 @@ export default function ProductDetailPage() {
     try {
       setIsBuyingNow(true);
 
-      const res = await fetch('/api/customer/cart', {
+      const res = await fetchWithAuth('/api/customer/cart', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
+
         },
         body: JSON.stringify({
           productId: product.id,

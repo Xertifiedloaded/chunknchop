@@ -4,6 +4,7 @@ import { useState } from 'react';
 import useSWR from 'swr';
 import { Button } from '@/components/ui/button';
 import toast from 'react-hot-toast';
+import { fetchWithAuth } from '@/lib/fetchClient';
 
 interface Promotion {
   id: string;
@@ -20,7 +21,7 @@ interface Promotion {
 }
 
 export default function PromotionsPage() {
-  const { data: promotions, mutate } = useSWR('/api/admin/promotions');
+  const { data: promotions, mutate } = useSWR('/api/admin/promotions', (url) => fetchWithAuth(url).then((res) => res.json()));
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -65,7 +66,7 @@ export default function PromotionsPage() {
 
       const method = editingId ? 'PUT' : 'POST';
 
-      const res = await fetch(url, {
+      const res = await fetchWithAuth(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -99,7 +100,7 @@ export default function PromotionsPage() {
     if (!confirm('Delete this promotion?')) return;
 
     try {
-      const res = await fetch(`/api/admin/promotions/${id}`, {
+      const res = await fetchWithAuth(`/api/admin/promotions/${id}`, {
         method: 'DELETE',
       });
 

@@ -1,5 +1,6 @@
 'use client';
 
+import { fetchWithAuth } from '@/lib/fetchClient';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/store/authStore';
@@ -39,11 +40,7 @@ export default function SubscriptionsPage() {
 
   const fetchSubscriptions = async () => {
     try {
-      const response = await fetch('/api/customer/subscriptions', {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
+      const response = await fetchWithAuth('/api/customer/subscriptions');
 
       if (!response.ok) throw new Error('Failed to fetch subscriptions');
 
@@ -61,11 +58,8 @@ export default function SubscriptionsPage() {
     if (!confirm('Are you sure you want to cancel this subscription?')) return;
 
     try {
-      const response = await fetch(`/api/customer/subscriptions/${subscriptionId}`, {
+      const response = await fetchWithAuth(`/api/customer/subscriptions/${subscriptionId}`, {
         method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
       });
 
       if (!response.ok) throw new Error('Failed to cancel subscription');

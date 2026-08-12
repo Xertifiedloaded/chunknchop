@@ -154,6 +154,7 @@ function SignupForm() {
           password: formData.password,
           role: formData.role,
         }),
+        credentials: 'include', // ensure refresh cookie is accepted by the browser
       });
 
       const data = await response.json();

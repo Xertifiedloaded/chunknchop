@@ -2,6 +2,7 @@
 
 import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, Boxes, ChevronDown, Loader2, Package, Plus, RefreshCw, Search, Truck, X } from 'lucide-react';
+import { fetchWithAuth } from '@/lib/fetchClient';
 
 type InventoryStatus = 'Healthy' | 'Low stock' | 'Out of stock' | 'Expiring soon';
 
@@ -108,7 +109,7 @@ export default function InventoryPage() {
     setError(null);
 
     try {
-      const res = await fetch('/api/admin/inventory', { credentials: 'include' });
+      const res = await fetchWithAuth('/api/admin/inventory', { credentials: 'include' });
 
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
@@ -189,7 +190,7 @@ export default function InventoryPage() {
     setAdjustError(null);
 
     try {
-      const res = await fetch('/api/admin/inventory', {
+      const res = await fetchWithAuth('/api/admin/inventory', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

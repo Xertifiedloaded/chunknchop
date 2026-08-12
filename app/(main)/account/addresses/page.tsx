@@ -4,6 +4,7 @@ import { useState } from 'react';
 import useSWR from 'swr';
 import { Button } from '@/components/ui/button';
 import toast from 'react-hot-toast';
+import { fetchWithAuth } from '@/lib/fetchClient';
 
 interface Address {
   id: string;
@@ -19,7 +20,7 @@ interface Address {
 }
 
 export default function AddressBookPage() {
-  const { data: addresses, mutate } = useSWR('/api/customer/addresses');
+  const { data: addresses, mutate } = useSWR('/api/customer/addresses', (url) => fetchWithAuth(url).then((res) => res.json()));
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -52,7 +53,7 @@ export default function AddressBookPage() {
 
       const method = editingId ? 'PUT' : 'POST';
 
-      const res = await fetch(url, {
+      const res = await fetchWithAuth(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -86,7 +87,7 @@ export default function AddressBookPage() {
     if (!confirm('Delete this address?')) return;
 
     try {
-      const res = await fetch(`/api/customer/addresses/${id}`, {
+      const res = await fetchWithAuth(`/api/customer/addresses/${id}`, {
         method: 'DELETE',
       });
 

@@ -2,17 +2,11 @@ import jwt from 'jsonwebtoken';
 import bcryptjs from 'bcryptjs';
 import { jwtDecode } from 'jwt-decode';
 
-export interface TokenPayload {
-  id: string;
-  email: string;
-  role: string;
-  iat: number;
-  exp: number;
-}
+import type { TokenPayload } from '@/lib/types/auth';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
-const JWT_EXPIRY = '72h';
-const REFRESH_TOKEN_EXPIRY = '7d';
+const JWT_EXPIRY = process.env.ACCESS_TOKEN_EXPIRY || '15m';
+const REFRESH_TOKEN_EXPIRY = process.env.REFRESH_TOKEN_EXPIRY || '7d';
 
 export function hashPassword(password: string): string {
   const salt = bcryptjs.genSaltSync(10);

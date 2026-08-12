@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import toast from 'react-hot-toast';
+import { fetchWithAuth } from '@/lib/fetchClient';
 import useSWR from 'swr';
 
 interface BoxItem {
@@ -50,7 +51,7 @@ export default function BuildMeatBoxPage() {
 
     setIsCreating(true);
     try {
-      const res = await fetch('/api/customer/meat-box', {
+      const res = await fetchWithAuth('/api/customer/meat-box', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

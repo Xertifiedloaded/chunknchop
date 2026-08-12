@@ -1,5 +1,7 @@
 'use client';
 
+import { fetchWithAuth } from '@/lib/fetchClient';
+
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/store/authStore';
@@ -35,10 +37,7 @@ export default function SupplierDashboard() {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch('/api/supplier/products', {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
+      const response = await fetchWithAuth('/api/supplier/products', {
       });
 
       if (!response.ok) throw new Error('Failed to fetch products');
@@ -57,11 +56,8 @@ export default function SupplierDashboard() {
     if (!confirm('Are you sure you want to delete this product?')) return;
 
     try {
-      const response = await fetch(`/api/supplier/products/${productId}`, {
+      const response = await fetchWithAuth(`/api/supplier/products/${productId}`, {
         method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
       });
 
       if (!response.ok) throw new Error('Failed to delete product');

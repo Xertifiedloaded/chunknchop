@@ -1,5 +1,7 @@
 'use client';
 
+import { fetchWithAuth } from '@/lib/fetchClient';
+
 import { useCallback, useEffect, useState } from 'react';
 import { Loader2, Minus, Plus, Trash2, X } from 'lucide-react';
 import Link from 'next/link';
@@ -36,11 +38,8 @@ export default function CartDropdown({ isOpen, onClose }: CartDropdownProps) {
     try {
       setCartLoading(true);
 
-      const res = await fetch('/api/customer/cart', {
+      const res = await fetchWithAuth('/api/customer/cart', {
         method: 'GET',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
         cache: 'no-store',
       });
 
@@ -86,11 +85,8 @@ export default function CartDropdown({ isOpen, onClose }: CartDropdownProps) {
     setCartItems(cartItems.filter((item) => item.id !== cartItemId));
     setRemovingId(cartItemId);
     try {
-      const res = await fetch(`/api/customer/cart/${cartItemId}`, {
+      const res = await fetchWithAuth(`/api/customer/cart/${cartItemId}`, {
         method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
       });
 
       if (!res.ok) {
@@ -144,11 +140,11 @@ export default function CartDropdown({ isOpen, onClose }: CartDropdownProps) {
     setUpdatingId(cartItemId);
 
     try {
-      const res = await fetch('/api/customer/cart', {
+      const res = await fetchWithAuth('/api/customer/cart', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
+
         },
         body: JSON.stringify({
           productId: item.productId,

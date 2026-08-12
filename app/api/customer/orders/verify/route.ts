@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { getUserFromRequest } from '@/lib/request';
+import { deductStockForOrder } from '@/lib/inventory';
 
 export async function GET(req: NextRequest) {
   try {
@@ -28,9 +29,6 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    /*
-     * Find the order belonging to this customer.
-     */
     const order = await prisma.order.findFirst({
       where: {
         paystackReference: reference,
@@ -45,6 +43,18 @@ export async function GET(req: NextRequest) {
           message: 'Order not found for this payment reference.',
         },
         { status: 404 }
+      );
+    }
+    if (order.paymentStatus === 'PAID') {
+      return NextResponse.json(
+        {
+          status: 'success',
+          reference,
+          orderId: order.id,
+          total: Number(order.total),
+          alreadyProcessed: true,
+        },
+        { status: 200 }
       );
     }
 
@@ -76,11 +86,6 @@ export async function GET(req: NextRequest) {
 
     const transaction = paystackData.data;
 
-    /*
-     * Make sure the amount paid matches the order total.
-     *
-     * Paystack uses kobo for NGN.
-     */
     const expectedAmount = Math.round(order.total * 100);
 
     if (transaction.amount !== expectedAmount) {
@@ -99,18 +104,30 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    /*
-     * Payment was successful.
-     */
     if (transaction.status === 'success') {
-      const updatedOrder = await prisma.order.update({
-        where: {
-          id: order.id,
-        },
+      const claim = await prisma.order.updateMany({
+        where: { id: order.id, paymentStatus: { not: 'PAID' } },
         data: {
           paymentStatus: 'PAID',
+          status: order.status === 'PENDING' ? 'PROCESSING' : order.status,
+          paidAt: new Date(),
         },
       });
+
+      const updatedOrder = await prisma.order.findUniqueOrThrow({ where: { id: order.id } });
+
+      if (claim.count > 0) {
+        try {
+          await deductStockForOrder(order.id);
+        } catch (stockError) {
+
+          console.error('STOCK_ALERT: payment confirmed but inventory deduction failed', {
+            orderId: order.id,
+            reference,
+            error: stockError instanceof Error ? stockError.message : stockError,
+          });
+        }
+      }
 
       return NextResponse.json(
         {
@@ -125,9 +142,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    /*
-     * Paystack knows about the transaction, but it wasn't successful.
-     */
+
     return NextResponse.json(
       {
         status: 'failed',

@@ -125,13 +125,17 @@ export default function AdminProductsPage() {
 
       try {
         const response = await fetch('/api/admin/products');
+                console.log(`admin product data ${response}`);
         const data = await response.json();
+        console.log('Products:', data);
+   
 
         if (!response.ok) {
           throw new Error(data.error || 'Could not load products.');
         }
 
         setProducts(data);
+     
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Could not load products.');
       } finally {

@@ -336,13 +336,23 @@ export default function ProductDetailPage() {
 
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:gap-14">
           <div>
-            <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-[#F7F4EF]">
+            <div className="relative aspect-4/5 overflow-hidden rounded-2xl bg-[#F7F4EF]">
               {product.images?.[mainImageIndex] ? <img loading="eager" src={product.images[mainImageIndex]} alt={product.name} className="h-full w-full object-cover" /> : <div className="text-ink flex h-full w-full items-center justify-center text-sm">No image available</div>}
 
-              <div className="absolute top-4 left-4 flex flex-col gap-2">
-                <span className="rounded-full bg-[#231B16] px-3 py-1.5 text-xs font-semibold tracking-wide text-white">{product.category.toUpperCase()}</span>
+              <div className="absolute left-2 top-2 flex flex-wrap items-start gap-1">
+                <span className="rounded-2xl bg-[#231B16] p-2  text-[8px] font-medium leading-tight tracking-normal text-white">
+                  {product.category.toUpperCase()}
+                </span>
 
-                {isOutOfStock ? <span className="rounded-full bg-[#7A2E1E] px-3 py-1.5 text-xs font-semibold tracking-wide text-white">OUT OF STOCK</span> : savings > 0 ? <span className="rounded-full bg-[#7A2E1E] px-3 py-1.5 text-xs font-semibold tracking-wide text-white">SAVE {formatNaira(savings)}</span> : null}
+                {isOutOfStock ? (
+                  <span className="rounded-full bg-[#7A2E1E] p-2  text-[8px] font-medium leading-tight tracking-normal text-white">
+                    OUT OF STOCK
+                  </span>
+                ) : savings > 0 ? (
+                  <span className="rounded-full bg-[#7A2E1E] p-2  text-[8px] font-medium leading-tight tracking-normal text-white">
+                    SAVE {formatNaira(savings)}
+                  </span>
+                ) : null}
               </div>
             </div>
 

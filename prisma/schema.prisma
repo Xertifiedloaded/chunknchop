@@ -65,19 +65,24 @@ model Product {
   description String
   images      String[]
   basePrice   Float
-
-  stock   Int
+  stock   Int     @default(0)
   inStock Boolean @default(true)
   sku     String? @unique
-
+  unit    String  @default("kg")
+  reorderPoint Int @default(0)
+  // meatType is no longer chosen independently by the admin — it's derived
+  // server-side from the selected category's meatType at creation time
+  // (see /api/admin/products POST). Kept as its own column (rather than
+  // just reading through categoryRef.meatType) so historical products keep
+  // their meat type even if a category's meatType is changed later.
   meatType     MeatType
   preparations String[]
-
+  category    String   
+  categoryId  String?
+  categoryRef Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   isNewArrival    Boolean @default(false)
   isBestSeller    Boolean @default(false)
   sameDayDelivery Boolean @default(false)
-
-  category String
   tags     String[]
 
   tiers    ProductTier[]
@@ -88,8 +93,10 @@ model Product {
   ratings      Rating[]
   wishlistedBy Wishlist[]
 
-  isActive Boolean @default(true)
+  inventoryRecords InventoryRecord[]
 
+  isActive Boolean @default(true)
+  isArchived Boolean @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -114,7 +121,6 @@ model ProductTier {
   id        String  @id @default(cuid())
   productId String
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-
   name            String // "Basic", "Professional", "Enterprise"
   description     String?
   price           Float
@@ -159,6 +165,7 @@ model CartItem {
   @@index([userId])
   @@index([productId])
 }
+
 model Rider {
   id           String      @id @default(cuid())
   name         String
@@ -203,6 +210,9 @@ model Order {
   estimatedDelivery DateTime?
   riderId String?
   rider   Rider?  @relation(fields: [riderId], references: [id])
+
+  inventoryLogs InventoryLog[]
+
   createdAt    DateTime  @default(now())
   paidAt       DateTime?
   shippedAt    DateTime?
@@ -217,8 +227,8 @@ model Order {
 enum OrderStatus {
   PENDING
   PROCESSING
-  READY_FOR_DISPATCH 
-  OUT_FOR_DELIVERY  
+  READY_FOR_DISPATCH
+  OUT_FOR_DELIVERY
   DELIVERED
   CANCELLED
   RETURNED
@@ -229,13 +239,13 @@ enum RiderStatus {
   ON_DELIVERY
   OFFLINE
 }
+
 enum PaymentStatus {
   PENDING
   PAID
   FAILED
   REFUNDED
 }
-
 
 model OrderItem {
   id           String   @id @default(cuid())
@@ -379,12 +389,59 @@ model Category {
   id          String  @id @default(cuid())
   name        String  @unique
   description String?
-  image       String? // Supabase URL
+  image       String?
   slug        String  @unique
-  isActive    Boolean @default(true)
+  color       String  @default("#f45d27") 
+  isActive    Boolean @default(true)       
+  products Product[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([slug])
+}
+
+
+enum LocationType {
+  COLD_ROOM
+  CHILLER
+  FREEZER
+  DRY_STORE
+}
+
+model StorageLocation {
+  id        String       @id @default(cuid())
+  name      String       @unique 
+  type      LocationType
+  isActive  Boolean      @default(true)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  inventoryRecords InventoryRecord[]
+}
+
+model InventoryRecord {
+  id         String          @id @default(cuid())
+  productId  String
+  product    Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  locationId String
+  location   StorageLocation @relation(fields: [locationId], references: [id], onDelete: Restrict)
+
+  onHand       Int       @default(0) 
+  committed    Int       @default(0) 
+  incoming     Int       @default(0) 
+  reorderPoint Int       @default(0)
+  batchNumber  String?
+  expiryDate   DateTime?
+
+  logs InventoryLog[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@unique([productId, locationId, batchNumber])
+  @@index([productId])
+  @@index([locationId])
+  @@index([expiryDate])
 }
 
 model InventoryLog {
@@ -394,9 +451,19 @@ model InventoryLog {
   newStock      Int
   changeReason  InventoryChangeReason
   notes         String?
-  createdAt     DateTime              @default(now())
+
+  inventoryRecordId String?
+  inventoryRecord   InventoryRecord? @relation(fields: [inventoryRecordId], references: [id], onDelete: SetNull)
+
+  orderId String?
+  order   Order?  @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  performedById String?
+
+  createdAt DateTime @default(now())
 
   @@index([productId])
+  @@index([inventoryRecordId])
+  @@index([orderId])
 }
 
 enum InventoryChangeReason {
@@ -406,6 +473,10 @@ enum InventoryChangeReason {
   DAMAGE
   EXPIRY
   RETURN
+  ORDER_RESERVED
+  ORDER_FULFILLED
+  ORDER_CANCELLED
+  TRANSFER
 }
 
 model Promotion {

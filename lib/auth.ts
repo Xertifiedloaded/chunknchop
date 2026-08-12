@@ -11,7 +11,7 @@ export interface TokenPayload {
 }
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
-const JWT_EXPIRY = '24h';
+const JWT_EXPIRY = '72h';
 const REFRESH_TOKEN_EXPIRY = '7d';
 
 export function hashPassword(password: string): string {

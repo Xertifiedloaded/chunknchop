@@ -22,38 +22,30 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: 'Order id is required' }, { status: 400 });
     }
 
-    console.log('Order ID:', id);
-
-    // If your Order.id is an Int/autoincrement column instead of a String
-    // (cuid/uuid), uncomment the next two lines and use numericId below:
-    //
-    // const numericId = Number(id);
-    // if (Number.isNaN(numericId)) {
-    //   return NextResponse.json({ error: 'Order not found' }, { status: 404 });
-    // }
-
     const order = await prisma.order.findUnique({
       where: {
-        id, // swap to numericId here if your schema uses an Int id
+        id,
       },
       include: {
         items: {
           include: {
-            product: true,
+            product: {
+              include: {
+                categoryRef: {
+                  select: { id: true, name: true, slug: true, color: true },
+                },
+              },
+            },
           },
         },
       },
     });
-
-    console.log('Found order:', order?.id ?? 'NOT FOUND');
 
     if (!order) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
 
     if (order.customerId !== user.id) {
-      // Return 404 rather than 403 so we don't leak the existence
-      // of orders that belong to other customers.
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
 

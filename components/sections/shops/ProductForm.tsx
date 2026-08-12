@@ -3,18 +3,23 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2, ImagePlus, X } from 'lucide-react';
-import { CATEGORIES, PREPARATIONS } from '@/lib/categories';
+import { PREPARATIONS } from '@/lib/categories';
 
-const MEAT_TYPES = ['BEEF', 'PORK', 'CHICKEN', 'LAMB', 'GOAT', 'FISH', 'SEAFOOD', 'OTHER'];
+// Must match the Prisma `MeatType` enum exactly.
+const MEAT_TYPES = ['BEEF', 'CHICKEN', 'SEAFOOD', 'GOAT', 'PORK', 'TURKEY', 'BBQ', 'SAUSAGE', 'SPICE'];
+const UNITS = ['kg', 'g', 'lb', 'piece', 'pack'];
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
 export interface ProductFormData {
   name: string;
   description: string;
   meatType: string;
-  category: string;
+  categoryId: string;
   basePrice: string;
   stock: string;
+  unit: string;
+  reorderPoint: string;
+  locationId: string;
   tags: string;
   preparations: string;
   isNewArrival: boolean;
@@ -29,13 +34,28 @@ interface ImageItem {
   error?: string;
 }
 
+interface StorageLocationOption {
+  id: string;
+  name: string;
+  type: string;
+}
+
+interface CategoryOption {
+  id: string;
+  name: string;
+  visible: boolean;
+}
+
 const EMPTY_FORM: ProductFormData = {
   name: '',
   description: '',
   meatType: '',
-  category: '',
+  categoryId: '',
   basePrice: '',
   stock: '',
+  unit: 'kg',
+  reorderPoint: '',
+  locationId: '',
   tags: '',
   preparations: '',
   isNewArrival: false,
@@ -68,6 +88,14 @@ export default function ProductForm({ mode, productId, initial, initialImages }:
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [locations, setLocations] = useState<StorageLocationOption[]>([]);
+  const [locationsLoading, setLocationsLoading] = useState(true);
+  const [locationsError, setLocationsError] = useState<string | null>(null);
+
+  const [categories, setCategories] = useState<CategoryOption[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [categoriesError, setCategoriesError] = useState<string | null>(null);
+
   useEffect(() => {
     if (!initial) return;
     setForm({ ...EMPTY_FORM, ...initial });
@@ -77,6 +105,53 @@ export default function ProductForm({ mode, productId, initial, initialImages }:
     if (!initialImages) return;
     setImages(initialImages.map((url) => ({ id: url, url })));
   }, [initialImages]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadLocations() {
+      setLocationsLoading(true);
+      setLocationsError(null);
+      try {
+        const response = await fetch('/api/admin/locations');
+        if (!response.ok) throw new Error('Failed to load storage locations.');
+        const data: StorageLocationOption[] = await response.json();
+        if (cancelled) return;
+
+        setLocations(data);
+        setForm((prev) => (mode === 'create' && !prev.locationId && data.length > 0 ? { ...prev, locationId: data[0].id } : prev));
+      } catch (err) {
+        if (!cancelled) setLocationsError(err instanceof Error ? err.message : 'Failed to load storage locations.');
+      } finally {
+        if (!cancelled) setLocationsLoading(false);
+      }
+    }
+
+    async function loadCategories() {
+      setCategoriesLoading(true);
+      setCategoriesError(null);
+      try {
+        const response = await fetch('/api/admin/categories');
+        if (!response.ok) throw new Error('Failed to load categories.');
+        const data: CategoryOption[] = await response.json();
+        if (cancelled) return;
+
+        const visibleOnly = data.filter((c) => c.visible);
+        setCategories(visibleOnly);
+        setForm((prev) => (mode === 'create' && !prev.categoryId && visibleOnly.length > 0 ? { ...prev, categoryId: visibleOnly[0].id } : prev));
+      } catch (err) {
+        if (!cancelled) setCategoriesError(err instanceof Error ? err.message : 'Failed to load categories.');
+      } finally {
+        if (!cancelled) setCategoriesLoading(false);
+      }
+    }
+
+    loadLocations();
+    loadCategories();
+    return () => {
+      cancelled = true;
+    };
+  }, [mode]);
 
   const update = <K extends keyof ProductFormData>(key: K, value: ProductFormData[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -117,6 +192,10 @@ export default function ProductForm({ mode, productId, initial, initialImages }:
       setError('Choose a meat type.');
       return;
     }
+    if (!form.categoryId) {
+      setError('Choose a category.');
+      return;
+    }
     const basePrice = Number(form.basePrice);
     const stock = Number(form.stock);
     if (!Number.isFinite(basePrice) || basePrice < 0) {
@@ -125,6 +204,15 @@ export default function ProductForm({ mode, productId, initial, initialImages }:
     }
     if (!Number.isFinite(stock) || stock < 0 || !Number.isInteger(stock)) {
       setError('Stock needs to be a whole number.');
+      return;
+    }
+    const reorderPoint = form.reorderPoint.trim() === '' ? 0 : Number(form.reorderPoint);
+    if (!Number.isFinite(reorderPoint) || reorderPoint < 0 || !Number.isInteger(reorderPoint)) {
+      setError('Reorder point needs to be a whole number.');
+      return;
+    }
+    if (mode === 'create' && !form.locationId) {
+      setError('Choose a storage location to stock this product in.');
       return;
     }
     if (images.some((img) => img.error)) {
@@ -138,9 +226,12 @@ export default function ProductForm({ mode, productId, initial, initialImages }:
       body.append('name', form.name.trim());
       body.append('description', form.description.trim());
       body.append('meatType', form.meatType);
-      body.append('category', form.category.trim());
+      body.append('categoryId', form.categoryId);
       body.append('basePrice', String(basePrice));
       body.append('stock', String(stock));
+      body.append('unit', form.unit || 'kg');
+      body.append('reorderPoint', String(reorderPoint));
+      if (form.locationId) body.append('locationId', form.locationId);
       body.append('tags', JSON.stringify(fromCsv(form.tags)));
       body.append('preparations', JSON.stringify(fromCsv(form.preparations)));
       body.append('isNewArrival', String(form.isNewArrival));
@@ -209,20 +300,26 @@ export default function ProductForm({ mode, productId, initial, initialImages }:
           </div>
 
           <div>
-            <label htmlFor="category" className={labelClass}>
+            <label htmlFor="categoryId" className={labelClass}>
               Category
             </label>
-            <input id="category" type="text" list="category-options" value={form.category} onChange={(e) => update('category', e.target.value)} placeholder="Steaks" className={inputClass} autoComplete="off" />
-            <datalist id="category-options">
-              {CATEGORIES.map((cat) => (
-                <option key={cat} value={cat} />
+            <select id="categoryId" value={form.categoryId} onChange={(e) => update('categoryId', e.target.value)} disabled={categoriesLoading} className={inputClass}>
+              <option value="">{categoriesLoading ? 'Loading categories…' : 'Select a category'}</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </option>
               ))}
-            </datalist>
+            </select>
+            {categoriesError && <p className="text-brand mt-1.5 text-xs">{categoriesError}</p>}
+            {!categoriesLoading && !categoriesError && categories.length === 0 && (
+              <p className="text-brand mt-1.5 text-xs">No categories exist yet — create one from the Categories page first.</p>
+            )}
           </div>
 
           <div>
             <label htmlFor="basePrice" className={labelClass}>
-              Base price (USD)
+              Base price (₦)
             </label>
             <input id="basePrice" type="number" min="0" step="0.01" value={form.basePrice} onChange={(e) => update('basePrice', e.target.value)} placeholder="24.99" className={inputClass} />
           </div>
@@ -232,6 +329,45 @@ export default function ProductForm({ mode, productId, initial, initialImages }:
               Stock quantity
             </label>
             <input id="stock" type="number" min="0" step="1" value={form.stock} onChange={(e) => update('stock', e.target.value)} placeholder="50" className={inputClass} />
+          </div>
+
+          <div>
+            <label htmlFor="unit" className={labelClass}>
+              Unit
+            </label>
+            <select id="unit" value={form.unit} onChange={(e) => update('unit', e.target.value)} className={inputClass}>
+              {UNITS.map((u) => (
+                <option key={u} value={u}>
+                  {u}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="reorderPoint" className={labelClass}>
+              Reorder point <span className="text-ink font-normal">(optional)</span>
+            </label>
+            <input id="reorderPoint" type="number" min="0" step="1" value={form.reorderPoint} onChange={(e) => update('reorderPoint', e.target.value)} placeholder="60" className={inputClass} />
+          </div>
+
+          <div className="sm:col-span-2">
+            <label htmlFor="locationId" className={labelClass}>
+              Storage location {mode === 'create' && <span className="text-brand">*</span>}
+            </label>
+            <select id="locationId" value={form.locationId} onChange={(e) => update('locationId', e.target.value)} disabled={locationsLoading || locations.length === 0} className={inputClass}>
+              <option value="">{locationsLoading ? 'Loading locations…' : 'Select a location'}</option>
+              {locations.map((loc) => (
+                <option key={loc.id} value={loc.id}>
+                  {loc.name}
+                </option>
+              ))}
+            </select>
+            {locationsError && <p className="text-brand mt-1.5 text-xs">{locationsError} — seed storage locations before adding products.</p>}
+            {!locationsLoading && !locationsError && locations.length === 0 && (
+              <p className="text-brand mt-1.5 text-xs">No storage locations exist yet — seed them first (Cold Room 1, Chiller 1, Freezer 1, etc).</p>
+            )}
+            {mode === 'edit' && <p className="text-ink mt-1.5 text-xs">Editing doesn&apos;t move existing stock between locations — use the Inventory page to transfer or adjust stock.</p>}
           </div>
 
           <div className="sm:col-span-2">
@@ -297,7 +433,11 @@ export default function ProductForm({ mode, productId, initial, initialImages }:
         <button type="button" onClick={() => router.push('/admin/products')} className="text-ink hover:text-charcoal rounded-lg px-4 py-2 text-sm font-medium">
           Cancel
         </button>
-        <button type="submit" disabled={saving} className="bg-brand text-brand-foreground flex items-center gap-2 rounded-lg px-5 py-2 text-sm font-semibold transition hover:opacity-90 disabled:opacity-60">
+        <button
+          type="submit"
+          disabled={saving || (mode === 'create' && (locations.length === 0 || categories.length === 0))}
+          className="bg-brand text-brand-foreground flex items-center gap-2 rounded-lg px-5 py-2 text-sm font-semibold transition hover:opacity-90 disabled:opacity-60"
+        >
           {saving && <Loader2 size={16} className="animate-spin" />}
           {saving ? (hasNewFiles ? 'Uploading & saving...' : 'Saving...') : mode === 'create' ? 'Add product' : 'Save changes'}
         </button>

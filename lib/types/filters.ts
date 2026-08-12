@@ -16,6 +16,18 @@ export interface FilterState {
   bestSeller: boolean;
 }
 
+export const DEFAULT_FILTERS: FilterState = {
+  search: '',
+  sort: 'Newest',
+  category: 'All',
+  maxPrice: PRICE_MAX,
+  preparations: [],
+  inStock: false,
+  sameDayDelivery: false,
+  newArrival: false,
+  bestSeller: false,
+};
+
 export function countActiveFilters(f: FilterState) {
   let count = 0;
   if (f.category !== 'All') count++;

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Heart, Plus, Star, Clock, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-import type { Product } from '@/lib/types/product';
+import type { Product } from '@/lib/types';
 import { formatNaira } from '@/lib/format';
 import { useAuthStore } from '@/lib/store/authStore';
 import { useCartStore } from '@/lib/store/cartStore';

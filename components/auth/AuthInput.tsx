@@ -2,7 +2,7 @@ import { LucideIcon } from 'lucide-react';
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
 
-import type { AuthField } from '@/lib/types/ui';
+import type { AuthField } from '@/lib/types';
 
 interface AuthInputProps extends AuthField {
   value: string;

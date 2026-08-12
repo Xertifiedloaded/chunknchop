@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-import type { Notification } from '@/lib/types/notification';
+import type { Notification } from '@/lib/types';
 
 interface NotificationStore {
   notifications: Notification[];

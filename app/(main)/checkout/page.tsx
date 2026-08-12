@@ -5,7 +5,7 @@ import { fetchWithAuth } from '@/lib/fetchClient';
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import type { CartItem, Address, DeliverySlot, DeliveryDate, DeliveryMethod } from '@/lib/types/checkoutType';
+import type { CartItem, Address, DeliverySlot, DeliveryDate, DeliveryMethod } from '@/lib/types';
 import { ArrowLeft, ArrowRight, Check, Clock3, CreditCard, Edit3, LockKeyhole, MapPin, Minus, Plus, ShoppingBag, Store, Trash2, Truck } from 'lucide-react';
 
 import toast from 'react-hot-toast';

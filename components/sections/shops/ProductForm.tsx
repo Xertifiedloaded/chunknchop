@@ -11,7 +11,7 @@ const MEAT_TYPES = ['BEEF', 'CHICKEN', 'SEAFOOD', 'GOAT', 'PORK', 'TURKEY', 'BBQ
 const UNITS = ['kg', 'g', 'lb', 'piece', 'pack'];
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
-import type { ProductFormData } from '@/lib/types/ui';
+import type { ProductFormData } from '@/lib/types';
 
 interface ImageItem {
   id: string;

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import ProductCard from '@/components/sections/shops/ProductCard';
-import type { Product } from '@/lib/types/product';
+import type { Product } from '@/lib/types';
 
 interface ProductSectionProps {
   title: string;

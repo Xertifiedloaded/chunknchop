@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import bcryptjs from 'bcryptjs';
 import { jwtDecode } from 'jwt-decode';
 
-import type { TokenPayload } from '@/lib/types/auth';
+import type { TokenPayload } from '@/lib/types';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 const JWT_EXPIRY = process.env.ACCESS_TOKEN_EXPIRY || '15m';

@@ -298,9 +298,7 @@ export default function ProductForm({ mode, productId, initial, initialImages }:
               ))}
             </select>
             {categoriesError && <p className="text-brand mt-1.5 text-xs">{categoriesError}</p>}
-            {!categoriesLoading && !categoriesError && categories.length === 0 && (
-              <p className="text-brand mt-1.5 text-xs">No categories exist yet — create one from the Categories page first.</p>
-            )}
+            {!categoriesLoading && !categoriesError && categories.length === 0 && <p className="text-brand mt-1.5 text-xs">No categories exist yet — create one from the Categories page first.</p>}
           </div>
 
           <div>
@@ -350,9 +348,7 @@ export default function ProductForm({ mode, productId, initial, initialImages }:
               ))}
             </select>
             {locationsError && <p className="text-brand mt-1.5 text-xs">{locationsError} — seed storage locations before adding products.</p>}
-            {!locationsLoading && !locationsError && locations.length === 0 && (
-              <p className="text-brand mt-1.5 text-xs">No storage locations exist yet — seed them first (Cold Room 1, Chiller 1, Freezer 1, etc).</p>
-            )}
+            {!locationsLoading && !locationsError && locations.length === 0 && <p className="text-brand mt-1.5 text-xs">No storage locations exist yet — seed them first (Cold Room 1, Chiller 1, Freezer 1, etc).</p>}
             {mode === 'edit' && <p className="text-ink mt-1.5 text-xs">Editing doesn&apos;t move existing stock between locations — use the Inventory page to transfer or adjust stock.</p>}
           </div>
 
@@ -419,11 +415,7 @@ export default function ProductForm({ mode, productId, initial, initialImages }:
         <button type="button" onClick={() => router.push('/admin/products')} className="text-ink hover:text-charcoal rounded-lg px-4 py-2 text-sm font-medium">
           Cancel
         </button>
-        <button
-          type="submit"
-          disabled={saving || (mode === 'create' && (locations.length === 0 || categories.length === 0))}
-          className="bg-brand text-brand-foreground flex items-center gap-2 rounded-lg px-5 py-2 text-sm font-semibold transition hover:opacity-90 disabled:opacity-60"
-        >
+        <button type="submit" disabled={saving || (mode === 'create' && (locations.length === 0 || categories.length === 0))} className="bg-brand text-brand-foreground flex items-center gap-2 rounded-lg px-5 py-2 text-sm font-semibold transition hover:opacity-90 disabled:opacity-60">
           {saving && <Loader2 size={16} className="animate-spin" />}
           {saving ? (hasNewFiles ? 'Uploading & saving...' : 'Saving...') : mode === 'create' ? 'Add product' : 'Save changes'}
         </button>

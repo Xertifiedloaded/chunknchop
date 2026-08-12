@@ -5,6 +5,7 @@ import useSWR from 'swr';
 import { Button } from '@/components/ui/button';
 import toast from 'react-hot-toast';
 import { fetchWithAuth } from '@/lib/fetchClient';
+import { useAuthStore } from '@/lib/store/authStore';
 
 interface PaymentMethod {
   id: string;
@@ -17,7 +18,17 @@ interface PaymentMethod {
 }
 
 export default function PaymentMethodsPage() {
-  const { data: paymentMethods, mutate } = useSWR('/api/customer/payment-methods', (url) => fetchWithAuth(url).then((res) => res.json()));
+  const { accessToken } = useAuthStore();
+
+  const fetcher = async ([url]: [string, string]) => {
+    const res = await fetchWithAuth(url);
+    if (!res.ok) {
+      throw new Error('Failed to fetch payment methods');
+    }
+    return res.json();
+  };
+
+  const { data: paymentMethods, mutate } = useSWR(accessToken ? ['/api/customer/payment-methods', accessToken] : null, fetcher);
   const [showForm, setShowForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({

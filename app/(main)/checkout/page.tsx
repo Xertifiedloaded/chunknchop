@@ -297,7 +297,6 @@ export default function CheckoutPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-
         },
 
         body: JSON.stringify(newAddress),
@@ -347,7 +346,6 @@ export default function CheckoutPage() {
 
         headers: {
           'Content-Type': 'application/json',
-
         },
 
         body: JSON.stringify({

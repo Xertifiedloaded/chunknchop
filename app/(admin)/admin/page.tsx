@@ -150,7 +150,7 @@ export default function AdminDashboard() {
                 <p className="mt-0.5 text-[8px] text-[#999]">Gross revenue this week compared with the same days last week</p>
               </div>
 
-              <div className="flex items-center gap-3 text-[7px]  text-[#888]">
+              <div className="flex items-center gap-3 text-[7px] text-[#888]">
                 <span className="flex items-center gap-1">
                   <span className="h-1.5 w-1.5 rounded-full bg-[#f26422]" />
                   This week
@@ -172,7 +172,7 @@ export default function AdminDashboard() {
                 {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => (
                   <div key={day} className="flex w-full flex-col items-center gap-1">
                     <div className="w-0.5 rounded-full bg-[#f26422]" style={{ height: `${[30, 46, 39, 62, 53, 74, 67][i]}px` }} />
-                    <span className="text-[7px]  text-[#aaa]">{day}</span>
+                    <span className="text-[7px] text-[#aaa]">{day}</span>
                   </div>
                 ))}
               </div>
@@ -235,7 +235,7 @@ function MetricCard({ title, value, icon, iconClass, change, description, positi
 
       <div className="mt-1 truncate text-[15px] font-bold tracking-[-0.03em] sm:text-[16px]">{value}</div>
 
-      <div className="mt-0.5 flex items-center gap-1 text-[7px] ">
+      <div className="mt-0.5 flex items-center gap-1 text-[7px]">
         <span className={`font-semibold ${positive ? 'text-[#0a9a5c]' : 'text-[#e33e3e]'}`}>{change}</span>
         {description && <span className="text-[#a0a0a0]">{description}</span>}
       </div>
@@ -258,7 +258,7 @@ function StatusCard({ label, value, icon, color }: { label: string; value: strin
 function RevenueStat({ label, value, change, border }: { label: string; value: string; change: string; border?: boolean }) {
   return (
     <div className={`px-3 py-2.5 sm:px-4 ${border ? 'border-l border-[#eeeeee]' : ''}`}>
-      <p className="text-[7px]  text-[#888]">{label}</p>
+      <p className="text-[7px] text-[#888]">{label}</p>
       <div className="mt-1 flex items-center gap-1.5">
         <span className="text-[9px] font-semibold">{value}</span>
         <span className="text-[6px] font-semibold text-[#0a9a5c]">{change}</span>
@@ -324,13 +324,13 @@ function RecentOrdersPanel({ orders, loading }: { orders: Order[]; loading: bool
         <div className="mt-3 space-y-1">
           {orders.map((order, index) => (
             <div key={order.id} className="grid grid-cols-[22px_minmax(120px,1fr)_minmax(80px,1fr)_65px] items-center gap-2 py-1">
-              <span className="flex h-5 w-5 items-center justify-center rounded-md bg-[#f5f5f4] text-[7px]  font-semibold text-[#888]">{index + 1}</span>
+              <span className="flex h-5 w-5 items-center justify-center rounded-md bg-[#f5f5f4] text-[7px] font-semibold text-[#888]">{index + 1}</span>
               <div className="min-w-0">
                 <p className="truncate text-[8px] font-medium">{order.customerName}</p>
-                <p className="text-[7px]  text-[#aaa]">{order.id}</p>
+                <p className="text-[7px] text-[#aaa]">{order.id}</p>
               </div>
               <div>
-                <p className="text-[7px]  text-[#aaa]">{order.status}</p>
+                <p className="text-[7px] text-[#aaa]">{order.status}</p>
               </div>
               <div className="text-right">
                 <p className="text-[8px] font-semibold">{naira(order.total)}</p>
@@ -412,11 +412,11 @@ function TopCategories() {
         <div className="flex-1 space-y-2">
           {categories.map((category, index) => (
             <div key={category.name} className="flex items-center justify-between gap-2">
-              <span className="flex items-center gap-1.5 text-[7px]  text-[#555]">
+              <span className="flex items-center gap-1.5 text-[7px] text-[#555]">
                 <span className={`h-1.5 w-1.5 rounded-[1px] ${['bg-[#7d3038]', 'bg-[#f26422]', 'bg-[#b5b2a8]', 'bg-[#8f8b82]', 'bg-[#d7a067]', 'bg-[#d8d8d8]'][index]}`} />
                 {category.name}
               </span>
-              <span className="text-[7px]  font-semibold">{category.percentage}</span>
+              <span className="text-[7px] font-semibold">{category.percentage}</span>
             </div>
           ))}
         </div>

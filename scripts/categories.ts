@@ -1,5 +1,4 @@
-
-import { PrismaClient,  } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
@@ -92,9 +91,7 @@ async function main() {
       },
     });
 
-    console.log(
-      `${result.name} → /${result.slug} → ${result.color} → visible: ${result.isActive}`
-    );
+    console.log(`${result.name} → /${result.slug} → ${result.color} → visible: ${result.isActive}`);
   }
 
   console.log(`\nCreated/updated ${categories.length} categories.`);

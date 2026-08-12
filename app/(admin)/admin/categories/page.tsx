@@ -48,15 +48,7 @@ async function parseError(res: Response, fallback: string) {
   }
 }
 
-function CategoryCard({
-  category,
-  onSave,
-  onDelete,
-}: {
-  category: Category;
-  onSave: (id: string, fields: EditableFields) => Promise<string | null>;
-  onDelete: (id: string) => Promise<string | null>;
-}) {
+function CategoryCard({ category, onSave, onDelete }: { category: Category; onSave: (id: string, fields: EditableFields) => Promise<string | null>; onDelete: (id: string) => Promise<string | null> }) {
   const [editing, setEditing] = useState(false);
   const [fields, setFields] = useState<EditableFields>(toEditable(category));
   const [saving, setSaving] = useState(false);
@@ -107,49 +99,27 @@ function CategoryCard({
         <div className="space-y-[10px] p-4 pt-[18px] sm:p-[18px] sm:pt-[19px]">
           <div>
             <label className="text-[9px] font-medium text-[#8f8983]">Name</label>
-            <input
-              value={fields.name}
-              onChange={(e) => setFields((f) => ({ ...f, name: e.target.value }))}
-              className="mt-[3px] w-full rounded-[10px] border border-[#ddd9d5] px-[10px] py-[7px] text-[13px] font-semibold text-[#2f2d2b] outline-none focus:border-[#f3652a]"
-            />
+            <input value={fields.name} onChange={(e) => setFields((f) => ({ ...f, name: e.target.value }))} className="mt-[3px] w-full rounded-[10px] border border-[#ddd9d5] px-[10px] py-[7px] text-[13px] font-semibold text-[#2f2d2b] outline-none focus:border-[#f3652a]" />
           </div>
 
           <div>
             <label className="text-[9px] font-medium text-[#8f8983]">Slug</label>
-            <input
-              value={fields.slug}
-              onChange={(e) => setFields((f) => ({ ...f, slug: e.target.value }))}
-              className="mt-[3px] w-full rounded-[10px] border border-[#ddd9d5] px-[10px] py-[7px] text-[11px] text-[#4a4642] outline-none focus:border-[#f3652a]"
-            />
+            <input value={fields.slug} onChange={(e) => setFields((f) => ({ ...f, slug: e.target.value }))} className="mt-[3px] w-full rounded-[10px] border border-[#ddd9d5] px-[10px] py-[7px] text-[11px] text-[#4a4642] outline-none focus:border-[#f3652a]" />
           </div>
 
           <div>
             <label className="text-[9px] font-medium text-[#8f8983]">Description</label>
-            <textarea
-              value={fields.description}
-              onChange={(e) => setFields((f) => ({ ...f, description: e.target.value }))}
-              rows={2}
-              className="mt-[3px] w-full resize-none rounded-[10px] border border-[#ddd9d5] px-[10px] py-[7px] text-[11px] text-[#4a4642] outline-none focus:border-[#f3652a]"
-            />
+            <textarea value={fields.description} onChange={(e) => setFields((f) => ({ ...f, description: e.target.value }))} rows={2} className="mt-[3px] w-full resize-none rounded-[10px] border border-[#ddd9d5] px-[10px] py-[7px] text-[11px] text-[#4a4642] outline-none focus:border-[#f3652a]" />
           </div>
 
           <div className="flex items-center gap-[10px]">
             <div>
               <label className="text-[9px] font-medium text-[#8f8983]">Color</label>
-              <input
-                type="color"
-                value={fields.color}
-                onChange={(e) => setFields((f) => ({ ...f, color: e.target.value }))}
-                className="mt-[3px] block h-[28px] w-[44px] cursor-pointer rounded-[8px] border border-[#ddd9d5] p-[2px]"
-              />
+              <input type="color" value={fields.color} onChange={(e) => setFields((f) => ({ ...f, color: e.target.value }))} className="mt-[3px] block h-[28px] w-[44px] cursor-pointer rounded-[8px] border border-[#ddd9d5] p-[2px]" />
             </div>
 
             <label className="mt-[13px] flex items-center gap-[6px] text-[11px] font-medium text-[#4a4642]">
-              <input
-                type="checkbox"
-                checked={fields.visible}
-                onChange={(e) => setFields((f) => ({ ...f, visible: e.target.checked }))}
-              />
+              <input type="checkbox" checked={fields.visible} onChange={(e) => setFields((f) => ({ ...f, visible: e.target.checked }))} />
               Visible in storefront
             </label>
           </div>
@@ -157,22 +127,12 @@ function CategoryCard({
           {error && <p className="text-[10px] font-medium text-[#d9412f]">{error}</p>}
 
           <div className="flex items-center justify-end gap-[8px] pt-[2px]">
-            <button
-              type="button"
-              onClick={cancelEdit}
-              disabled={saving}
-              className="inline-flex h-[30px] items-center gap-[5px] rounded-[9px] border border-[#ddd9d5] bg-white px-[11px] text-[11px] font-semibold text-[#4a4642] transition hover:bg-[#fafafa] disabled:opacity-50"
-            >
+            <button type="button" onClick={cancelEdit} disabled={saving} className="inline-flex h-[30px] items-center gap-[5px] rounded-[9px] border border-[#ddd9d5] bg-white px-[11px] text-[11px] font-semibold text-[#4a4642] transition hover:bg-[#fafafa] disabled:opacity-50">
               <X size={13} strokeWidth={2.5} />
               Cancel
             </button>
 
-            <button
-              type="button"
-              onClick={save}
-              disabled={saving}
-              className="inline-flex h-[30px] items-center gap-[5px] rounded-[9px] bg-[#f3652a] px-[11px] text-[11px] font-semibold text-white transition hover:bg-[#e9581f] disabled:opacity-60"
-            >
+            <button type="button" onClick={save} disabled={saving} className="inline-flex h-[30px] items-center gap-[5px] rounded-[9px] bg-[#f3652a] px-[11px] text-[11px] font-semibold text-white transition hover:bg-[#e9581f] disabled:opacity-60">
               {saving ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} strokeWidth={2.5} />}
               Save
             </button>
@@ -196,21 +156,11 @@ function CategoryCard({
           </div>
 
           <div className="flex shrink-0 items-center gap-[4px] opacity-0 transition-opacity group-hover:opacity-100">
-            <button
-              type="button"
-              onClick={startEdit}
-              title="Edit"
-              className="flex h-[24px] w-[24px] items-center justify-center rounded-[7px] text-[#8f8983] transition hover:bg-[#f5f5f4] hover:text-[#4a4642]"
-            >
+            <button type="button" onClick={startEdit} title="Edit" className="flex h-[24px] w-[24px] items-center justify-center rounded-[7px] text-[#8f8983] transition hover:bg-[#f5f5f4] hover:text-[#4a4642]">
               <Pencil size={13} strokeWidth={2} />
             </button>
 
-            <button
-              type="button"
-              onClick={() => setConfirmingDelete(true)}
-              title="Delete"
-              className="flex h-[24px] w-[24px] items-center justify-center rounded-[7px] text-[#8f8983] transition hover:bg-[#fbe9e6] hover:text-[#d9412f]"
-            >
+            <button type="button" onClick={() => setConfirmingDelete(true)} title="Delete" className="flex h-[24px] w-[24px] items-center justify-center rounded-[7px] text-[#8f8983] transition hover:bg-[#fbe9e6] hover:text-[#d9412f]">
               <Trash2 size={13} strokeWidth={2} />
             </button>
           </div>
@@ -224,9 +174,7 @@ function CategoryCard({
 
           <div className="min-w-0 rounded-[14px] bg-[#f5f5f4] px-[12px] py-[9px]">
             <p className="text-[9px] leading-[12px] font-medium text-[#8f8983]">Revenue</p>
-            <p className="mt-[3px] truncate text-[15px] leading-[17px] font-bold tracking-[-0.2px] text-[#36322f]">
-              ▣{formatRevenue(category.revenue)}
-            </p>
+            <p className="mt-[3px] truncate text-[15px] leading-[17px] font-bold tracking-[-0.2px] text-[#36322f]">▣{formatRevenue(category.revenue)}</p>
           </div>
         </div>
 
@@ -237,10 +185,7 @@ function CategoryCard({
           </div>
 
           <div className="h-[5px] overflow-hidden rounded-full bg-[#e8e6e4]">
-            <div
-              className="h-full rounded-full transition-all"
-              style={{ width: `${category.share * 3.85}%`, backgroundColor: category.color }}
-            />
+            <div className="h-full rounded-full transition-all" style={{ width: `${category.share * 3.85}%`, backgroundColor: category.color }} />
           </div>
         </div>
 
@@ -261,21 +206,11 @@ function CategoryCard({
             <div className="flex items-center gap-[6px]">
               <span className="text-[10px] font-medium text-[#d9412f]">Delete?</span>
 
-              <button
-                type="button"
-                onClick={confirmDelete}
-                disabled={deleting}
-                className="flex h-[22px] w-[22px] items-center justify-center rounded-[6px] bg-[#d9412f] text-white transition hover:bg-[#c23824] disabled:opacity-60"
-              >
+              <button type="button" onClick={confirmDelete} disabled={deleting} className="flex h-[22px] w-[22px] items-center justify-center rounded-[6px] bg-[#d9412f] text-white transition hover:bg-[#c23824] disabled:opacity-60">
                 {deleting ? <Loader2 size={11} className="animate-spin" /> : <Check size={11} strokeWidth={2.5} />}
               </button>
 
-              <button
-                type="button"
-                onClick={() => setConfirmingDelete(false)}
-                disabled={deleting}
-                className="flex h-[22px] w-[22px] items-center justify-center rounded-[6px] border border-[#ddd9d5] text-[#4a4642] transition hover:bg-[#fafafa]"
-              >
+              <button type="button" onClick={() => setConfirmingDelete(false)} disabled={deleting} className="flex h-[22px] w-[22px] items-center justify-center rounded-[6px] border border-[#ddd9d5] text-[#4a4642] transition hover:bg-[#fafafa]">
                 <X size={11} strokeWidth={2.5} />
               </button>
             </div>
@@ -310,52 +245,27 @@ function NewCategoryCard({ onCreate, onCancel }: { onCreate: (fields: EditableFi
       <div className="space-y-[10px] p-4 pt-[18px] sm:p-[18px] sm:pt-[19px]">
         <div>
           <label className="text-[9px] font-medium text-[#8f8983]">Name</label>
-          <input
-            autoFocus
-            value={fields.name}
-            onChange={(e) => setFields((f) => ({ ...f, name: e.target.value }))}
-            placeholder="e.g. Bakery"
-            className="mt-[3px] w-full rounded-[10px] border border-[#ddd9d5] px-[10px] py-[7px] text-[13px] font-semibold text-[#2f2d2b] outline-none focus:border-[#f3652a]"
-          />
+          <input autoFocus value={fields.name} onChange={(e) => setFields((f) => ({ ...f, name: e.target.value }))} placeholder="e.g. Bakery" className="mt-[3px] w-full rounded-[10px] border border-[#ddd9d5] px-[10px] py-[7px] text-[13px] font-semibold text-[#2f2d2b] outline-none focus:border-[#f3652a]" />
         </div>
 
         <div>
           <label className="text-[9px] font-medium text-[#8f8983]">Slug (optional)</label>
-          <input
-            value={fields.slug}
-            onChange={(e) => setFields((f) => ({ ...f, slug: e.target.value }))}
-            placeholder="auto-generated from name"
-            className="mt-[3px] w-full rounded-[10px] border border-[#ddd9d5] px-[10px] py-[7px] text-[11px] text-[#4a4642] outline-none focus:border-[#f3652a]"
-          />
+          <input value={fields.slug} onChange={(e) => setFields((f) => ({ ...f, slug: e.target.value }))} placeholder="auto-generated from name" className="mt-[3px] w-full rounded-[10px] border border-[#ddd9d5] px-[10px] py-[7px] text-[11px] text-[#4a4642] outline-none focus:border-[#f3652a]" />
         </div>
 
         <div>
           <label className="text-[9px] font-medium text-[#8f8983]">Description</label>
-          <textarea
-            value={fields.description}
-            onChange={(e) => setFields((f) => ({ ...f, description: e.target.value }))}
-            rows={2}
-            className="mt-[3px] w-full resize-none rounded-[10px] border border-[#ddd9d5] px-[10px] py-[7px] text-[11px] text-[#4a4642] outline-none focus:border-[#f3652a]"
-          />
+          <textarea value={fields.description} onChange={(e) => setFields((f) => ({ ...f, description: e.target.value }))} rows={2} className="mt-[3px] w-full resize-none rounded-[10px] border border-[#ddd9d5] px-[10px] py-[7px] text-[11px] text-[#4a4642] outline-none focus:border-[#f3652a]" />
         </div>
 
         <div className="flex items-center gap-[10px]">
           <div>
             <label className="text-[9px] font-medium text-[#8f8983]">Color</label>
-            <input
-              type="color"
-              value={fields.color}
-              onChange={(e) => setFields((f) => ({ ...f, color: e.target.value }))}
-              className="mt-[3px] block h-[28px] w-[44px] cursor-pointer rounded-[8px] border border-[#ddd9d5] p-[2px]"
-            />
+            <input type="color" value={fields.color} onChange={(e) => setFields((f) => ({ ...f, color: e.target.value }))} className="mt-[3px] block h-[28px] w-[44px] cursor-pointer rounded-[8px] border border-[#ddd9d5] p-[2px]" />
           </div>
 
           <label className="mt-[13px] flex items-center gap-[6px] text-[11px] font-medium text-[#4a4642]">
-            <input
-              type="checkbox"
-              checked={fields.visible}
-              onChange={(e) => setFields((f) => ({ ...f, visible: e.target.checked }))}
-            />
+            <input type="checkbox" checked={fields.visible} onChange={(e) => setFields((f) => ({ ...f, visible: e.target.checked }))} />
             Visible in storefront
           </label>
         </div>
@@ -363,22 +273,12 @@ function NewCategoryCard({ onCreate, onCancel }: { onCreate: (fields: EditableFi
         {error && <p className="text-[10px] font-medium text-[#d9412f]">{error}</p>}
 
         <div className="flex items-center justify-end gap-[8px] pt-[2px]">
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={saving}
-            className="inline-flex h-[30px] items-center gap-[5px] rounded-[9px] border border-[#ddd9d5] bg-white px-[11px] text-[11px] font-semibold text-[#4a4642] transition hover:bg-[#fafafa] disabled:opacity-50"
-          >
+          <button type="button" onClick={onCancel} disabled={saving} className="inline-flex h-[30px] items-center gap-[5px] rounded-[9px] border border-[#ddd9d5] bg-white px-[11px] text-[11px] font-semibold text-[#4a4642] transition hover:bg-[#fafafa] disabled:opacity-50">
             <X size={13} strokeWidth={2.5} />
             Cancel
           </button>
 
-          <button
-            type="button"
-            onClick={create}
-            disabled={saving}
-            className="inline-flex h-[30px] items-center gap-[5px] rounded-[9px] bg-[#f3652a] px-[11px] text-[11px] font-semibold text-white transition hover:bg-[#e9581f] disabled:opacity-60"
-          >
+          <button type="button" onClick={create} disabled={saving} className="inline-flex h-[30px] items-center gap-[5px] rounded-[9px] bg-[#f3652a] px-[11px] text-[11px] font-semibold text-white transition hover:bg-[#e9581f] disabled:opacity-60">
             {saving ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} strokeWidth={2.5} />}
             Create
           </button>
@@ -506,56 +406,32 @@ export default function CategoriesPage() {
         <header className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <h1 className="text-[21px] leading-[25px] font-bold tracking-[-0.4px] text-[#292725]">Categories</h1>
-            <p className="mt-[7px] text-[12px] leading-[17px] text-[#908a85]">
-              Organise the catalogue into the storefront categories customers browse by.
-            </p>
+            <p className="mt-[7px] text-[12px] leading-[17px] text-[#908a85]">Organise the catalogue into the storefront categories customers browse by.</p>
           </div>
 
           <div className="flex shrink-0 items-center gap-2">
-            <button
-              type="button"
-              onClick={load}
-              disabled={loading}
-              className="inline-flex h-[35px] items-center justify-center rounded-[11px] border border-[#ddd9d5] bg-white px-[14px] text-[11px] font-semibold text-[#4a4642] shadow-[0_1px_2px_rgba(0,0,0,0.02)] transition hover:bg-[#fafafa] disabled:opacity-50"
-            >
+            <button type="button" onClick={load} disabled={loading} className="inline-flex h-[35px] items-center justify-center rounded-[11px] border border-[#ddd9d5] bg-white px-[14px] text-[11px] font-semibold text-[#4a4642] shadow-[0_1px_2px_rgba(0,0,0,0.02)] transition hover:bg-[#fafafa] disabled:opacity-50">
               Refresh
             </button>
 
-            <button
-              type="button"
-              onClick={() => setCreating(true)}
-              className="inline-flex h-[35px] items-center justify-center gap-[7px] rounded-[11px] bg-[#f3652a] px-[14px] text-[11px] font-semibold text-white shadow-[0_2px_5px_rgba(243,101,42,0.2)] transition hover:bg-[#e9581f]"
-            >
+            <button type="button" onClick={() => setCreating(true)} className="inline-flex h-[35px] items-center justify-center gap-[7px] rounded-[11px] bg-[#f3652a] px-[14px] text-[11px] font-semibold text-white shadow-[0_2px_5px_rgba(243,101,42,0.2)] transition hover:bg-[#e9581f]">
               <Plus size={15} strokeWidth={2.5} />
               New Category
             </button>
           </div>
         </header>
 
-        {loadError && (
-          <div className="mb-4 rounded-[12px] border border-[#f3c9c0] bg-[#fbeeea] px-[14px] py-[11px] text-[11px] font-medium text-[#b23a25]">
-            {loadError}
-          </div>
-        )}
+        {loadError && <div className="mb-4 rounded-[12px] border border-[#f3c9c0] bg-[#fbeeea] px-[14px] py-[11px] text-[11px] font-medium text-[#b23a25]">{loadError}</div>}
 
         <section className="grid grid-cols-1 gap-[14px] md:grid-cols-2 xl:grid-cols-3">
           {creating && <NewCategoryCard onCreate={handleCreate} onCancel={() => setCreating(false)} />}
 
-          {loading &&
-            !creating &&
-            Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="h-[220px] animate-pulse rounded-[17px] border border-[#e8e5e2] bg-white" />
-            ))}
+          {loading && !creating && Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-[220px] animate-pulse rounded-[17px] border border-[#e8e5e2] bg-white" />)}
 
-          {!loading &&
-            categories.map((category) => (
-              <CategoryCard key={category.id} category={category} onSave={handleSave} onDelete={handleDelete} />
-            ))}
+          {!loading && categories.map((category) => <CategoryCard key={category.id} category={category} onSave={handleSave} onDelete={handleDelete} />)}
         </section>
 
-        {!loading && !creating && categories.length === 0 && !loadError && (
-          <p className="mt-6 text-center text-[12px] text-[#908a85]">No categories yet — create your first one.</p>
-        )}
+        {!loading && !creating && categories.length === 0 && !loadError && <p className="mt-6 text-center text-[12px] text-[#908a85]">No categories yet — create your first one.</p>}
 
         <section className="mt-[21px] rounded-[17px] border border-[#e8e5e2] bg-white p-4 shadow-[0_4px_16px_rgba(0,0,0,0.04)] sm:p-[18px]">
           <div>

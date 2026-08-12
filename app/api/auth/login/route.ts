@@ -75,6 +75,8 @@ export async function POST(req: NextRequest) {
       { status: 200 }
     );
 
+    response.cookies.delete('accessToken');
+
     // Set refresh token as httpOnly cookie (not accessible to JS)
     response.cookies.set('refreshToken', refreshToken, {
       httpOnly: true,

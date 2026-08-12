@@ -31,6 +31,7 @@ export async function POST(req: NextRequest) {
 
   response.cookies.delete('refreshToken');
   response.cookies.delete('csrfToken');
+  response.cookies.delete('accessToken');
 
   return response;
 }

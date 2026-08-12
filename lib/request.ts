@@ -2,14 +2,14 @@ import { NextRequest } from 'next/server';
 import { verifyToken } from '@/lib/auth';
 
 export function getTokenFromRequest(req: NextRequest): string | null {
-  const cookieToken = req.cookies.get('accessToken')?.value;
-  if (cookieToken) {
-    return cookieToken;
-  }
-
   const authHeader = req.headers.get('authorization');
   if (authHeader?.startsWith('Bearer ')) {
     return authHeader.substring(7);
+  }
+
+  const cookieToken = req.cookies.get('accessToken')?.value;
+  if (cookieToken) {
+    return cookieToken;
   }
 
   return null;

@@ -29,6 +29,7 @@ export default function Header() {
   const accountRef = useRef<HTMLDivElement>(null);
   const isSupplier = user?.role === 'SUPPLIER';
   const isAdmin = user?.role === 'ADMIN';
+  const isStaff = user?.role === 'STAFF';
   const roleStyle = getRoleStyle(user?.role);
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   useEffect(() => {

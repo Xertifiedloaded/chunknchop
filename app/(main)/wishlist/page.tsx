@@ -27,7 +27,7 @@ interface WishlistItem {
   };
 }
 
-const fetcher = async (url: string) => {
+const fetcher = async ([url]: [string, string]) => {
   const res = await fetchWithAuth(url);
 
   if (!res.ok) {
@@ -44,7 +44,7 @@ export default function WishlistPage() {
   const { user, accessToken } = useAuthStore();
   const { setItems: setCartItems } = useCartStore();
 
-  const { data: wishlist = [], mutate, error } = useSWR<WishlistItem[]>(accessToken ? '/api/customer/wishlist' : null, fetcher);
+  const { data: wishlist = [], mutate, error } = useSWR<WishlistItem[]>(accessToken ? ['/api/customer/wishlist', accessToken] : null, fetcher);
 
   const refreshCart = async () => {
     if (!accessToken || !user || user.role === 'SUPPLIER') return;
@@ -119,7 +119,6 @@ export default function WishlistPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-
         },
         body: JSON.stringify({
           productId,
@@ -170,7 +169,6 @@ export default function WishlistPage() {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-
             },
             body: JSON.stringify({
               productId: item.productId,

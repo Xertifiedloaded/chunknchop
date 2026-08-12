@@ -7,11 +7,7 @@ const EXPIRING_SOON_WINDOW_MS = 72 * 60 * 60 * 1000;
 
 export type InventoryStatus = 'Healthy' | 'Low stock' | 'Out of stock' | 'Expiring soon';
 
-export function getInventoryStatus(record: {
-  onHand: number;
-  reorderPoint: number;
-  expiryDate: Date | null;
-}): InventoryStatus {
+export function getInventoryStatus(record: { onHand: number; reorderPoint: number; expiryDate: Date | null }): InventoryStatus {
   if (record.onHand <= 0) return 'Out of stock';
 
   if (record.expiryDate && record.expiryDate.getTime() - Date.now() <= EXPIRING_SOON_WINDOW_MS) {
@@ -43,13 +39,7 @@ async function recomputeProductAggregate(tx: TxClient, productId: string) {
  * Creates the first InventoryRecord for a brand-new product. Called from
  * POST /api/admin/products so a product never exists without a stock row.
  */
-export async function createInitialInventoryRecord(params: {
-  productId: string;
-  locationId: string;
-  onHand: number;
-  reorderPoint: number;
-  performedById?: string;
-}) {
+export async function createInitialInventoryRecord(params: { productId: string; locationId: string; onHand: number; reorderPoint: number; performedById?: string }) {
   const { productId, locationId, onHand, reorderPoint, performedById } = params;
 
   return prisma.$transaction(async (tx) => {
@@ -78,13 +68,7 @@ export async function createInitialInventoryRecord(params: {
 }
 
 /** Manual admin adjustment — used by the "Adjust" action on the Inventory page. */
-export async function adjustInventoryRecord(params: {
-  inventoryRecordId: string;
-  newOnHand: number;
-  changeReason: InventoryChangeReason;
-  notes?: string;
-  performedById?: string;
-}) {
+export async function adjustInventoryRecord(params: { inventoryRecordId: string; newOnHand: number; changeReason: InventoryChangeReason; notes?: string; performedById?: string }) {
   const { inventoryRecordId, newOnHand, changeReason, notes, performedById } = params;
 
   if (!Number.isInteger(newOnHand) || newOnHand < 0) {
@@ -117,7 +101,6 @@ export async function adjustInventoryRecord(params: {
     return updated;
   });
 }
-
 
 export async function deductStockForOrder(orderId: string) {
   return prisma.$transaction(async (tx) => {

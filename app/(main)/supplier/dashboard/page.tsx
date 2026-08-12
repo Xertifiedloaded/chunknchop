@@ -37,8 +37,7 @@ export default function SupplierDashboard() {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetchWithAuth('/api/supplier/products', {
-      });
+      const response = await fetchWithAuth('/api/supplier/products', {});
 
       if (!response.ok) throw new Error('Failed to fetch products');
 

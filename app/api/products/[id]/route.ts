@@ -21,7 +21,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         basePrice: true,
         stock: true,
         inStock: true,
-        category: true, 
+        category: true,
         categoryId: true,
         categoryRef: {
           select: {
@@ -64,19 +64,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
 
     if (!id) {
-      return NextResponse.json(
-        { error: 'Product ID is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Product ID is required' }, { status: 400 });
     }
 
     const product = await prisma.product.findUnique({
@@ -88,10 +81,7 @@ export async function DELETE(
     });
 
     if (!product) {
-      return NextResponse.json(
-        { error: 'Product not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
 
     try {
@@ -105,12 +95,7 @@ export async function DELETE(
         message: `"${product.name}" was deleted successfully.`,
       });
     } catch (error) {
-      if (
-        error &&
-        typeof error === 'object' &&
-        'code' in error &&
-        error.code === 'P2003'
-      ) {
+      if (error && typeof error === 'object' && 'code' in error && error.code === 'P2003') {
         const archivedProduct = await prisma.product.update({
           where: { id },
           data: {
@@ -140,9 +125,6 @@ export async function DELETE(
   } catch (error) {
     console.error('Error deleting product:', error);
 
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

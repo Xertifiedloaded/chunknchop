@@ -28,7 +28,7 @@ const sections = [
       },
       {
         label: 'Processing Queue',
-        href: '/admin/orders?tab=processing',
+        href: '/admin/processing',
         icon: Boxes,
         badge: 12,
       },

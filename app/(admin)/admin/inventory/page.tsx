@@ -7,7 +7,7 @@ import { fetchWithAuth } from '@/lib/fetchClient';
 type InventoryStatus = 'Healthy' | 'Low stock' | 'Out of stock' | 'Expiring soon';
 
 interface InventoryItem {
-  id: string; 
+  id: string;
   productId: string;
   name: string;
   sku: string;
@@ -21,15 +21,7 @@ interface InventoryItem {
   status: InventoryStatus;
 }
 
-const CHANGE_REASONS = [
-  'RESTOCK',
-  'ADJUSTMENT',
-  'DAMAGE',
-  'EXPIRY',
-  'RETURN',
-  'TRANSFER',
-  'PURCHASE',
-] as const;
+const CHANGE_REASONS = ['RESTOCK', 'ADJUSTMENT', 'DAMAGE', 'EXPIRY', 'RETURN', 'TRANSFER', 'PURCHASE'] as const;
 
 type ChangeReason = (typeof CHANGE_REASONS)[number];
 
@@ -247,7 +239,6 @@ export default function InventoryPage() {
           </div>
         )}
 
-
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <SummaryCard title="Current Stock" value={`${summary.totalOnHand} units`} subtitle={`Across ${summary.zones} storage zones`} icon={Boxes} iconClass="bg-orange-50 text-orange-500" />
 
@@ -257,7 +248,6 @@ export default function InventoryPage() {
 
           <SummaryCard title="Incoming Stock" value={`${summary.incomingTotal} units`} subtitle={`${summary.incomingCount} purchase orders in transit`} icon={Truck} iconClass="bg-emerald-50 text-emerald-500" />
         </div>
-
 
         <section className="mt-4 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.03)]">
           <div className="flex items-center overflow-x-auto border-b border-gray-200 px-3 pt-2.5">
@@ -323,13 +313,13 @@ export default function InventoryPage() {
                       <tr className="border-b border-gray-100 transition hover:bg-gray-50/70">
                         <td className="px-3.5 py-2.5">
                           <div>
-                            <p className="text-xs font-semibold text-charcoal">{item.name}</p>
+                            <p className="text-charcoal text-xs font-semibold">{item.name}</p>
                             <p className="mt-0.5 font-mono text-[8px] text-gray-400">{item.id}</p>
                           </div>
                         </td>
 
                         <td className="px-3.5 py-2.5 text-[9px] text-gray-600">{item.location}</td>
-                        <td className="px-3.5 py-2.5 text-center text-[10px] font-semibold text-charcoal">{item.onHand}</td>
+                        <td className="text-charcoal px-3.5 py-2.5 text-center text-[10px] font-semibold">{item.onHand}</td>
                         <td className="px-3.5 py-2.5 text-center text-[9px] text-gray-600">{item.committed}</td>
                         <td className="px-3.5 py-2.5 text-center text-[9px] text-gray-600">{item.incoming}</td>
                         <td className="px-3.5 py-2.5 text-center text-[9px] text-gray-600">{item.reorderAt}</td>
@@ -358,24 +348,13 @@ export default function InventoryPage() {
                             <div className="flex flex-wrap items-end gap-3">
                               <div className="flex flex-col gap-1">
                                 <label className="text-[8px] font-medium text-gray-500">New on-hand qty</label>
-                                <input
-                                  type="number"
-                                  min={0}
-                                  step={1}
-                                  value={adjustNewOnHand}
-                                  onChange={(e) => setAdjustNewOnHand(e.target.value)}
-                                  className="h-8 w-28 rounded-lg border border-gray-200 bg-white px-2.5 text-[10px] text-gray-700 outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100"
-                                />
+                                <input type="number" min={0} step={1} value={adjustNewOnHand} onChange={(e) => setAdjustNewOnHand(e.target.value)} className="h-8 w-28 rounded-lg border border-gray-200 bg-white px-2.5 text-[10px] text-gray-700 outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100" />
                               </div>
 
                               <div className="flex flex-col gap-1">
                                 <label className="text-[8px] font-medium text-gray-500">Reason</label>
                                 <div className="relative">
-                                  <select
-                                    value={adjustReason}
-                                    onChange={(e) => setAdjustReason(e.target.value as ChangeReason)}
-                                    className="h-8 w-40 appearance-none rounded-lg border border-gray-200 bg-white px-2.5 pr-7 text-[10px] text-gray-700 outline-none focus:border-orange-300"
-                                  >
+                                  <select value={adjustReason} onChange={(e) => setAdjustReason(e.target.value as ChangeReason)} className="h-8 w-40 appearance-none rounded-lg border border-gray-200 bg-white px-2.5 pr-7 text-[10px] text-gray-700 outline-none focus:border-orange-300">
                                     {CHANGE_REASONS.map((r) => (
                                       <option key={r} value={r}>
                                         {r.charAt(0) + r.slice(1).toLowerCase().replace('_', ' ')}
@@ -386,22 +365,12 @@ export default function InventoryPage() {
                                 </div>
                               </div>
 
-                              <div className="flex flex-1 min-w-[160px] flex-col gap-1">
+                              <div className="flex min-w-[160px] flex-1 flex-col gap-1">
                                 <label className="text-[8px] font-medium text-gray-500">Notes (optional)</label>
-                                <input
-                                  type="text"
-                                  value={adjustNotes}
-                                  onChange={(e) => setAdjustNotes(e.target.value)}
-                                  placeholder="e.g. recount after delivery"
-                                  className="h-8 w-full rounded-lg border border-gray-200 bg-white px-2.5 text-[10px] text-gray-700 outline-none placeholder:text-gray-400 focus:border-orange-300 focus:ring-2 focus:ring-orange-100"
-                                />
+                                <input type="text" value={adjustNotes} onChange={(e) => setAdjustNotes(e.target.value)} placeholder="e.g. recount after delivery" className="h-8 w-full rounded-lg border border-gray-200 bg-white px-2.5 text-[10px] text-gray-700 outline-none placeholder:text-gray-400 focus:border-orange-300 focus:ring-2 focus:ring-orange-100" />
                               </div>
 
-                              <button
-                                onClick={() => submitAdjust(item)}
-                                disabled={saving}
-                                className="flex h-8 items-center gap-1.5 rounded-lg bg-[#f15b2a] px-3 text-[10px] font-semibold text-white shadow-sm transition hover:bg-[#dc4e21] disabled:opacity-50"
-                              >
+                              <button onClick={() => submitAdjust(item)} disabled={saving} className="flex h-8 items-center gap-1.5 rounded-lg bg-[#f15b2a] px-3 text-[10px] font-semibold text-white shadow-sm transition hover:bg-[#dc4e21] disabled:opacity-50">
                                 {saving && <Loader2 size={12} className="animate-spin" />}
                                 Save
                               </button>

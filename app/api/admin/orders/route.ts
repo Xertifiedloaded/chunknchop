@@ -4,7 +4,6 @@ import prisma from '@/lib/db';
 import { restoreStockForOrder } from '@/lib/inventory';
 import { OrderStatus } from '@prisma/client';
 
-
 export async function GET(request: NextRequest) {
   try {
     const user = getUserFromRequest(request);
@@ -57,9 +56,7 @@ export async function GET(request: NextRequest) {
         },
         trackingNumber: order.trackingNumber,
         estimatedDelivery: order.estimatedDelivery?.toISOString() ?? null,
-        rider: order.rider
-          ? { id: order.rider.id, name: order.rider.name, phone: order.rider.phone, status: order.rider.status }
-          : null,
+        rider: order.rider ? { id: order.rider.id, name: order.rider.name, phone: order.rider.phone, status: order.rider.status } : null,
       };
     });
 
@@ -70,7 +67,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
-
 
 export async function PATCH(request: NextRequest) {
   try {
@@ -87,10 +83,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     if (!status || !Object.values(OrderStatus).includes(status)) {
-      return NextResponse.json(
-        { error: `status must be one of: ${Object.values(OrderStatus).join(', ')}` },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: `status must be one of: ${Object.values(OrderStatus).join(', ')}` }, { status: 400 });
     }
 
     const order = await prisma.order.findUnique({ where: { id: orderId } });

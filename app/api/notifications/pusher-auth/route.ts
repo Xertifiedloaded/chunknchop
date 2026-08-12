@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { pusher } from '@/lib/pusher';
 import { getUserFromRequest } from '@/lib/request';
+import prisma from '@/lib/db';
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,16 +17,44 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Only allow users to subscribe to their own private channels
-    if (channel_name.startsWith('private-user-') && !channel_name.includes(user.id)) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    // Authorize subscriptions for different private channel types:
+    // - private-user-<userId> : customer user
+    // - private-rider-<riderId> : rider
+    // - private-order-<orderId> : customer OR assigned rider OR admin
+
+    if (channel_name.startsWith('private-user-')) {
+      if (!channel_name.includes(user.id)) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
+    }
+
+    if (channel_name.startsWith('private-rider-')) {
+      // allow if token represents a rider with matching id
+      if (!(user.role === 'RIDER' || user.rider === true) || !channel_name.includes(user.id)) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
+    }
+
+    if (channel_name.startsWith('private-order-')) {
+      // Extract order id and allow if the requester is the customer, assigned rider, or admin
+      const orderId = channel_name.replace('private-order-', '');
+      const order = await prisma.order.findUnique({ where: { id: orderId } });
+      if (!order) return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+
+      const isCustomer = user.role === 'CUSTOMER' && order.customerId === user.id;
+      const isRider = (user.role === 'RIDER' || user.rider === true) && order.riderId === user.id;
+      const isAdmin = user.role === 'ADMIN';
+
+      if (!isCustomer && !isRider && !isAdmin) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
     }
 
     // Authenticate the subscription
     const auth = pusher.authenticateUser(socket_id, {
       id: user.id,
       info: {
-        email: user.email,
+        email: (user as any).email || null,
       },
     });
 

@@ -120,7 +120,6 @@ export async function GET(req: NextRequest) {
         try {
           await deductStockForOrder(order.id);
         } catch (stockError) {
-
           console.error('STOCK_ALERT: payment confirmed but inventory deduction failed', {
             orderId: order.id,
             reference,
@@ -141,7 +140,6 @@ export async function GET(req: NextRequest) {
         { status: 200 }
       );
     }
-
 
     return NextResponse.json(
       {

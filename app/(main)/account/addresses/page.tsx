@@ -5,6 +5,7 @@ import useSWR from 'swr';
 import { Button } from '@/components/ui/button';
 import toast from 'react-hot-toast';
 import { fetchWithAuth } from '@/lib/fetchClient';
+import { useAuthStore } from '@/lib/store/authStore';
 
 interface Address {
   id: string;
@@ -20,7 +21,16 @@ interface Address {
 }
 
 export default function AddressBookPage() {
-  const { data: addresses, mutate } = useSWR('/api/customer/addresses', (url) => fetchWithAuth(url).then((res) => res.json()));
+  const { accessToken } = useAuthStore();
+  const fetcher = async ([url]: [string, string]) => {
+    const res = await fetchWithAuth(url);
+    if (!res.ok) {
+      throw new Error('Failed to fetch addresses');
+    }
+    return res.json();
+  };
+
+  const { data: addresses, mutate } = useSWR(accessToken ? ['/api/customer/addresses', accessToken] : null, fetcher);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);

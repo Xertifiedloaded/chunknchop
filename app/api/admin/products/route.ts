@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
         isBestSeller: true,
         category: true,
         categoryId: true,
-          createdAt: true,
+        createdAt: true,
         categoryRef: { select: { id: true, name: true } },
         inventoryRecords: {
           select: {
@@ -54,7 +54,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 });
   }
 }
-
 
 export async function POST(request: NextRequest) {
   try {
@@ -87,10 +86,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'A storage location is required to stock this product' }, { status: 400 });
     }
 
-    const [category, location] = await Promise.all([
-      prisma.category.findUnique({ where: { id: categoryId } }),
-      prisma.storageLocation.findUnique({ where: { id: locationId } }),
-    ]);
+    const [category, location] = await Promise.all([prisma.category.findUnique({ where: { id: categoryId } }), prisma.storageLocation.findUnique({ where: { id: locationId } })]);
 
     // FIXED — this used to check `category.visible`, a field that doesn't
     // exist on the Category model (the schema field is `isActive`).
@@ -142,10 +138,7 @@ export async function POST(request: NextRequest) {
         const imageUrl = await uploadProductImage(file);
         uploadedUrls.push(imageUrl);
       } catch (error) {
-        return NextResponse.json(
-          { error: error instanceof Error ? error.message : 'Image upload failed' },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: error instanceof Error ? error.message : 'Image upload failed' }, { status: 400 });
       }
     }
 

@@ -90,7 +90,6 @@ export default function ProductCard({ product, isWishlisted = false }: { product
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-
         },
         body: JSON.stringify({
           productId: product.id,
@@ -144,7 +143,6 @@ export default function ProductCard({ product, isWishlisted = false }: { product
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-
           },
           body: JSON.stringify({ productId: product.id }),
         });

@@ -12,6 +12,8 @@ model User {
   password        String
   name            String?
   role            UserRole         @default(CUSTOMER)
+   staffRole  StaffRole?
+  shift      String?
   supplierProfile SupplierProfile?
   products        Product[]
   cart            CartItem[]
@@ -33,8 +35,17 @@ enum UserRole {
   CUSTOMER
   SUPPLIER
   ADMIN
+  STAFF
 }
-
+enum StaffRole {
+  SUPER_ADMIN
+  OPS_MANAGER
+  PROCESSOR
+  SUPPORT
+  RIDER
+  BUTCHER
+  WAREHOUSE
+}
 model SupplierProfile {
   id               String    @id @default(cuid())
   userId           String    @unique
@@ -70,11 +81,6 @@ model Product {
   sku     String? @unique
   unit    String  @default("kg")
   reorderPoint Int @default(0)
-  // meatType is no longer chosen independently by the admin — it's derived
-  // server-side from the selected category's meatType at creation time
-  // (see /api/admin/products POST). Kept as its own column (rather than
-  // just reading through categoryRef.meatType) so historical products keep
-  // their meat type even if a category's meatType is changed later.
   meatType     MeatType
   preparations String[]
   category    String   

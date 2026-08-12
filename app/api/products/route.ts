@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
         isBestSeller: true,
         category: true,
         categoryId: true,
-          createdAt: true,
+        createdAt: true,
         categoryRef: { select: { id: true, name: true } },
         inventoryRecords: {
           select: {

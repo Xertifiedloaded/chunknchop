@@ -73,10 +73,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     const productCount = await prisma.product.count({ where: { categoryId: params.id } });
 
     if (productCount > 0) {
-      return NextResponse.json(
-        { error: `${productCount} product(s) still use this category. Reassign them first.` },
-        { status: 409 }
-      );
+      return NextResponse.json({ error: `${productCount} product(s) still use this category. Reassign them first.` }, { status: 409 });
     }
 
     await prisma.category.delete({ where: { id: params.id } });

@@ -132,4 +132,24 @@ const ROLE_STYLES: Record<
     mobileAccent: 'bg-neutral-50 text-[#2D2D2D]',
   },
 };
-export { NAV_LINKS, ROLE_STYLES, BADGES, REASONS, STEPS, FEATURES, statusSteps, TESTIMONIALS };
+
+const FOOTER_COLUMNS = [
+  {
+    title: 'Company',
+    links: ['About', 'Careers', 'Press', 'Contact'],
+  },
+  {
+    title: 'Shop',
+    links: ['Categories', 'Bestsellers', 'BBQ Packs', 'Subscription'],
+  },
+  {
+    title: 'Explore',
+    links: ['Recipes', 'Wholesale', 'Delivery Areas', 'FAQs'],
+  },
+  {
+    title: 'Legal',
+    links: ['Privacy', 'Terms', 'Cookies'],
+  },
+];
+
+export { NAV_LINKS, SOCIALS, FOOTER_COLUMNS, ROLE_STYLES, BADGES, REASONS, STEPS, FEATURES, statusSteps, TESTIMONIALS };

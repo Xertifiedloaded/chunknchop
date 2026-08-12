@@ -144,7 +144,6 @@ export default function CartDropdown({ isOpen, onClose }: CartDropdownProps) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-
         },
         body: JSON.stringify({
           productId: item.productId,

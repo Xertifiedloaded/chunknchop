@@ -22,10 +22,7 @@ export async function GET(request: NextRequest) {
         ...(search
           ? {
               product: {
-                OR: [
-                  { name: { contains: search, mode: 'insensitive' } },
-                  { sku: { contains: search, mode: 'insensitive' } },
-                ],
+                OR: [{ name: { contains: search, mode: 'insensitive' } }, { sku: { contains: search, mode: 'insensitive' } }],
               },
             }
           : {}),
@@ -38,7 +35,7 @@ export async function GET(request: NextRequest) {
     });
 
     const items = records.map((r) => ({
-      id: r.id, 
+      id: r.id,
       productId: r.product.id,
       name: r.product.name,
       sku: r.product.sku ?? '—',
@@ -60,7 +57,6 @@ export async function GET(request: NextRequest) {
   }
 }
 
-
 export async function POST(request: NextRequest) {
   try {
     const user = getUserFromRequest(request);
@@ -80,10 +76,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!changeReason || !Object.values(InventoryChangeReason).includes(changeReason)) {
-      return NextResponse.json(
-        { error: `changeReason must be one of: ${Object.values(InventoryChangeReason).join(', ')}` },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: `changeReason must be one of: ${Object.values(InventoryChangeReason).join(', ')}` }, { status: 400 });
     }
 
     const updated = await adjustInventoryRecord({

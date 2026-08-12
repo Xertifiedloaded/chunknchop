@@ -22,7 +22,7 @@ export default function Hero({ title, paragraph, isCenter = false, features = tr
 
   return (
     <section className="bg-brand-foreground relative w-full">
-      <div className="from-ink to-ink/80 relative min-h-140 w-full overflow-hidden bg-gradient-to-br sm:min-h-160 lg:min-h-180">
+      <div className="from-ink to-ink/80 relative min-h-140 w-full overflow-hidden bg-linear-to-br sm:min-h-160 lg:min-h-180">
         {!imageFailed && <Image src={hero} alt="" fill priority sizes="100vw" className="object-cover" onError={() => setImageFailed(true)} />}
         <div className="from-ink/70 pointer-events-none absolute inset-0 bg-linear-to-t via-transparent to-transparent" />
 
@@ -80,7 +80,7 @@ export default function Hero({ title, paragraph, isCenter = false, features = tr
 
       {features && (
         <div className="relative mx-auto -mt-8 hidden max-w-6xl px-4 sm:-mt-14 sm:block sm:px-6 lg:-mt-16 lg:px-10">
-          <div className="grid grid-cols-2 gap-3 rounded-2xl bg-white p-4 shadow-sm sm:grid-cols-3 sm:gap-4 sm:p-6 lg:grid-cols-5">
+          <div className="grid grid-cols-2 gap-3 rounded-2xl p-4 sm:grid-cols-3 sm:gap-4 sm:p-6 lg:grid-cols-5">
             {FEATURES.map(({ title: featureTitle, subtitle, icon: Icon }) => (
               <div key={featureTitle} className="flex flex-col items-center gap-2 rounded-xl bg-[#F7F5F4] p-3 text-center sm:gap-3 sm:p-4">
                 <span className="bg-brand/10 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl sm:h-12 sm:w-12">

@@ -61,10 +61,7 @@ export default function Shop() {
         }
 
         const data = await res.json();
-console.log(data);
-
-
-
+        console.log(data);
 
         setProducts(data.products || []);
       } catch (error) {

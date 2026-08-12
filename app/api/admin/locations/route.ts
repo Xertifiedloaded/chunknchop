@@ -40,10 +40,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!type || !Object.values(LocationType).includes(type)) {
-      return NextResponse.json(
-        { error: `type must be one of: ${Object.values(LocationType).join(', ')}` },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: `type must be one of: ${Object.values(LocationType).join(', ')}` }, { status: 400 });
     }
 
     const location = await prisma.storageLocation.create({

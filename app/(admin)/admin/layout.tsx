@@ -44,7 +44,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <AdminAuthProvider>
         <AdminNav />
         <AdminTopbar />
-        <main className="min-h-screen pt-14 lg:pl-64">{children}</main>
+        <main className="min-h-screen pt-14 font-sans lg:pl-64">{children}</main>
       </AdminAuthProvider>
     </div>
   );

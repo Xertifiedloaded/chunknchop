@@ -5,6 +5,7 @@ import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import { BarChart3, Bell, Boxes, ChevronDown, ClipboardList, FileText, HelpCircle, LayoutDashboard, LogOut, Mail, Menu, Megaphone, Package, Plus, Search, Settings, Tags, Truck, UserCog, UsersRound, Warehouse, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
+
 import { useAuthStore } from '@/lib/store/authStore';
 
 const sections = [
@@ -166,22 +167,23 @@ export default function AdminNav() {
 
   return (
     <>
-      {/* Mobile menu button */}
       <button type="button" onClick={() => setMobileOpen(true)} aria-label="Open navigation" className="bg-charcoal fixed top-2 left-2.5 z-50 flex h-7 w-7 items-center justify-center rounded-md text-white shadow-sm lg:hidden">
         <Menu size={14} strokeWidth={2} />
       </button>
 
-      {/* Mobile overlay */}
       {mobileOpen && <button type="button" aria-label="Close navigation" onClick={() => setMobileOpen(false)} className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[1px] lg:hidden" />}
 
-      {/* Sidebar */}
       <aside className={`${mobileOpen ? 'translate-x-0' : '-translate-x-full'} fixed inset-y-0 left-0 z-50 flex flex-col overflow-hidden bg-[var(--color-sidebar)] text-white shadow-xl transition-transform duration-200 ease-out lg:translate-x-0 lg:shadow-none`} style={{ width: SIDEBAR_WIDTH_PX }}>
         {/* Logo */}
         <div className="flex h-11 shrink-0 items-center gap-2 border-b border-white/10 px-3">
           <div className="bg-brand flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-xs font-black">C</div>
 
           <div className="min-w-0">
-            <div className="truncate text-[11px] leading-tight font-bold">ChunkNChop</div>
+            <div className="truncate text-[11px] leading-tight font-bold">
+              <Link href="/" className="truncate text-[11px] leading-tight font-bold">
+                ChunkNChop
+              </Link>
+            </div>
 
             <div className="truncate text-[8px] leading-tight text-[#aaa39d]">Operations Console</div>
           </div>

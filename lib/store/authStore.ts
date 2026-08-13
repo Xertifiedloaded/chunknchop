@@ -5,7 +5,7 @@ import type { User } from '@/lib/types';
 interface AuthState {
   user: User | null;
   isLoading: boolean;
-  isHydrated: boolean; // set to true after /api/auth/me completes (success or failure)
+  isHydrated: boolean; 
   error: string | null;
   setUser: (user: User | null) => void;
   setLoading: (loading: boolean) => void;
@@ -27,13 +27,11 @@ export const useAuthStore = create<AuthState>()((set) => ({
 
   logout: async () => {
     try {
-      // Call server to clear cookies
       await fetch('/api/auth/logout', {
         method: 'POST',
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          // CSRF header read from cookie if present
           ...(typeof document !== 'undefined'
             ? (function () {
                 const name = 'csrfToken=';
@@ -48,14 +46,12 @@ export const useAuthStore = create<AuthState>()((set) => ({
         },
       });
     } catch (e) {
-      // best effort
     } finally {
       set({ user: null });
     }
   },
 }));
 
-// Client-friendly helper to hydrate session by calling /api/auth/me
 export async function hydrateSession() {
   try {
     const res = await fetch('/api/auth/me', { method: 'GET', credentials: 'include' });

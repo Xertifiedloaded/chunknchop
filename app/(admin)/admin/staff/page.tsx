@@ -229,7 +229,7 @@ export default function StaffManagement() {
 
         {staffError && <div className="mb-3 rounded-[10px] border border-red-200 bg-red-50 px-3.5 py-2.5 text-[10px] text-red-600">Couldn't load staff: {errorMessage || 'unknown error'}. Check the network tab / server logs for details.</div>}
 
-        <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <section className="grid grid-cols-2 gap-1 sm:grid-cols-2 xl:grid-cols-4">
           <StatCard label="Total Employees" value={staffLoading ? '...' : String(staff.length)} description="From staff API" icon={<UsersRound size={15} />} iconClass="bg-[#fff0ea] text-[#ef5a25]" accent />
 
           <StatCard label="On Shift Now" value={staffLoading ? '...' : String(staff.length)} description="Currently working" icon={<Clock3 size={15} />} iconClass="bg-[#eafaf4] text-[#00a56a]" />

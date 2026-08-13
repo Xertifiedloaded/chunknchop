@@ -16,7 +16,8 @@ interface CartDropdownProps {
 }
 
 export default function CartDropdown({ isOpen, onClose }: CartDropdownProps) {
-  const { user, accessToken } = useAuthStore();
+  const user = useAuthStore((s) => s.user);
+  const isHydrated = useAuthStore((s) => s.isHydrated);
 
   const { items: cartItems, setItems: setCartItems, getTotalPrice, setLoading: setCartLoading, isLoading: cartLoading } = useCartStore();
 
@@ -30,7 +31,7 @@ export default function CartDropdown({ isOpen, onClose }: CartDropdownProps) {
   const cartTotal = getTotalPrice();
 
   const fetchCart = useCallback(async () => {
-    if (!accessToken || !user || isSupplier) {
+    if (!isHydrated || !user || isSupplier) {
       setCartItems([]);
       return;
     }
@@ -64,18 +65,18 @@ export default function CartDropdown({ isOpen, onClose }: CartDropdownProps) {
     } finally {
       setCartLoading(false);
     }
-  }, [accessToken, user, isSupplier, setCartItems, setCartLoading]);
+  }, [isHydrated, user, isSupplier, setCartItems, setCartLoading]);
 
   useEffect(() => {
-    if (user && accessToken && !isSupplier) {
+    if (isHydrated && user && !isSupplier) {
       fetchCart();
     } else {
       setCartItems([]);
     }
-  }, [user, accessToken, isSupplier, fetchCart, setCartItems]);
+  }, [isHydrated, user, isSupplier, fetchCart, setCartItems]);
 
   async function handleRemoveItem(cartItemId: string) {
-    if (!accessToken) {
+    if (!isHydrated || !user) {
       toast.error('Please sign in to manage your cart');
       return;
     }
@@ -119,7 +120,7 @@ export default function CartDropdown({ isOpen, onClose }: CartDropdownProps) {
       return;
     }
 
-    if (!accessToken) {
+    if (!isHydrated || !user) {
       toast.error('Please sign in to manage your cart');
       return;
     }

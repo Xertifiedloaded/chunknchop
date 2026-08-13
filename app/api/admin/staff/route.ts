@@ -16,7 +16,7 @@ const staffSchema = z.object({
 
 export async function GET(req: NextRequest) {
   try {
-    const current = getUserFromRequest(req);
+    const current = await getUserFromRequest(req);
 
     if (!current || current.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
 
       const rolePermissions = staffRole ? ROLE_PERMISSIONS[staffRole as keyof typeof ROLE_PERMISSIONS] : {};
 
-      const permissions = Object.entries(rolePermissions)
+      const permissions = Object.entries(rolePermissions || {})
         .filter(([, level]) => level !== 'None')
         .map(([area, level]) => ({
           area,
@@ -71,7 +71,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const current = getUserFromRequest(req);
+    const current = await getUserFromRequest(req);
 
     if (!current || current.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

@@ -168,7 +168,11 @@
     --sidebar-ring: oklch(0.556 0 0);
   }
 }
-
+/* input,
+select,
+textarea {
+  font-size: 16px;
+} */
 @keyframes spin {
   to {
     transform: rotate(360deg);

@@ -37,9 +37,7 @@ export default function WhyBuyFromChunkNChop() {
 
             return (
               <div key={benefit.title} className="flex flex-col items-center text-center">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-50">
-                  <Icon className="text-brand h-6 w-6" strokeWidth={2} />
-                </div>
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-50">{Icon && <Icon className="text-brand h-6 w-6" strokeWidth={2} />}</div>
 
                 <h3 className="text-charcoal mt-5 text-sm font-semibold">{benefit.title}</h3>
 

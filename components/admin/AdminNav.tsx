@@ -1,9 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useSearchParams } from 'next/navigation';
-import { BarChart3, Bell, Boxes, ChevronDown, ClipboardList, FileText, HelpCircle, LayoutDashboard, Mail, Menu, Megaphone, Package, Plus, Search, Settings, Tags, Truck, UserCog, UsersRound, Warehouse, X } from 'lucide-react';
-import { useState } from 'react';
+import { usePathname, useSearchParams, useRouter } from 'next/navigation';
+import { BarChart3, Bell, Boxes, ChevronDown, ClipboardList, FileText, HelpCircle, LayoutDashboard, LogOut, Mail, Menu, Megaphone, Package, Plus, Search, Settings, Tags, Truck, UserCog, UsersRound, Warehouse, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import toast from 'react-hot-toast';
 import { useAuthStore } from '@/lib/store/authStore';
 
 const sections = [
@@ -149,6 +150,8 @@ function formatRole(role: string | undefined) {
       return 'Administrator';
     case 'SUPPLIER':
       return 'Supplier';
+    case 'STAFF':
+      return 'Staff';
     case 'CUSTOMER':
       return 'Customer';
     default:
@@ -202,7 +205,7 @@ export default function AdminNav() {
 
                   return (
                     <Link key={item.label} href={item.href} onClick={() => setMobileOpen(false)} className={`group flex h-7 min-w-0 items-center gap-2 rounded-md px-2 text-[11px] transition-colors ${active ? 'bg-[#403b37] text-white' : 'text-[#bdb8b2] hover:bg-white/5 hover:text-white'}`}>
-                      <Icon size={13} strokeWidth={1.8} className="shrink-0" />
+                      {Icon && <Icon size={13} strokeWidth={1.8} className="shrink-0" />}
 
                       <span className="min-w-0 flex-1 truncate whitespace-nowrap">{item.label}</span>
 
@@ -237,13 +240,65 @@ export default function AdminNav() {
 }
 
 export function AdminTopbar() {
+  const router = useRouter();
   const user = useAuthStore((state) => state.user);
+  const logout = useAuthStore((state) => state.logout);
 
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
 
   const displayName = user?.name || user?.email || 'Loading...';
   const initials = getInitials(user?.name, user?.email);
   const roleLabel = formatRole(user?.role);
+
+  // Close the user dropdown on outside click, same pattern as the storefront header.
+  useEffect(() => {
+    function handleClick(event: MouseEvent) {
+      const target = event.target as Node;
+
+      if (userMenuRef.current && !userMenuRef.current.contains(target)) {
+        setUserMenuOpen(false);
+      }
+    }
+    if (userMenuOpen) {
+      document.addEventListener('mousedown', handleClick);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClick);
+    };
+  }, [userMenuOpen]);
+
+  async function handleLogout() {
+    try {
+      const csrf = (function () {
+        if (typeof document === 'undefined') return null;
+        const name = 'csrfToken=';
+        const ca = document.cookie.split(';');
+        for (let c of ca) {
+          c = c.trim();
+          if (c.indexOf(name) === 0) return c.substring(name.length, c.length);
+        }
+        return null;
+      })();
+
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          ...(csrf ? { 'X-CSRF-Token': csrf } : {}),
+        },
+      });
+    } catch (error) {
+      console.error('Logout failed:', error);
+
+      toast.error('Logout request failed');
+    } finally {
+      logout();
+      setUserMenuOpen(false);
+      router.push('/auth/login');
+    }
+  }
 
   return (
     <header className="fixed top-0 right-0 left-0 z-30 h-11 border-b border-black/10 bg-white/95 backdrop-blur lg:left-[15rem]">
@@ -295,21 +350,41 @@ export function AdminTopbar() {
             <span className="absolute top-0 right-0 flex h-3 w-3 items-center justify-center rounded-full bg-[#d94645] text-[6px] font-bold text-white">4</span>
           </button>
 
-          {/* Desktop user */}
-          <div className="hidden min-w-0 items-center gap-1.5 sm:flex">
-            <span className="bg-brand flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-[8px] font-bold text-white">{initials}</span>
+          {/* User menu — this is the part that was broken: previously a plain
+              non-interactive div with no onClick, no dropdown, and no call to
+              logout() or /api/auth/logout. Now a real toggle + dropdown. */}
+          <div ref={userMenuRef} className="relative">
+            <button type="button" onClick={() => setUserMenuOpen((open) => !open)} aria-label="Open user menu" aria-expanded={userMenuOpen} className="hidden min-w-0 items-center gap-1.5 rounded-md px-1 py-1 hover:bg-black/5 sm:flex">
+              <span className="bg-brand flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-[8px] font-bold text-white">{initials}</span>
 
-            <div className="text-charcoal min-w-0">
-              <div className="max-w-24 truncate text-[10px] leading-tight font-semibold whitespace-nowrap">{displayName}</div>
+              <div className="text-charcoal min-w-0 text-left">
+                <div className="max-w-24 truncate text-[10px] leading-tight font-semibold whitespace-nowrap">{displayName}</div>
 
-              <div className="text-charcoal truncate text-[8px] leading-tight whitespace-nowrap">{roleLabel}</div>
-            </div>
+                <div className="text-charcoal truncate text-[8px] leading-tight whitespace-nowrap">{roleLabel}</div>
+              </div>
 
-            <ChevronDown size={10} strokeWidth={2} className="text-ink hidden shrink-0 md:block" />
+              <ChevronDown size={10} strokeWidth={2} className={`text-ink hidden shrink-0 transition-transform duration-200 md:block ${userMenuOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {/* Mobile user toggle */}
+            <button type="button" onClick={() => setUserMenuOpen((open) => !open)} aria-label="Open user menu" aria-expanded={userMenuOpen} className="bg-brand flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-[8px] font-bold text-white sm:hidden">
+              {initials}
+            </button>
+
+            {userMenuOpen && (
+              <div className="absolute top-full right-0 z-40 mt-2 w-44 overflow-hidden rounded-md border border-black/10 bg-white shadow-lg">
+                <div className="border-b border-black/10 px-3 py-2">
+                  <p className="text-charcoal truncate text-[10px] font-semibold">{displayName}</p>
+                  <p className="truncate text-[9px] text-[#8d8882]">{roleLabel}</p>
+                </div>
+
+                <button type="button" onClick={handleLogout} className="flex w-full items-center gap-2 px-3 py-2 text-left text-[10px] text-red-500 hover:bg-red-50">
+                  <LogOut size={12} strokeWidth={1.8} />
+                  Logout
+                </button>
+              </div>
+            )}
           </div>
-
-          {/* Mobile user */}
-          <span className="bg-brand flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-[8px] font-bold text-white sm:hidden">{initials}</span>
         </div>
       </div>
     </header>

@@ -88,7 +88,8 @@ const money = (value: number) => `$${value.toFixed(2)}`;
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { user, accessToken } = useAuthStore();
+  const user = useAuthStore((s) => s.user);
+  const isHydrated = useAuthStore((s) => s.isHydrated);
   const { items, clearCart } = useCartStore();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -146,6 +147,7 @@ export default function CheckoutPage() {
   const selectedAddress = addresses.find((address) => address.id === selectedAddressId) ?? null;
 
   useEffect(() => {
+    if (!isHydrated) return; // wait for hydration
     if (!user) {
       router.push(`/auth/login?redirect=${encodeURIComponent('/checkout')}`);
       return;
@@ -154,10 +156,10 @@ export default function CheckoutPage() {
       ...previous,
       email: user.email || '',
     }));
-  }, [user, router]);
+  }, [isHydrated, user, router]);
 
   useEffect(() => {
-    if (!accessToken) return;
+    if (!isHydrated || !user) return;
     const loadAddresses = async () => {
       try {
         setAddressesLoading(true);
@@ -202,7 +204,7 @@ export default function CheckoutPage() {
     };
 
     loadAddresses();
-  }, [accessToken, user?.email]);
+  }, [isHydrated, user?.email]);
 
   useEffect(() => {
     if (!selectedAddress) return;
@@ -218,8 +220,12 @@ export default function CheckoutPage() {
     }));
   }, [selectedAddressId]);
 
+  if (!isHydrated) {
+    return null; // or a loading indicator while auth is being hydrated
+  }
+
   if (!user) {
-    return null;
+    return null; // user will be redirected once hydration completes
   }
   if (items.length === 0) {
     return (
@@ -278,7 +284,7 @@ export default function CheckoutPage() {
   };
 
   const createAddress = async () => {
-    if (!accessToken) {
+    if (!isHydrated || !user) {
       toast.error('Your session has expired.');
 
       return;
@@ -330,7 +336,7 @@ export default function CheckoutPage() {
       return;
     }
 
-    if (!accessToken) {
+    if (!isHydrated || !user) {
       toast.error('Your session has expired. Please sign in again.');
 
       router.push(`/auth/login?redirect=${encodeURIComponent('/checkout')}`);

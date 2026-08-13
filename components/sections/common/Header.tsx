@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Search, User, ShoppingBag, Menu, X, LogOut, Package } from 'lucide-react';
+import { Search, ShoppingBag, Menu, X, LogOut, Package, ChevronRight, LayoutGrid } from 'lucide-react';
 import toast from 'react-hot-toast';
 import logo from '../../../assets/header-logo.svg';
 import { useAuthStore } from '@/lib/store/authStore';
@@ -14,6 +14,38 @@ import { NAV_LINKS, ROLE_STYLES } from '@/lib';
 
 function getRoleStyle(role?: string) {
   return ROLE_STYLES[role ?? ''] ?? ROLE_STYLES.CUSTOMER;
+}
+
+function formatStaffRole(staffRole?: string | null) {
+  if (!staffRole) return 'Staff';
+
+  return staffRole
+    .toLowerCase()
+    .split(/[_\s]+/)
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
+function getRoleLabel(user?: { role?: string; staffRole?: string | null } | null) {
+  if (user?.role === 'STAFF') {
+    return formatStaffRole(user.staffRole);
+  }
+
+  return getRoleStyle(user?.role).label;
+}
+
+function DrawerLink({ href, onClick, children }: { href: string; onClick?: () => void; children: React.ReactNode }) {
+  return (
+    <Link href={href} onClick={onClick} className="text-charcoal group flex items-center justify-between rounded-lg px-3 py-2.5 text-[13.5px] font-medium transition-colors hover:bg-neutral-50 active:bg-neutral-100">
+      <span>{children}</span>
+      <ChevronRight size={15} className="text-neutral-300 transition-transform group-hover:translate-x-0.5 group-hover:text-neutral-400" />
+    </Link>
+  );
+}
+
+function DrawerSectionLabel({ children }: { children: React.ReactNode }) {
+  return <p className="px-3 pt-4 pb-1.5 text-[10.5px] font-semibold tracking-[0.08em] text-neutral-400 uppercase">{children}</p>;
 }
 
 export default function Header() {
@@ -30,8 +62,13 @@ export default function Header() {
   const isSupplier = user?.role === 'SUPPLIER';
   const isAdmin = user?.role === 'ADMIN';
   const isStaff = user?.role === 'STAFF';
+  // Suppliers and staff are internal accounts, not shoppers — they get their
+  // own dashboard link instead of the customer storefront nav/cart/account menu.
+  const isInternalRole = isSupplier || isStaff;
   const roleStyle = getRoleStyle(user?.role);
+  const roleLabel = getRoleLabel(user); // for STAFF this is user.staffRole, not roleStyle.label
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+
   useEffect(() => {
     if (searchOpen) {
       searchInputRef.current?.focus();
@@ -53,6 +90,18 @@ export default function Header() {
       document.removeEventListener('mousedown', handleClick);
     };
   }, [accountOpen]);
+
+  // Lock page scroll while the mobile drawer is open — standard behavior for
+  // full-height off-canvas nav so the page doesn't scroll behind it.
+  useEffect(() => {
+    if (menuOpen) {
+      const previousOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = previousOverflow;
+      };
+    }
+  }, [menuOpen]);
 
   function handleSearchSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -110,14 +159,30 @@ export default function Header() {
   }
 
   return (
-    <header className="relative z-50 border-b border-neutral-100 bg-white">
+    <header className="relative z-50 overflow-x-hidden border-b border-neutral-100 bg-white">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-2 lg:px-10">
-        <Link href="/" onClick={closeMobileMenu} className="shrink-0">
-          <Image src={logo} alt="ChunkNChop" priority className="h-auto w-32 sm:w-40" />
-        </Link>
+        {/* Brand mark — on mobile, when the drawer is active it cross-fades into
+            the signed-in user's avatar + role so the header reflects the
+            drawer's context instead of just sitting there unchanged. */}
+        <div className="relative flex min-w-0 shrink-0 items-center">
+          <Link href="/" onClick={closeMobileMenu} className={`block transition-all duration-200 ${menuOpen && user ? 'pointer-events-none opacity-0' : 'opacity-100'}`}>
+            <Image src={logo} alt="ChunkNChop" priority className="h-auto w-32 sm:w-40" />
+          </Link>
+
+          {user && (
+            <div className={`absolute left-0 flex items-center gap-2 transition-all duration-200 lg:hidden ${menuOpen ? 'opacity-100' : 'pointer-events-none opacity-0'}`}>
+              <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-white uppercase ${roleStyle.avatar}`}>{(user.name?.trim()?.[0] ?? user.email[0]).toUpperCase()}</span>
+
+              <div className="flex min-w-0 flex-col leading-tight">
+                <span className="text-charcoal max-w-32 truncate text-xs font-semibold">{user.name?.split(' ')[0] ?? user.email.split('@')[0]}</span>
+                <span className={`w-fit rounded px-1.5 py-0.5 text-[9px] font-semibold ${roleStyle.badge}`}>{roleLabel}</span>
+              </div>
+            </div>
+          )}
+        </div>
 
         <nav className="hidden items-center gap-6 lg:flex">
-          {!isSupplier &&
+          {!isInternalRole &&
             NAV_LINKS.map((link) => (
               <Link key={link.label} href={link.href} className="text-charcoal text-sm transition-colors hover:text-neutral-900">
                 {link.label}
@@ -131,6 +196,13 @@ export default function Header() {
             </Link>
           )}
 
+          {isStaff && (
+            <Link href="/staff/dashboard" className="text-charcoal flex items-center gap-2 text-sm">
+              <Package size={16} />
+              Staff Dashboard
+            </Link>
+          )}
+
           {isAdmin && (
             <Link href="/admin" className="text-charcoal text-sm">
               Admin
@@ -139,7 +211,7 @@ export default function Header() {
         </nav>
 
         <div className="flex items-center gap-4 sm:gap-6">
-          {!isSupplier && (
+          {!isInternalRole && (
             <button
               type="button"
               onClick={() => {
@@ -174,19 +246,19 @@ export default function Header() {
                   <span className="hidden flex-col items-start md:flex">
                     <span className="text-charcoal max-w-30 truncate text-xs font-medium">{user.name?.split(' ')[0] ?? user.email.split('@')[0]}</span>
 
-                    {(isAdmin || isSupplier) && <span className={`rounded px-1.5 py-0.5 text-[10px] leading-tight font-semibold ${roleStyle.badge}`}>{roleStyle.label}</span>}
+                    {(isAdmin || isSupplier || isStaff) && <span className={`rounded px-1.5 py-0.5 text-[10px] leading-tight font-semibold ${roleStyle.badge}`}>{roleLabel}</span>}
                   </span>
                 </button>
 
                 {accountOpen && (
-                  <div className="absolute right-0 mt-3 w-52 overflow-hidden rounded-lg border border-neutral-100 bg-white shadow-lg">
+                  <div className="animate-in fade-in slide-in-from-top-1 absolute right-0 mt-3 w-52 overflow-hidden rounded-lg border border-neutral-100 bg-white shadow-lg duration-200">
                     <div className="border-b border-neutral-100 px-4 py-2.5">
                       <p className="truncate text-xs text-neutral-400">{user.email}</p>
 
-                      <span className={`mt-1 inline-block rounded px-1.5 py-0.5 text-[10px] font-semibold ${roleStyle.badge}`}>{roleStyle.label}</span>
+                      <span className={`mt-1 inline-block rounded px-1.5 py-0.5 text-[10px] font-semibold ${roleStyle.badge}`}>{roleLabel}</span>
                     </div>
 
-                    {!isSupplier && (
+                    {!isInternalRole && (
                       <>
                         <Link href="/orders" onClick={() => setAccountOpen(false)} className="text-charcoal block px-4 py-2.5 text-sm hover:bg-neutral-50">
                           Orders
@@ -204,6 +276,18 @@ export default function Header() {
                           Support
                         </Link>
                       </>
+                    )}
+
+                    {isSupplier && (
+                      <Link href="/supplier/dashboard" onClick={() => setAccountOpen(false)} className="text-charcoal block px-4 py-2.5 text-sm hover:bg-neutral-50">
+                        Dashboard
+                      </Link>
+                    )}
+
+                    {isStaff && (
+                      <Link href="/staff/dashboard" onClick={() => setAccountOpen(false)} className="text-charcoal block px-4 py-2.5 text-sm hover:bg-neutral-50">
+                        Staff Dashboard
+                      </Link>
                     )}
 
                     <button type="button" onClick={handleLogout} className="flex w-full items-center gap-2 border-t border-neutral-100 px-4 py-2.5 text-left text-sm text-red-500 hover:bg-red-50">
@@ -226,7 +310,7 @@ export default function Header() {
             )}
           </div>
 
-          {!isSupplier && (
+          {!isInternalRole && (
             <button
               type="button"
               onClick={() => {
@@ -254,98 +338,152 @@ export default function Header() {
               setAccountOpen(false);
             }}
             aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={menuOpen}
             className="text-charcoal lg:hidden"
           >
-            {menuOpen ? <X size={22} /> : <Menu size={22} />}
+            <span className="relative block h-[22px] w-[22px]">
+              <Menu size={22} className={`absolute inset-0 transition-all duration-200 ${menuOpen ? 'rotate-90 opacity-0' : 'rotate-0 opacity-100'}`} />
+              <X size={22} className={`absolute inset-0 transition-all duration-200 ${menuOpen ? 'rotate-0 opacity-100' : '-rotate-90 opacity-0'}`} />
+            </span>
           </button>
         </div>
       </div>
 
-      {!isSupplier && (
-        <div className={`overflow-hidden border-t border-neutral-100 transition-all duration-300 ${searchOpen ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0'}`}>
-          <form onSubmit={handleSearchSubmit} className="mx-auto flex max-w-7xl items-center gap-3 px-6 py-3 lg:px-10">
-            <Search size={18} className="text-neutral-400" />
+      {!isInternalRole && (
+        <div className={`grid overflow-hidden border-t border-neutral-100 transition-[grid-template-rows] duration-300 ease-in-out ${searchOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr] border-t-0'}`}>
+          <div className="overflow-hidden">
+            <form onSubmit={handleSearchSubmit} className="mx-auto flex max-w-7xl items-center gap-3 px-6 py-3 lg:px-10">
+              <Search size={18} className="text-neutral-400" />
 
-            <input ref={searchInputRef} type="text" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search premium meat..." aria-label="Search products" className="text-charcoal w-full bg-transparent text-sm outline-none placeholder:text-neutral-400" />
-          </form>
+              <input ref={searchInputRef} type="text" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search premium meat..." aria-label="Search products" className="text-charcoal w-full bg-transparent text-sm outline-none placeholder:text-neutral-400" />
+            </form>
+          </div>
         </div>
       )}
 
-      {!isSupplier && <CartDropdown isOpen={cartOpen} onClose={() => setCartOpen(false)} />}
-      <div className={`overflow-hidden border-t border-neutral-100 transition-all duration-300 lg:hidden ${menuOpen ? 'max-h-170 opacity-100' : 'max-h-0 opacity-0'}`}>
-        <nav className="flex flex-col px-6 py-4">
-          {user && (
-            <div className="mb-3 flex items-center gap-3 border-b border-neutral-100 pb-3">
-              <span className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold text-white uppercase ${roleStyle.avatar}`}>{(user.name?.trim()?.[0] ?? user.email[0]).toUpperCase()}</span>
+      {!isInternalRole && <CartDropdown isOpen={cartOpen} onClose={() => setCartOpen(false)} />}
 
-              <div className="flex flex-col">
-                <span className="text-charcoal truncate text-sm font-medium">{user.name?.split(' ')[0] ?? user.email.split('@')[0]}</span>
+      {/* Mobile drawer overlay */}
+      <div onClick={closeMobileMenu} aria-hidden="true" className={`fixed inset-0 z-[60] bg-black/45 backdrop-blur-[1px] transition-opacity duration-300 lg:hidden ${menuOpen ? 'opacity-100' : 'pointer-events-none opacity-0'}`} />
 
-                <span className={`mt-0.5 inline-block w-fit rounded px-1.5 py-0.5 text-[10px] font-semibold ${roleStyle.badge}`}>{roleStyle.label}</span>
+      {/* Mobile drawer panel — a full-height off-canvas panel sliding in from
+          the right, matching the standard pattern used by most commerce apps
+          (Amazon, Shopify, etc.): identity header up top, categorized flat nav
+          in a scrollable body, primary action pinned to the footer. */}
+      <aside role="dialog" aria-modal="true" aria-label="Navigation menu" className={`fixed inset-y-0 right-0 z-[70] flex h-dvh w-full max-w-xs flex-col bg-white shadow-2xl transition-transform duration-300 ease-out lg:hidden ${menuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+        {/* Drawer header */}
+        <div className="flex shrink-0 items-center justify-between border-b border-neutral-100 px-5 py-4">
+          {user ? (
+            <div className="flex min-w-0 items-center gap-3">
+              <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white uppercase ${roleStyle.avatar}`}>{(user.name?.trim()?.[0] ?? user.email[0]).toUpperCase()}</span>
+
+              <div className="min-w-0">
+                <p className="text-charcoal truncate text-sm font-semibold">{user.name || user.email.split('@')[0]}</p>
+                <p className="truncate text-xs text-neutral-400">{user.email}</p>
+                <span className={`mt-1 inline-block rounded px-1.5 py-0.5 text-[10px] font-semibold ${roleStyle.badge}`}>{roleLabel}</span>
               </div>
+            </div>
+          ) : (
+            <div>
+              <p className="text-charcoal text-sm font-semibold">Welcome</p>
+              <p className="text-xs text-neutral-400">Sign in for the full experience</p>
             </div>
           )}
 
-          {isSupplier && (
-            <Link href="/supplier/dashboard" onClick={() => setMenuOpen(false)} className={`mb-2 flex items-center gap-2 rounded-lg px-3 py-3 text-sm font-medium ${roleStyle.mobileAccent}`}>
-              <Package size={16} />
-              Dashboard
-            </Link>
+          <button type="button" onClick={closeMobileMenu} aria-label="Close menu" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-900">
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Drawer body */}
+        <div className="flex-1 overflow-y-auto overscroll-contain px-3 pb-4">
+          {(isSupplier || isStaff || isAdmin) && (
+            <>
+              <DrawerSectionLabel>Workspace</DrawerSectionLabel>
+
+              <div className="flex flex-col gap-0.5">
+                {isSupplier && (
+                  <Link href="/supplier/dashboard" onClick={closeMobileMenu} className="text-charcoal flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-[13.5px] font-medium transition-colors hover:bg-neutral-50">
+                    <Package size={16} className="text-neutral-400" />
+                    Dashboard
+                  </Link>
+                )}
+
+                {isStaff && (
+                  <Link href="/staff/dashboard" onClick={closeMobileMenu} className="text-charcoal flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-[13.5px] font-medium transition-colors hover:bg-neutral-50">
+                    <Package size={16} className="text-neutral-400" />
+                    Staff Dashboard
+                  </Link>
+                )}
+
+                {isAdmin && (
+                  <Link href="/admin" onClick={closeMobileMenu} className="text-charcoal flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-[13.5px] font-medium transition-colors hover:bg-neutral-50">
+                    <LayoutGrid size={16} className="text-neutral-400" />
+                    Admin
+                  </Link>
+                )}
+              </div>
+            </>
           )}
 
-          {isAdmin && (
-            <Link href="/admin" onClick={() => setMenuOpen(false)} className={`mb-2 rounded-lg px-3 py-3 text-sm font-medium ${roleStyle.mobileAccent}`}>
-              Admin
-            </Link>
+          {!isInternalRole && (
+            <>
+              <DrawerSectionLabel>Shop</DrawerSectionLabel>
+
+              <div className="flex flex-col gap-0.5">
+                {NAV_LINKS.map((link) => (
+                  <DrawerLink key={link.label} href={link.href} onClick={closeMobileMenu}>
+                    {link.label}
+                  </DrawerLink>
+                ))}
+              </div>
+            </>
           )}
 
-          {!isSupplier &&
-            NAV_LINKS.map((link) => (
-              <Link key={link.label} href={link.href} onClick={() => setMenuOpen(false)} className="text-charcoal border-b border-neutral-100 py-3 text-sm">
-                {link.label}
-              </Link>
-            ))}
+          {user && !isInternalRole && (
+            <>
+              <DrawerSectionLabel>Account</DrawerSectionLabel>
 
+              <div className="flex flex-col gap-0.5">
+                <DrawerLink href="/orders" onClick={closeMobileMenu}>
+                  Orders
+                </DrawerLink>
+
+                <DrawerLink href="/account/subscriptions" onClick={closeMobileMenu}>
+                  Subscriptions
+                </DrawerLink>
+
+                <DrawerLink href="/account/wholesale" onClick={closeMobileMenu}>
+                  Wholesale
+                </DrawerLink>
+
+                <DrawerLink href="/account/support" onClick={closeMobileMenu}>
+                  Support
+                </DrawerLink>
+              </div>
+            </>
+          )}
+        </div>
+
+        <div className="shrink-0 border-t border-neutral-100 px-5 py-4">
           {!user ? (
-            <div className="flex gap-3 py-4 sm:hidden">
-              <Link href="/auth/login" onClick={() => setMenuOpen(false)} className="text-charcoal flex-1 rounded-md border border-neutral-200 px-4 py-2 text-center text-sm font-medium">
+            <div className="flex gap-3">
+              <Link href="/auth/login" onClick={closeMobileMenu} className="text-charcoal flex-1 rounded-md border border-neutral-200 px-4 py-2.5 text-center text-sm font-medium transition hover:bg-neutral-50">
                 Sign In
               </Link>
 
-              <Link href="/auth/signup" onClick={() => setMenuOpen(false)} className="bg-brand flex-1 rounded-md px-4 py-2 text-center text-sm font-semibold text-white">
+              <Link href="/auth/signup" onClick={closeMobileMenu} className="bg-brand flex-1 rounded-md px-4 py-2.5 text-center text-sm font-semibold text-white transition hover:opacity-90">
                 Sign Up
               </Link>
             </div>
           ) : (
-            <div className="py-4 sm:hidden">
-              {!isSupplier && (
-                <div className="flex flex-col">
-                  <Link href="/orders" onClick={() => setMenuOpen(false)} className="text-charcoal py-2 text-sm">
-                    Orders
-                  </Link>
-
-                  <Link href="/account/subscriptions" onClick={() => setMenuOpen(false)} className="text-charcoal py-2 text-sm">
-                    Subscriptions
-                  </Link>
-
-                  <Link href="/account/wholesale" onClick={() => setMenuOpen(false)} className="text-charcoal py-2 text-sm">
-                    Wholesale
-                  </Link>
-
-                  <Link href="/account/support" onClick={() => setMenuOpen(false)} className="text-charcoal py-2 text-sm">
-                    Support
-                  </Link>
-                </div>
-              )}
-
-              <button type="button" onClick={handleLogout} className="mt-3 flex w-full items-center gap-2 border-t border-neutral-100 pt-3 text-left text-sm text-red-500">
-                <LogOut size={14} />
-                Logout
-              </button>
-            </div>
+            <button type="button" onClick={handleLogout} className="flex w-full items-center justify-center gap-2 rounded-md border border-red-100 bg-red-50 py-2.5 text-sm font-semibold text-red-500 transition hover:bg-red-100">
+              <LogOut size={15} />
+              Logout
+            </button>
           )}
-        </nav>
-      </div>
+        </div>
+      </aside>
     </header>
   );
 }

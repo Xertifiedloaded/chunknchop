@@ -62,9 +62,7 @@ export default function Hero({ title, paragraph, isCenter = false, features = tr
               <div className="-mx-6 mt-7 flex snap-x snap-mandatory scrollbar-none gap-3 overflow-x-auto px-6 pb-1 [-ms-overflow-style:none] sm:hidden [&::-webkit-scrollbar]:hidden">
                 {FEATURES.map(({ title: featureTitle, subtitle, icon: Icon }) => (
                   <div key={featureTitle} className="flex w-32 shrink-0 snap-start flex-col items-center gap-2 rounded-xl border border-white/15 bg-black/30 p-3 text-center backdrop-blur-sm">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/15">
-                      <Icon size={16} className="text-brand" strokeWidth={2} aria-hidden="true" />
-                    </span>
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/15">{Icon && <Icon size={16} className="text-brand" strokeWidth={2} aria-hidden="true" />}</span>
                     <div>
                       <p className="text-[11px] font-semibold text-white">{featureTitle}</p>
                       <p className="mt-0.5 text-[9px] leading-snug text-white/70">{subtitle}</p>
@@ -84,8 +82,8 @@ export default function Hero({ title, paragraph, isCenter = false, features = tr
             {FEATURES.map(({ title: featureTitle, subtitle, icon: Icon }) => (
               <div key={featureTitle} className="flex flex-col items-center gap-2 rounded-xl bg-[#F7F5F4] p-3 text-center sm:gap-3 sm:p-4">
                 <span className="bg-brand/10 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl sm:h-12 sm:w-12">
-                  <Icon size={18} className="text-brand sm:hidden" strokeWidth={2} aria-hidden="true" />
-                  <Icon size={22} className="text-brand hidden sm:block" strokeWidth={2} aria-hidden="true" />
+                  {Icon && <Icon size={18} className="text-brand sm:hidden" strokeWidth={2} aria-hidden="true" />}
+                  {Icon && <Icon size={22} className="text-brand hidden sm:block" strokeWidth={2} aria-hidden="true" />}
                 </span>
                 <div>
                   <p className="text-ink text-xs font-semibold sm:text-sm">{featureTitle}</p>

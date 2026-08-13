@@ -213,14 +213,14 @@ function OrderCard({ order }: { order: Order }) {
     <div className="rounded-[15px] border border-[#ebe8e5] bg-white p-3.5 shadow-[0_7px_18px_rgba(40,32,25,0.08)]">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <h3 className="truncate text-[14px] font-bold text-[#302c28]">{order.name}</h3>
-          <p className="mt-0.5 text-[11px] text-[#8d847d]">{order.code}</p>
+          <h3 className="font-sora text-ink truncate text-sm font-bold">{order.name}</h3>
+          <p className="font-worksans text-ink mt-0.5 text-[11px]">{order.code}</p>
         </div>
 
         <PriorityBadge priority={order.priority} />
       </div>
 
-      <div className="mt-3 space-y-2 text-[12px] text-[#625a53]">
+      <div className="font-worksans mt-3 space-y-2 text-[12px] text-[#625a53]">
         <div className="flex items-start gap-2">
           <Scissors className="mt-0.5 h-4 w-4 shrink-0 text-[#aaa39d]" />
           <div className="min-w-0">
@@ -261,10 +261,10 @@ function OrderCard({ order }: { order: Order }) {
 
 function QueueColumn({ queue }: { queue: Queue }) {
   return (
-    <div className="w-[85vw] max-w-[260px] shrink-0 snap-start rounded-[20px] bg-[#f1f1f0] p-3 sm:w-[260px]">
+    <div className="w-[85vw] max-w-65 shrink-0 snap-start rounded-sm bg-[#f1f1f0] p-1 sm:w-[260px]">
       <div className="flex items-start justify-between px-1.5 pb-3">
         <div>
-          <h2 className="text-[14px] font-bold text-[#302c28]">{queue.name}</h2>
+          <h2 className="font-sora text-ink text-sm font-bold">{queue.name}</h2>
           <p className="mt-0.5 text-[11px] text-[#938a83]">{queue.subtitle}</p>
         </div>
 
@@ -288,7 +288,7 @@ function StatCard({ icon, label, value, valueClassName = '' }: { icon: React.Rea
         {label}
       </div>
 
-      <div className={`mt-1.5 text-[20px] font-bold tracking-tight ${valueClassName || 'text-[#312d29]'}`}>{value}</div>
+      <div className={`mt-1.5 text-sm font-bold tracking-tight ${valueClassName || 'text-[#312d29]'}`}>{value}</div>
     </div>
   );
 }
@@ -298,7 +298,7 @@ function StationCard({ station }: { station: Station }) {
 
   return (
     <div className="w-full rounded-[15px] border border-[#e8e3df] bg-white p-4">
-      <h3 className="text-[13px] font-bold text-[#37322e]">{station.name}</h3>
+      <h3 className="text-sm font-bold text-[#37322e]">{station.name}</h3>
 
       <p className="mt-0.5 text-[11px] text-[#968d85]">{station.staff}</p>
 
@@ -319,18 +319,18 @@ export default function ProcessingQueuePage() {
   const [station, setStation] = useState('All stations');
 
   return (
-    <main className="min-h-screen bg-[#f7f8f9] px-4 py-6 text-[#302c28] sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-[1500px]">
+    <main className="text-ink min-h-screen bg-[#f7f8f9] px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-375">
         <header className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
           <div>
-            <h1 className="text-[21px] font-bold tracking-[-0.5px] text-[#2d2926] sm:text-[25px]">Processing Queue</h1>
+            <h1 className="font-sora text-ink text-sm font-bold tracking-[-0.5px] sm:text-[25px]">Processing Queue</h1>
 
-            <p className="mt-2 text-[13px] text-[#8d847d] sm:text-[14px]">Every order moving through the ChunkNChop butchery floor — from intake to the dispatch bay.</p>
+            <p className="text-ink font-worksans mt-2 text-sm sm:text-sm">Every order moving through the ChunkNChop butchery floor — from intake to the dispatch bay.</p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
             <div className="relative">
-              <select value={station} onChange={(e) => setStation(e.target.value)} className="h-[42px] w-[160px] appearance-none rounded-[13px] border border-[#ddd8d4] bg-white px-4 pr-10 text-[13px] text-[#514b45] outline-none focus:border-[#f15b2a]">
+              <select value={station} onChange={(e) => setStation(e.target.value)} className="h-[42px] w-[160px] appearance-none rounded-sm border border-[#ddd8d4] bg-white px-4 pr-10 text-sm text-[#514b45] outline-none focus:border-[#f15b2a]">
                 <option>All stations</option>
                 <option>Cutting</option>
                 <option>Preparation</option>
@@ -341,12 +341,12 @@ export default function ProcessingQueuePage() {
               <ChevronDown className="pointer-events-none absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-[#807871]" />
             </div>
 
-            <button className="flex h-[42px] items-center gap-2 rounded-[13px] border border-[#ddd8d4] bg-white px-4 text-[13px] font-medium whitespace-nowrap text-[#413c37] transition hover:bg-[#faf8f6]">
+            <button className="flex h-[42px] items-center gap-2 rounded-sm border border-[#ddd8d4] bg-white px-4 text-sm font-medium whitespace-nowrap text-[#413c37] transition hover:bg-[#faf8f6]">
               <Gauge className="h-4 w-4" />
               Station Load
             </button>
 
-            <button className="flex h-[42px] items-center gap-2 rounded-[13px] bg-[#f15b2a] px-4 text-[13px] font-semibold whitespace-nowrap text-white shadow-sm transition hover:bg-[#df4f20]">
+            <button className="flex h-[42px] items-center gap-2 rounded-sm bg-[#f15b2a] px-4 text-sm font-semibold whitespace-nowrap text-white shadow-sm transition hover:bg-[#df4f20]">
               <Plus className="h-4 w-4" />
               New Job
             </button>
@@ -375,14 +375,14 @@ export default function ProcessingQueuePage() {
           </div>
         </section>
 
-        <section className="mt-6 rounded-[20px] border border-[#ebe8e5] bg-white p-5 shadow-[0_10px_25px_rgba(40,32,25,0.07)] sm:p-6">
+        <section className="mt-6 rounded-sm border border-[#ebe8e5] bg-white p-5 shadow-[0_10px_25px_rgba(40,32,25,0.07)] sm:p-6">
           <div>
             <h2 className="text-[16px] font-bold text-[#342f2b]">Station Load</h2>
 
             <p className="mt-1 text-[12px] text-[#918880]">Live utilisation and holding temperature by station</p>
           </div>
 
-          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
             {stations.map((item) => (
               <StationCard key={item.name} station={item} />
             ))}

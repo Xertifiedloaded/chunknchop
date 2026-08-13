@@ -71,9 +71,7 @@ function StatCard({ title, value, subtitle, icon: Icon, iconClass, trend, trendT
       <div className="flex items-start justify-between">
         <span className="text-[10px] font-medium text-[#77716b]">{title}</span>
 
-        <div className={`flex h-7 w-7 items-center justify-center rounded-lg ${iconClass}`}>
-          <Icon size={15} strokeWidth={2} />
-        </div>
+        <div className={`flex h-7 w-7 items-center justify-center rounded-lg ${iconClass}`}>{Icon && <Icon size={15} strokeWidth={2} />}</div>
       </div>
 
       <div className="mt-2 text-[25px] font-semibold tracking-[-0.5px] text-[#2e2a27]">{value}</div>

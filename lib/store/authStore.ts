@@ -1,73 +1,81 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 
 import type { User } from '@/lib/types';
 
 interface AuthState {
   user: User | null;
-  accessToken: string | null;
   isLoading: boolean;
+  isHydrated: boolean; // set to true after /api/auth/me completes (success or failure)
   error: string | null;
   setUser: (user: User | null) => void;
-  setAccessToken: (token: string | null) => void;
   setLoading: (loading: boolean) => void;
+  setHydrated: (hydrated: boolean) => void;
   setError: (error: string | null) => void;
-  logout: () => void;
+  logout: () => Promise<void>;
 }
 
-export const useAuthStore = create<AuthState>()(
-  persist(
-    (set) => ({
-      user: null,
-      accessToken: null,
-      isLoading: false,
-      error: null,
+export const useAuthStore = create<AuthState>()((set) => ({
+  user: null,
+  isLoading: false,
+  isHydrated: false,
+  error: null,
 
-      setUser: (user) => set({ user }),
-      setAccessToken: (token) => set({ accessToken: token }),
-      setLoading: (isLoading) => set({ isLoading }),
-      setError: (error) => set({ error }),
-      logout: () => set({ user: null, accessToken: null }),
-    }),
-    {
-      name: 'auth-storage',
-      partialize: (state) => ({
-        user: state.user,
-      }),
+  setUser: (user) => set({ user }),
+  setLoading: (isLoading) => set({ isLoading }),
+  setHydrated: (hydrated) => set({ isHydrated: hydrated }),
+  setError: (error) => set({ error }),
+
+  logout: async () => {
+    try {
+      // Call server to clear cookies
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          // CSRF header read from cookie if present
+          ...(typeof document !== 'undefined'
+            ? (function () {
+                const name = 'csrfToken=';
+                const ca = document.cookie.split(';');
+                for (let c of ca) {
+                  c = c.trim();
+                  if (c.indexOf(name) === 0) return { 'X-CSRF-Token': c.substring(name.length) };
+                }
+                return {} as Record<string, string>;
+              })()
+            : {}),
+        },
+      });
+    } catch (e) {
+      // best effort
+    } finally {
+      set({ user: null });
     }
-  )
-);
+  },
+}));
 
-export async function restoreSession() {
+// Client-friendly helper to hydrate session by calling /api/auth/me
+export async function hydrateSession() {
   try {
-    const csrf = (function () {
-      if (typeof document === 'undefined') return null;
-      const name = 'csrfToken=';
-      const ca = document.cookie.split(';');
-      for (let c of ca) {
-        c = c.trim();
-        if (c.indexOf(name) === 0) return c.substring(name.length, c.length);
-      }
+    const res = await fetch('/api/auth/me', { method: 'GET', credentials: 'include' });
+    if (!res.ok) {
+      useAuthStore.getState().setUser(null);
+      useAuthStore.getState().setHydrated(true);
       return null;
-    })();
-
-    const res = await fetch('/api/auth/refresh', {
-      method: 'POST',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(csrf ? { 'X-CSRF-Token': csrf } : {}),
-      },
-    });
-
-    if (!res.ok) return null;
-    const data = await res.json();
-    const accessToken = data?.accessToken || null;
-    if (accessToken) {
-      useAuthStore.getState().setAccessToken(accessToken);
     }
-    return accessToken;
-  } catch {
+
+    const data = await res.json();
+    if (data?.user) {
+      useAuthStore.getState().setUser(data.user);
+    } else {
+      useAuthStore.getState().setUser(null);
+    }
+    useAuthStore.getState().setHydrated(true);
+    return data?.user || null;
+  } catch (e) {
+    useAuthStore.getState().setUser(null);
+    useAuthStore.getState().setHydrated(true);
     return null;
   }
 }

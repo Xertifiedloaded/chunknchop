@@ -54,6 +54,10 @@ interface ProductFormProps {
   productId?: string;
   initial?: Partial<ProductFormData>;
   initialImages?: string[];
+  /** Called after a successful save. If omitted, falls back to routing back to /admin/products. */
+  onSuccess?: () => void;
+  /** Called when the user cancels. If omitted, falls back to routing back to /admin/products. */
+  onCancel?: () => void;
 }
 
 export function toCsv(value: unknown): string {
@@ -67,7 +71,7 @@ function fromCsv(value: string): string[] {
     .filter(Boolean);
 }
 
-export default function ProductForm({ mode, productId, initial, initialImages }: ProductFormProps) {
+export default function ProductForm({ mode, productId, initial, initialImages, onSuccess, onCancel }: ProductFormProps) {
   const router = useRouter();
   const [form, setForm] = useState<ProductFormData>({ ...EMPTY_FORM, ...initial });
   const [images, setImages] = useState<ImageItem[]>(() => (initialImages ?? []).map((url) => ({ id: url, url })));
@@ -166,6 +170,8 @@ export default function ProductForm({ mode, productId, initial, initialImages }:
     setImages((prev) => prev.filter((img) => img.id !== id));
   };
 
+  const goBackToList = () => router.push('/admin/products');
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -239,8 +245,12 @@ export default function ProductForm({ mode, productId, initial, initialImages }:
         throw new Error(responseBody.error || 'Something went wrong saving the product.');
       }
 
-      router.push('/admin/products');
-      router.refresh();
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        goBackToList();
+        router.refresh();
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong saving the product.');
       setSaving(false);
@@ -248,176 +258,177 @@ export default function ProductForm({ mode, productId, initial, initialImages }:
   };
 
   const hasNewFiles = images.some((img) => img.file && !img.error);
-  const inputClass = 'w-full rounded-lg border border-ink/20 bg-white px-3 py-2 text-sm text-charcoal placeholder:text-ink/60 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20';
-  const labelClass = 'mb-1.5 block text-sm font-medium text-charcoal';
+  const inputClass = 'h-8 w-full rounded-[8px] border border-[#dedbd7] bg-white px-2.5 text-[11px] text-[#333] outline-none placeholder:text-[#a7a7b0] focus:border-[#c8c5c1]';
+  const textareaClass = 'w-full rounded-[8px] border border-[#dedbd7] bg-white px-2.5 py-2 text-[11px] text-[#333] outline-none placeholder:text-[#a7a7b0] focus:border-[#c8c5c1]';
+  const labelClass = 'mb-1 block text-[10px] font-medium text-[#55514c]';
+  const hintClass = 'mt-1 text-[9px] text-[#99958f]';
+  const errorHintClass = 'mt-1 text-[9px] text-[#c4491d]';
 
   return (
-    <form onSubmit={handleSubmit} className="mx-auto max-w-3xl">
-      {error && <div className="border-brand/30 bg-brand/10 text-brand mb-6 rounded-lg border px-4 py-3 text-sm">{error}</div>}
+    <form onSubmit={handleSubmit}>
+      {error && <div className="mb-4 rounded-[10px] border border-[#f2652a4d] bg-[#fff4ee] px-3 py-2 text-[11px] leading-3.5 text-[#c4491d]">{error}</div>}
 
-      <div className="border-sand rounded-2xl border bg-white p-6 shadow-sm sm:p-8">
-        <div className="grid gap-6 sm:grid-cols-2">
-          <div className="sm:col-span-2">
-            <label htmlFor="name" className={labelClass}>
-              Product name
-            </label>
-            <input id="name" type="text" value={form.name} onChange={(e) => update('name', e.target.value)} placeholder="Dry-Aged Ribeye Steak" className={inputClass} />
-          </div>
-
-          <div className="sm:col-span-2">
-            <label htmlFor="description" className={labelClass}>
-              Description
-            </label>
-            <textarea id="description" value={form.description} onChange={(e) => update('description', e.target.value)} rows={4} placeholder="What makes this cut worth ordering?" className={inputClass} />
-          </div>
-
-          <div>
-            <label htmlFor="meatType" className={labelClass}>
-              Meat type
-            </label>
-            <select id="meatType" value={form.meatType} onChange={(e) => update('meatType', e.target.value)} className={inputClass}>
-              <option value="">Select a type</option>
-              {MEAT_TYPES.map((type) => (
-                <option key={type} value={type}>
-                  {type.charAt(0) + type.slice(1).toLowerCase()}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label htmlFor="categoryId" className={labelClass}>
-              Category
-            </label>
-            <select id="categoryId" value={form.categoryId} onChange={(e) => update('categoryId', e.target.value)} disabled={categoriesLoading} className={inputClass}>
-              <option value="">{categoriesLoading ? 'Loading categories…' : 'Select a category'}</option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.name}
-                </option>
-              ))}
-            </select>
-            {categoriesError && <p className="text-brand mt-1.5 text-xs">{categoriesError}</p>}
-            {!categoriesLoading && !categoriesError && categories.length === 0 && <p className="text-brand mt-1.5 text-xs">No categories exist yet — create one from the Categories page first.</p>}
-          </div>
-
-          <div>
-            <label htmlFor="basePrice" className={labelClass}>
-              Base price (₦)
-            </label>
-            <input id="basePrice" type="number" min="0" step="0.01" value={form.basePrice} onChange={(e) => update('basePrice', e.target.value)} placeholder="24.99" className={inputClass} />
-          </div>
-
-          <div>
-            <label htmlFor="stock" className={labelClass}>
-              Stock quantity
-            </label>
-            <input id="stock" type="number" min="0" step="1" value={form.stock} onChange={(e) => update('stock', e.target.value)} placeholder="50" className={inputClass} />
-          </div>
-
-          <div>
-            <label htmlFor="unit" className={labelClass}>
-              Unit
-            </label>
-            <select id="unit" value={form.unit} onChange={(e) => update('unit', e.target.value)} className={inputClass}>
-              {UNITS.map((u) => (
-                <option key={u} value={u}>
-                  {u}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label htmlFor="reorderPoint" className={labelClass}>
-              Reorder point <span className="text-ink font-normal">(optional)</span>
-            </label>
-            <input id="reorderPoint" type="number" min="0" step="1" value={form.reorderPoint} onChange={(e) => update('reorderPoint', e.target.value)} placeholder="60" className={inputClass} />
-          </div>
-
-          <div className="sm:col-span-2">
-            <label htmlFor="locationId" className={labelClass}>
-              Storage location {mode === 'create' && <span className="text-brand">*</span>}
-            </label>
-            <select id="locationId" value={form.locationId} onChange={(e) => update('locationId', e.target.value)} disabled={locationsLoading || locations.length === 0} className={inputClass}>
-              <option value="">{locationsLoading ? 'Loading locations…' : 'Select a location'}</option>
-              {locations.map((loc) => (
-                <option key={loc.id} value={loc.id}>
-                  {loc.name}
-                </option>
-              ))}
-            </select>
-            {locationsError && <p className="text-brand mt-1.5 text-xs">{locationsError} — seed storage locations before adding products.</p>}
-            {!locationsLoading && !locationsError && locations.length === 0 && <p className="text-brand mt-1.5 text-xs">No storage locations exist yet — seed them first (Cold Room 1, Chiller 1, Freezer 1, etc).</p>}
-            {mode === 'edit' && <p className="text-ink mt-1.5 text-xs">Editing doesn&apos;t move existing stock between locations — use the Inventory page to transfer or adjust stock.</p>}
-          </div>
-
-          <div className="sm:col-span-2">
-            <label htmlFor="tags" className={labelClass}>
-              Tags <span className="text-ink font-normal">(comma-separated)</span>
-            </label>
-            <input id="tags" type="text" value={form.tags} onChange={(e) => update('tags', e.target.value)} placeholder="grass-fed, premium, grilling" className={inputClass} />
-          </div>
-
-          <div className="sm:col-span-2">
-            <label htmlFor="preparations" className={labelClass}>
-              Preparations <span className="text-ink font-normal">(comma-separated)</span>
-            </label>
-            <input id="preparations" type="text" list="preparation-options" value={form.preparations} onChange={(e) => update('preparations', e.target.value)} placeholder="whole, sliced, marinated" className={inputClass} autoComplete="off" />
-            <datalist id="preparation-options">
-              {PREPARATIONS.map((p) => (
-                <option key={p} value={p} />
-              ))}
-            </datalist>
-          </div>
-
-          <div className="sm:col-span-2">
-            <label className={labelClass}>Product images</label>
-            <div className="flex flex-wrap gap-3">
-              {images.map((img) => (
-                <div key={img.id} className="group border-ink/20 bg-sand relative h-24 w-24 overflow-hidden rounded-lg border">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={img.url} alt="" className="h-full w-full object-cover" />
-                  {img.error && <div className="bg-brand/85 absolute inset-0 flex items-center justify-center p-1 text-center text-[10px] font-medium text-white">{img.error}</div>}
-                  <button type="button" onClick={() => removeImage(img.id)} className="absolute top-1 right-1 rounded-full bg-black/60 p-1 text-white opacity-0 transition group-hover:opacity-100" aria-label="Remove image">
-                    <X size={12} />
-                  </button>
-                </div>
-              ))}
-
-              <label className="border-ink/30 text-ink hover:border-brand hover:text-brand flex h-24 w-24 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-dashed transition">
-                <ImagePlus size={20} />
-                <span className="text-xs">Add</span>
-                <input type="file" accept="image/*" multiple className="hidden" onChange={handleFileSelect} />
-              </label>
-            </div>
-            <p className="text-ink mt-1.5 text-xs">PNG or JPG, up to 5MB each. Uploaded when you save.</p>
-          </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="sm:col-span-2">
+          <label htmlFor="name" className={labelClass}>
+            Product name
+          </label>
+          <input id="name" type="text" value={form.name} onChange={(e) => update('name', e.target.value)} placeholder="Dry-Aged Ribeye Steak" className={inputClass} />
         </div>
 
-        <div className="border-sand mt-6 flex flex-wrap gap-6 border-t pt-6">
-          <label className="text-charcoal flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={form.isNewArrival} onChange={(e) => update('isNewArrival', e.target.checked)} className="border-ink/40 text-brand focus:ring-brand/30 h-4 w-4 rounded" />
-            New arrival
+        <div className="sm:col-span-2">
+          <label htmlFor="description" className={labelClass}>
+            Description
           </label>
-          <label className="text-charcoal flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={form.isBestSeller} onChange={(e) => update('isBestSeller', e.target.checked)} className="border-ink/40 text-brand focus:ring-brand/30 h-4 w-4 rounded" />
-            Best seller
+          <textarea id="description" value={form.description} onChange={(e) => update('description', e.target.value)} rows={3} placeholder="What makes this cut worth ordering?" className={textareaClass} />
+        </div>
+
+        <div>
+          <label htmlFor="meatType" className={labelClass}>
+            Meat type
           </label>
-          <label className="text-charcoal flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={form.sameDayDelivery} onChange={(e) => update('sameDayDelivery', e.target.checked)} className="border-ink/40 text-brand focus:ring-brand/30 h-4 w-4 rounded" />
-            Same-day delivery
+          <select id="meatType" value={form.meatType} onChange={(e) => update('meatType', e.target.value)} className={inputClass}>
+            <option value="">Select a type</option>
+            {MEAT_TYPES.map((type) => (
+              <option key={type} value={type}>
+                {type.charAt(0) + type.slice(1).toLowerCase()}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label htmlFor="categoryId" className={labelClass}>
+            Category
           </label>
+          <select id="categoryId" value={form.categoryId} onChange={(e) => update('categoryId', e.target.value)} disabled={categoriesLoading} className={inputClass}>
+            <option value="">{categoriesLoading ? 'Loading categories…' : 'Select a category'}</option>
+            {categories.map((cat) => (
+              <option key={cat.id} value={cat.id}>
+                {cat.name}
+              </option>
+            ))}
+          </select>
+          {categoriesError && <p className={errorHintClass}>{categoriesError}</p>}
+          {!categoriesLoading && !categoriesError && categories.length === 0 && <p className={errorHintClass}>No categories exist yet — create one from the Categories page first.</p>}
+        </div>
+
+        <div>
+          <label htmlFor="basePrice" className={labelClass}>
+            Base price (₦)
+          </label>
+          <input id="basePrice" type="number" min="0" step="0.01" value={form.basePrice} onChange={(e) => update('basePrice', e.target.value)} placeholder="24.99" className={inputClass} />
+        </div>
+
+        <div>
+          <label htmlFor="stock" className={labelClass}>
+            Stock quantity
+          </label>
+          <input id="stock" type="number" min="0" step="1" value={form.stock} onChange={(e) => update('stock', e.target.value)} placeholder="50" className={inputClass} />
+        </div>
+
+        <div>
+          <label htmlFor="unit" className={labelClass}>
+            Unit
+          </label>
+          <select id="unit" value={form.unit} onChange={(e) => update('unit', e.target.value)} className={inputClass}>
+            {UNITS.map((u) => (
+              <option key={u} value={u}>
+                {u}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label htmlFor="reorderPoint" className={labelClass}>
+            Reorder point <span className="font-normal text-[#99958f]">(optional)</span>
+          </label>
+          <input id="reorderPoint" type="number" min="0" step="1" value={form.reorderPoint} onChange={(e) => update('reorderPoint', e.target.value)} placeholder="60" className={inputClass} />
+        </div>
+
+        <div className="sm:col-span-2">
+          <label htmlFor="locationId" className={labelClass}>
+            Storage location {mode === 'create' && <span className="text-[#f2652a]">*</span>}
+          </label>
+          <select id="locationId" value={form.locationId} onChange={(e) => update('locationId', e.target.value)} disabled={locationsLoading || locations.length === 0} className={inputClass}>
+            <option value="">{locationsLoading ? 'Loading locations…' : 'Select a location'}</option>
+            {locations.map((loc) => (
+              <option key={loc.id} value={loc.id}>
+                {loc.name}
+              </option>
+            ))}
+          </select>
+          {locationsError && <p className={errorHintClass}>{locationsError} — seed storage locations before adding products.</p>}
+          {!locationsLoading && !locationsError && locations.length === 0 && <p className={errorHintClass}>No storage locations exist yet — seed them first (Cold Room 1, Chiller 1, Freezer 1, etc).</p>}
+          {mode === 'edit' && <p className={hintClass}>Editing doesn&apos;t move existing stock between locations — use the Inventory page to transfer or adjust stock.</p>}
+        </div>
+
+        <div className="sm:col-span-2">
+          <label htmlFor="tags" className={labelClass}>
+            Tags <span className="font-normal text-[#99958f]">(comma-separated)</span>
+          </label>
+          <input id="tags" type="text" value={form.tags} onChange={(e) => update('tags', e.target.value)} placeholder="grass-fed, premium, grilling" className={inputClass} />
+        </div>
+
+        <div className="sm:col-span-2">
+          <label htmlFor="preparations" className={labelClass}>
+            Preparations <span className="font-normal text-[#99958f]">(comma-separated)</span>
+          </label>
+          <input id="preparations" type="text" list="preparation-options" value={form.preparations} onChange={(e) => update('preparations', e.target.value)} placeholder="whole, sliced, marinated" className={inputClass} autoComplete="off" />
+          <datalist id="preparation-options">
+            {PREPARATIONS.map((p) => (
+              <option key={p} value={p} />
+            ))}
+          </datalist>
+        </div>
+
+        <div className="sm:col-span-2">
+          <label className={labelClass}>Product images</label>
+          <div className="flex flex-wrap gap-2">
+            {images.map((img) => (
+              <div key={img.id} className="group relative h-16 w-16 shrink-0 overflow-hidden rounded-[8px] border border-[#dedbd7] bg-[#f7f8fa]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={img.url} alt="" className="h-full w-full object-cover" />
+                {img.error && <div className="absolute inset-0 flex items-center justify-center bg-[#ed3b3b]/85 p-1 text-center text-[8px] font-medium text-white">{img.error}</div>}
+                <button type="button" onClick={() => removeImage(img.id)} className="absolute top-0.5 right-0.5 rounded-full bg-black/60 p-0.5 text-white opacity-0 transition group-hover:opacity-100" aria-label="Remove image">
+                  <X size={10} />
+                </button>
+              </div>
+            ))}
+
+            <label className="flex h-16 w-16 shrink-0 cursor-pointer flex-col items-center justify-center gap-0.5 rounded-[8px] border border-dashed border-[#dedbd7] text-[#99958f] transition hover:border-[#f2652a] hover:text-[#f2652a]">
+              <ImagePlus size={16} strokeWidth={1.6} />
+              <span className="text-[8px]">Add</span>
+              <input type="file" accept="image/*" multiple className="hidden" onChange={handleFileSelect} />
+            </label>
+          </div>
+          <p className={hintClass}>PNG or JPG, up to 5MB each. Uploaded when you save.</p>
         </div>
       </div>
 
-      <div className="mt-6 flex items-center justify-end gap-3">
-        <button type="button" onClick={() => router.push('/admin/products')} className="text-ink hover:text-charcoal rounded-lg px-4 py-2 text-sm font-medium">
+      <div className="mt-4 flex flex-wrap gap-4 border-t border-[#eceae7] pt-4">
+        <label className="flex items-center gap-1.5 text-[11px] text-[#292929]">
+          <input type="checkbox" checked={form.isNewArrival} onChange={(e) => update('isNewArrival', e.target.checked)} className="h-3.5 w-3.5 rounded border-[#dedbd7] text-[#f2652a] focus:ring-[#f2652a]/30" />
+          New arrival
+        </label>
+        <label className="flex items-center gap-1.5 text-[11px] text-[#292929]">
+          <input type="checkbox" checked={form.isBestSeller} onChange={(e) => update('isBestSeller', e.target.checked)} className="h-3.5 w-3.5 rounded border-[#dedbd7] text-[#f2652a] focus:ring-[#f2652a]/30" />
+          Best seller
+        </label>
+        <label className="flex items-center gap-1.5 text-[11px] text-[#292929]">
+          <input type="checkbox" checked={form.sameDayDelivery} onChange={(e) => update('sameDayDelivery', e.target.checked)} className="h-3.5 w-3.5 rounded border-[#dedbd7] text-[#f2652a] focus:ring-[#f2652a]/30" />
+          Same-day delivery
+        </label>
+      </div>
+
+      <div className="mt-4 flex items-center justify-end gap-2 border-t border-[#eceae7] pt-4">
+        <button type="button" onClick={() => (onCancel ? onCancel() : goBackToList())} className="flex h-[29px] items-center justify-center rounded-[8px] px-3 text-[11px] font-medium text-[#696661] transition hover:bg-[#f4f3f1]">
           Cancel
         </button>
-        <button type="submit" disabled={saving || (mode === 'create' && (locations.length === 0 || categories.length === 0))} className="bg-brand text-brand-foreground flex items-center gap-2 rounded-lg px-5 py-2 text-sm font-semibold transition hover:opacity-90 disabled:opacity-60">
-          {saving && <Loader2 size={16} className="animate-spin" />}
-          {saving ? (hasNewFiles ? 'Uploading & saving...' : 'Saving...') : mode === 'create' ? 'Add product' : 'Save changes'}
+        <button type="submit" disabled={saving || (mode === 'create' && (locations.length === 0 || categories.length === 0))} className="bg-brand hover:bg-brand flex h-[29px] items-center justify-center gap-1.5 rounded-[8px] px-3.5 text-[11px] font-medium whitespace-nowrap text-white shadow-[0_2px_4px_rgba(242,101,42,0.2)] transition disabled:opacity-60">
+          {saving && <Loader2 size={12} className="animate-spin" />}
+          {saving ? (hasNewFiles ? 'Uploading & saving…' : 'Saving…') : mode === 'create' ? 'Add product' : 'Save changes'}
         </button>
       </div>
     </form>

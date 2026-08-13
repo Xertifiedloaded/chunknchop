@@ -1,10 +1,20 @@
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import AdminNav, { AdminTopbar } from '@/components/admin/AdminNav';
-
-export const metadata = {
+import AdminAuthProvider from '@/components/admin/AdminAuthProvider';
+import type { Metadata, Viewport } from 'next';
+export const metadata: Metadata = {
   title: 'Admin Dashboard - ChunkNChop',
   description: 'Manage products, orders, and customers',
+};
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  colorScheme: 'light dark',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: 'white' },
+    { media: '(prefers-color-scheme: dark)', color: 'black' },
+  ],
 };
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -13,7 +23,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   if (!refreshToken) redirect('/auth/login');
 
-  // validate refresh token by checking DB and expiry
   try {
     const prisma = (await import('@/lib/db')).default;
     const stored = await prisma.refreshToken.findUnique({ where: { token: refreshToken }, include: { user: true } });
@@ -32,9 +41,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <div className="min-h-screen bg-white">
-      <AdminNav />
-      <AdminTopbar />
-      <main className="min-h-screen pt-14 lg:pl-64">{children}</main>
+      <AdminAuthProvider>
+        <AdminNav />
+        <AdminTopbar />
+        <main className="min-h-screen pt-14 lg:pl-64">{children}</main>
+      </AdminAuthProvider>
     </div>
   );
 }

@@ -5,7 +5,7 @@ import Pusher from 'pusher-js';
 import { useAuthStore } from '@/lib/store/authStore';
 
 export function usePusher(channel: string, event: string, callback: (data: any) => void) {
-  const { user, accessToken } = useAuthStore();
+  const user = useAuthStore((s) => s.user);
   const pusherRef = useRef<Pusher | null>(null);
 
   useEffect(() => {
@@ -16,12 +16,7 @@ export function usePusher(channel: string, event: string, callback: (data: any) 
       pusherRef.current = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
         cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
         authEndpoint: '/api/notifications/pusher-auth',
-        auth: {
-          headers: {
-            // include access token for server-side authentication if available
-            ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-          },
-        },
+        // Rely on cookies for server-side auth
       });
     }
 
@@ -32,5 +27,5 @@ export function usePusher(channel: string, event: string, callback: (data: any) 
       pusherChannel.unbind(event, callback);
       pusherRef.current?.unsubscribe(channel);
     };
-  }, [user, accessToken, channel, event, callback]);
+  }, [user, channel, event, callback]);
 }

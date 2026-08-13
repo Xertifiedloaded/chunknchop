@@ -25,18 +25,20 @@ interface Subscription {
 
 export default function SubscriptionsPage() {
   const router = useRouter();
-  const { user, accessToken } = useAuthStore();
+  const user = useAuthStore((s) => s.user);
+  const isHydrated = useAuthStore((s) => s.isHydrated);
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!isHydrated) return;
     if (!user) {
       router.push('/auth/login?redirect=/account/subscriptions');
       return;
     }
 
     fetchSubscriptions();
-  }, [user, router]);
+  }, [isHydrated, user, router]);
 
   const fetchSubscriptions = async () => {
     try {

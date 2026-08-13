@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import Link from 'next/link';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useRouter } from 'next/navigation';
 import { fetchWithAuth } from '@/lib/fetchClient';
+import ProductModal from '@/components/sections/shops/ProductModal';
 import { ArrowDownToLine, ArrowUpFromLine, Copy, Ellipsis, Filter, Grid2X2, List, Loader2, PackageX, Pencil, Plus, Search, Trash2 } from 'lucide-react';
 
 interface Product {
@@ -113,34 +114,48 @@ function ActionButton({ children, onClick, disabled, label }: { children: ReactN
 }
 
 export default function AdminProductsPage() {
+  const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('ALL');
+  const [modal, setModal] = useState<{ mode: 'create' | 'edit'; productId?: string } | null>(null);
+
+  const fetchProducts = useCallback(async () => {
+    setError(null);
+
+    try {
+      const response = await fetchWithAuth('/api/admin/products');
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Could not load products.');
+      }
+
+      setProducts(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not load products.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    async function fetchProducts() {
-      setError(null);
-
-      try {
-        const response = await fetchWithAuth('/api/admin/products');
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.error || 'Could not load products.');
-        }
-
-        setProducts(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Could not load products.');
-      } finally {
-        setLoading(false);
-      }
-    }
-
     fetchProducts();
+  }, [fetchProducts]);
+
+  // Honor a deep link like /admin/products?edit=<id> (from the old
+  // /admin/products/[id]/edit route, which now redirects here).
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const editId = params.get('edit');
+    if (editId) {
+      setModal({ mode: 'edit', productId: editId });
+      router.replace('/admin/products', { scroll: false });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const meatTypes = useMemo(() => Array.from(new Set(products.map((product) => product.meatType))).sort(), [products]);
@@ -184,6 +199,11 @@ export default function AdminProductsPage() {
     }
   };
 
+  const handleSaved = () => {
+    setModal(null);
+    fetchProducts();
+  };
+
   return (
     <main className="min-h-screen w-full overflow-x-hidden bg-[#f7f8fa] px-3 py-4 font-sans text-[#292929] sm:px-5 sm:py-5 lg:px-6">
       <div className="mx-auto w-full max-w-[1600px]">
@@ -206,10 +226,10 @@ export default function AdminProductsPage() {
               Export
             </button>
 
-            <Link href="/admin/products/new" className="bg-brand hover:bg-brand col-span-2 flex h-[29px] items-center justify-center gap-1.5 rounded-[8px] px-2.5 text-[11px] font-medium whitespace-nowrap text-white shadow-[0_2px_4px_rgba(242,101,42,0.2)] transition sm:col-span-1">
+            <button type="button" onClick={() => setModal({ mode: 'create' })} className="bg-brand hover:bg-brand col-span-2 flex h-[29px] items-center justify-center gap-1.5 rounded-[8px] px-2.5 text-[11px] font-medium whitespace-nowrap text-white shadow-[0_2px_4px_rgba(242,101,42,0.2)] transition sm:col-span-1">
               <Plus size={11} strokeWidth={2.5} />
               Create Product
-            </Link>
+            </button>
           </div>
         </header>
 
@@ -306,10 +326,10 @@ export default function AdminProductsPage() {
                         <p className="text-[8px] whitespace-nowrap text-[#99958f]">{products.length === 0 ? 'Add your first product to get the catalogue started.' : 'Try a different search term or category filter.'}</p>
 
                         {products.length === 0 && (
-                          <Link href="/admin/products/new" className="bg-brand hover:bg-brand mt-1 flex items-center gap-1.5 rounded-[8px] px-2.5 py-1.5 text-[11px] font-medium whitespace-nowrap text-white transition">
+                          <button type="button" onClick={() => setModal({ mode: 'create' })} className="bg-brand hover:bg-brand mt-1 flex items-center gap-1.5 rounded-[8px] px-2.5 py-1.5 text-[11px] font-medium whitespace-nowrap text-white transition">
                             <Plus size={11} strokeWidth={2.5} />
                             Add product
-                          </Link>
+                          </button>
                         )}
                       </div>
                     </td>
@@ -367,11 +387,9 @@ export default function AdminProductsPage() {
                         {/* Actions */}
                         <td className="px-1.5">
                           <div className="flex items-center justify-end gap-0.5 whitespace-nowrap">
-                            <Link href={`/admin/products/${product.id}`}>
-                              <ActionButton label={`Edit ${product.name}`}>
-                                <Pencil size={12} strokeWidth={1.6} />
-                              </ActionButton>
-                            </Link>
+                            <ActionButton label={`Edit ${product.name}`} onClick={() => setModal({ mode: 'edit', productId: product.id })}>
+                              <Pencil size={12} strokeWidth={1.6} />
+                            </ActionButton>
 
                             <ActionButton label={`Duplicate ${product.name}`}>
                               <Copy size={12} strokeWidth={1.6} />
@@ -398,6 +416,8 @@ export default function AdminProductsPage() {
           {!loading && filtered.length > 0 && <div className="border-t border-[#efeeec] px-3 py-1.5 text-center text-[7px] text-[#aaa] sm:hidden">Swipe horizontally to view all columns</div>}
         </section>
       </div>
+
+      {modal && <ProductModal mode={modal.mode} productId={modal.productId} onClose={() => setModal(null)} onSaved={handleSaved} />}
     </main>
   );
 }

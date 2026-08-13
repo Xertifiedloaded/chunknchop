@@ -1,12 +1,7 @@
 import { useAuthStore } from './store/authStore';
 
 export async function fetchWithAuth(input: RequestInfo, init?: RequestInit) {
-  const token = useAuthStore.getState().accessToken;
-
   const headers = new Headers(init?.headers || {});
-  if (token) {
-    headers.set('Authorization', 'Bearer ' + token);
-  }
 
   const reqInit: RequestInit = {
     ...init,
@@ -33,22 +28,26 @@ export async function fetchWithAuth(input: RequestInfo, init?: RequestInit) {
 
     if (!refreshRes.ok) {
       useAuthStore.getState().logout();
+      if (typeof window !== 'undefined') {
+        window.location.replace('/auth/login');
+      }
       return res;
     }
 
-    const data = await refreshRes.json();
-    const newAccessToken = data?.accessToken;
-    if (newAccessToken) {
-      useAuthStore.getState().setAccessToken(newAccessToken);
-      headers.set('Authorization', 'Bearer ' + newAccessToken);
-      const retryInit: RequestInit = { ...reqInit, headers };
-      return fetch(input, retryInit);
+    // After refresh, accessToken cookie should be updated server-side. Retry original request once.
+    const retryRes = await fetch(input, reqInit);
+    if (retryRes.status === 401) {
+      useAuthStore.getState().logout();
+      if (typeof window !== 'undefined') {
+        window.location.replace('/auth/login');
+      }
     }
-
-    useAuthStore.getState().logout();
-    return res;
+    return retryRes;
   } catch {
     useAuthStore.getState().logout();
+    if (typeof window !== 'undefined') {
+      window.location.replace('/auth/login');
+    }
     return res;
   }
 }

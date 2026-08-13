@@ -136,7 +136,8 @@ function isActiveOrder(order: Order) {
 export default function OrdersPage() {
   const router = useRouter();
 
-  const { user, accessToken } = useAuthStore();
+  const user = useAuthStore((s) => s.user);
+  const isHydrated = useAuthStore((s) => s.isHydrated);
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -147,7 +148,7 @@ export default function OrdersPage() {
   const [sortFilter, setSortFilter] = useState<SortFilter>('latest');
 
   const fetchOrders = useCallback(async () => {
-    if (!accessToken) {
+    if (!isHydrated || !user) {
       setLoading(false);
       return;
     }
@@ -203,20 +204,17 @@ export default function OrdersPage() {
     } finally {
       setLoading(false);
     }
-  }, [accessToken, router]);
+  }, [isHydrated, user, router]);
 
   useEffect(() => {
+    if (!isHydrated) return;
     if (!user) {
       router.push('/auth/login?redirect=/orders');
       return;
     }
 
-    if (accessToken) {
-      fetchOrders();
-    } else {
-      setLoading(false);
-    }
-  }, [user, accessToken, router, fetchOrders]);
+    fetchOrders();
+  }, [isHydrated, user, router, fetchOrders]);
 
   const stats = useMemo(() => {
     const totalOrders = orders.length;

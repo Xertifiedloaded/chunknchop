@@ -3,12 +3,13 @@
 import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import type { AuthField } from '@/lib/types';
+import Image from 'next/image';
+import google from '@/assets/google.png';
 import { Loader2, LockOpen, Mail } from 'lucide-react';
+import AuthInput from '@/components/auth/AuthInput';
 import { useAuthStore } from '@/lib/store/authStore';
 import { Button } from '@/components/ui/button';
-import AuthInput, { AuthField } from '@/components/auth/AuthInput';
-import Image from 'next/image';
-import google from '../../../../assets/google.png';
 const FIELDS: AuthField[] = [
   {
     name: 'email',
@@ -51,7 +52,7 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const { setUser, setAccessToken } = useAuthStore();
+  const { setUser } = useAuthStore();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -97,10 +98,9 @@ function LoginForm() {
         return;
       }
 
-      const { user, accessToken } = data;
+      const { user } = data;
 
       setUser(user);
-      setAccessToken(accessToken);
 
       // Do NOT persist access token to localStorage or sessionStorage. Keep in-memory only.
 

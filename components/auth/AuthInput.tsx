@@ -26,7 +26,7 @@ export default function AuthInput({ name, label, type, icon: Icon, placeholder, 
       </div>
 
       <div className="relative rounded-md border border-[#E5E7EB] bg-[#F9FAFB]">
-        <Icon className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+        {Icon && <Icon className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />}
         <Input id={name} name={name} type={type} value={value} onChange={onChange} placeholder={placeholder} autoComplete={autoComplete} className="h-11 border-0 bg-transparent pl-10 shadow-none ring-0 outline-none placeholder:text-xs focus:border-0 focus:ring-0 focus-visible:border-0 focus-visible:ring-0 focus-visible:outline-none" required />
       </div>
 

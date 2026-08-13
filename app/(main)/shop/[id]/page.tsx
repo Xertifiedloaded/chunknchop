@@ -101,7 +101,8 @@ export default function ProductDetailPage() {
 
   const productId = params.id as string;
 
-  const { user, accessToken } = useAuthStore();
+  const user = useAuthStore((s) => s.user);
+  const isHydrated = useAuthStore((s) => s.isHydrated);
 
   const { setItems: setCartItems } = useCartStore();
 
@@ -152,7 +153,7 @@ export default function ProductDetailPage() {
   const savings = product ? Math.max(0, product.basePrice - currentPrice) : 0;
 
   const refreshCart = async () => {
-    if (!accessToken || !user || user.role === 'SUPPLIER') {
+    if (!isHydrated || !user || user.role === 'SUPPLIER') {
       return;
     }
 
@@ -190,7 +191,7 @@ export default function ProductDetailPage() {
       return;
     }
 
-    if (!accessToken || !user) {
+    if (!isHydrated || !user) {
       toast.error('Please sign in to add items to your cart.');
       return;
     }
@@ -242,7 +243,7 @@ export default function ProductDetailPage() {
       return;
     }
 
-    if (!accessToken || !user) {
+    if (!isHydrated || !user) {
       toast.error('Please sign in to continue.');
       return;
     }

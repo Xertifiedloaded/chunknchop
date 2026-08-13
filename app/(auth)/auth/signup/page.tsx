@@ -3,18 +3,20 @@
 import { Suspense, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Loader2, Lock, Mail, User, Store } from 'lucide-react';
+import { Loader2, Lock, Mail, StoreIcon, User2 } from 'lucide-react';
+
 import { useAuthStore } from '@/lib/store/authStore';
 import { Button } from '@/components/ui/button';
-import AuthInput, { AuthField } from '@/components/auth/AuthInput';
+import AuthInput from '@/components/auth/AuthInput';
+import type { AuthField } from '@/lib/types';
 import Image from 'next/image';
-import google from '../../../../assets/google.png';
+import google from '@/assets/google.png';
 const FIELDS: AuthField[] = [
   {
     name: 'name',
     label: 'Full Name',
     type: 'text',
-    icon: User,
+    icon: User2,
     placeholder: 'John Doe',
     autoComplete: 'name',
   },
@@ -65,7 +67,7 @@ function Loading() {
 function SignupForm() {
   const router = useRouter();
 
-  const { setUser, setAccessToken } = useAuthStore();
+  const { setUser } = useAuthStore();
 
   const [loading, setLoading] = useState(false);
 
@@ -167,10 +169,9 @@ function SignupForm() {
         return;
       }
 
-      const { user, accessToken } = data;
+      const { user } = data;
 
       setUser(user);
-      setAccessToken(accessToken);
 
       if (formData.role === 'SUPPLIER') {
         router.push('/supplier/dashboard');
@@ -209,13 +210,13 @@ function SignupForm() {
             <label className={`flex h-10 cursor-pointer items-center justify-center gap-1.5 rounded-md border px-2 transition ${formData.role === 'CUSTOMER' ? 'border-primary bg-primary/5 text-primary' : 'border-border text-muted-foreground hover:bg-muted/40'}`}>
               <input type="radio" name="role" value="CUSTOMER" checked={formData.role === 'CUSTOMER'} onChange={handleInputChange} className="sr-only" />
 
-              <User className="h-3 w-3 shrink-0" />
+              <User2 className="h-3 w-3 shrink-0" />
               <span className="truncate text-[11px] leading-none font-medium">Customer</span>
             </label>
             <label className={`flex h-10 cursor-pointer items-center justify-center gap-1.5 rounded-md border px-2 transition ${formData.role === 'SUPPLIER' ? 'border-primary bg-primary/5 text-primary' : 'border-border text-muted-foreground hover:bg-muted/40'}`}>
               <input type="radio" name="role" value="SUPPLIER" checked={formData.role === 'SUPPLIER'} onChange={handleInputChange} className="sr-only" />
 
-              <Store className="h-3 w-3 shrink-0" />
+              <StoreIcon className="h-3 w-3 shrink-0" />
               <span className="truncate text-[11px] leading-none font-medium">Supplier</span>
             </label>
           </div>

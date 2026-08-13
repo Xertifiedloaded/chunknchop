@@ -8,6 +8,8 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 const JWT_EXPIRY = process.env.ACCESS_TOKEN_EXPIRY || '15m';
 const REFRESH_TOKEN_EXPIRY = process.env.REFRESH_TOKEN_EXPIRY || '7d';
 
+export const ACCESS_TOKEN_MAX_AGE_SECONDS = parseInt(process.env.ACCESS_TOKEN_MAX_AGE_SECONDS || '') || 15 * 60; // default 15 minutes
+
 export function hashPassword(password: string): string {
   const salt = bcryptjs.genSaltSync(10);
   return bcryptjs.hashSync(password, salt);

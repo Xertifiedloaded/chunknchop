@@ -1,11 +1,11 @@
 'use client';
 
 import { useEffect } from 'react';
-import { restoreSession } from '@/lib/store/authStore';
+import { hydrateSession } from '@/lib/store/authStore';
 
 export default function ClientAuthInit() {
   useEffect(() => {
-    restoreSession().catch(() => null);
+    hydrateSession().catch(() => null);
   }, []);
 
   return null;

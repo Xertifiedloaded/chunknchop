@@ -29,7 +29,8 @@ export default function ProductCard({ product, isWishlisted = false }: { product
   const [isAdding, setIsAdding] = useState(false);
   const [isTogglingWishlist, setIsTogglingWishlist] = useState(false);
 
-  const { user, accessToken } = useAuthStore();
+  const user = useAuthStore((s) => s.user);
+  const isHydrated = useAuthStore((s) => s.isHydrated);
   const { setItems: setCartItems } = useCartStore();
 
   // keep in sync if the parent's wishlist data arrives/changes after mount
@@ -41,7 +42,7 @@ export default function ProductCard({ product, isWishlisted = false }: { product
   const badge = getProductBadge(product);
 
   const refreshCart = async () => {
-    if (!accessToken || !user || user.role === 'SUPPLIER') return;
+    if (!isHydrated || !user || user.role === 'SUPPLIER') return;
 
     try {
       const res = await fetchWithAuth('/api/customer/cart', { method: 'GET', cache: 'no-store' });
@@ -73,7 +74,7 @@ export default function ProductCard({ product, isWishlisted = false }: { product
 
     if (!product.inStock) return;
 
-    if (!accessToken || !user) {
+    if (!isHydrated || !user) {
       toast.error('Please sign in to add items to your cart.');
       return;
     }
@@ -122,7 +123,7 @@ export default function ProductCard({ product, isWishlisted = false }: { product
 
     if (isTogglingWishlist) return;
 
-    if (!accessToken || !user) {
+    if (!isHydrated || !user) {
       toast.error('Please sign in to save favorites.');
       return;
     }

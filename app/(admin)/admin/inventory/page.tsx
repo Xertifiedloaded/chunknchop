@@ -56,9 +56,7 @@ function SummaryCard({ title, value, subtitle, icon: Icon, iconClass }: { title:
       <div className="flex items-start justify-between">
         <p className="text-[10px] font-medium text-gray-500">{title}</p>
 
-        <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${iconClass}`}>
-          <Icon size={15} strokeWidth={2} />
-        </div>
+        <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${iconClass}`}>{Icon && <Icon size={15} strokeWidth={2} />}</div>
       </div>
 
       <div className="mt-2">

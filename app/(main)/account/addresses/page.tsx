@@ -21,8 +21,10 @@ interface Address {
 }
 
 export default function AddressBookPage() {
-  const { accessToken } = useAuthStore();
-  const fetcher = async ([url]: [string, string]) => {
+  const user = useAuthStore((s) => s.user);
+  const isHydrated = useAuthStore((s) => s.isHydrated);
+
+  const fetcher = async (url: string) => {
     const res = await fetchWithAuth(url);
     if (!res.ok) {
       throw new Error('Failed to fetch addresses');
@@ -30,7 +32,7 @@ export default function AddressBookPage() {
     return res.json();
   };
 
-  const { data: addresses, mutate } = useSWR(accessToken ? ['/api/customer/addresses', accessToken] : null, fetcher);
+  const { data: addresses, mutate } = useSWR(isHydrated && user ? '/api/customer/addresses' : null, fetcher);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);

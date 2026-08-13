@@ -73,14 +73,15 @@ function formatDate(dateString: string) {
 export default function OrderPage({ params }: Props) {
   const { orderId } = use(params);
   const router = useRouter();
-  const { user, accessToken } = useAuthStore();
+  const user = useAuthStore((s) => s.user);
+  const isHydrated = useAuthStore((s) => s.isHydrated);
 
   const [order, setOrder] = useState<Order | null>(null);
   const [fetchState, setFetchState] = useState<FetchState>('loading');
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user || !accessToken) {
+    if (!isHydrated || !user) {
       return;
     }
 
@@ -149,11 +150,11 @@ export default function OrderPage({ params }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [user, accessToken, orderId]);
+  }, [isHydrated, user, orderId]);
 
   useEffect(() => {
     if (fetchState === 'unauthorized') {
-      router.replace(`/login?next=/orders/${orderId}`);
+      router.replace(`/auth/login?redirect=/orders/${orderId}`);
     }
   }, [fetchState, orderId, router]);
 

@@ -70,12 +70,22 @@ export async function POST(req: NextRequest) {
           name: user.name,
           role: user.role,
         },
-        accessToken,
       },
       { status: 200 }
     );
 
+    // Ensure any previous access cookie is cleared first
     response.cookies.delete('accessToken');
+
+    // Set access token as httpOnly cookie that the browser will send on subsequent requests
+    const { ACCESS_TOKEN_MAX_AGE_SECONDS } = await import('@/lib/auth');
+    response.cookies.set('accessToken', accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: ACCESS_TOKEN_MAX_AGE_SECONDS,
+      path: '/',
+    });
 
     // Set refresh token as httpOnly cookie (not accessible to JS)
     response.cookies.set('refreshToken', refreshToken, {
@@ -95,9 +105,6 @@ export async function POST(req: NextRequest) {
       maxAge: 7 * 24 * 60 * 60,
       path: '/',
     });
-
-    // NOTE: Access token is returned in the response body and SHOULD NOT be persisted to disk by the client.
-    // The server will not set an httpOnly accessToken cookie anymore.
 
     return response;
   } catch (error) {

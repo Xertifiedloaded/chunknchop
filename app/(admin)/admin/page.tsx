@@ -188,26 +188,32 @@ export default function AdminDashboard() {
           <QuickActions />
         </section>
 
-        {/* Orders by hour (placeholder) + Recent orders from live data */}
         <section className="mt-3 grid gap-3 lg:grid-cols-[minmax(220px,0.9fr)_minmax(0,1.8fr)]">
-          <div className="rounded-xl border border-[#e8e8e6] bg-white shadow-[0_2px_8px_rgba(0,0,0,0.035)]">
-            <div className="px-4 pt-4">
-              <h2 className="text-[11px] font-semibold">Orders by Hour</h2>
-              <p className="mt-0.5 text-[8px] text-[#999]">Live order intake across today</p>
-            </div>
+          <div className="rounded-[15px] border border-[#e8e5e2] bg-white p-4 shadow-[0_2px_10px_rgba(25,20,15,0.04)]">
+            <h3 className="text-[13px] font-semibold text-[#2f2b28]">Orders by hour</h3>
 
-            <div className="relative h-36.25 px-4 pt-5">
-              <div className="absolute top-7 right-4 left-4 border-t border-dashed border-[#eeeeee]" />
-              <div className="absolute top-15 right-4 left-4 border-t border-dashed border-[#eeeeee]" />
-              <div className="absolute top-23.25 right-4 left-4 border-t border-dashed border-[#eeeeee]" />
-              <div className="absolute top-31.5 right-4 left-4 border-t border-dashed border-[#eeeeee]" />
+            <p className="mt-0.5 text-[9px] text-[#99938d]">Delivered vs late, last 7 days</p>
 
-              <div className="absolute right-4 bottom-5 left-4 flex h-31.25 items-end justify-between gap-1">
-                {[8, 15, 12, 25, 22, 31, 28, 40, 34, 45, 38, 49].map((height, i) => (
-                  <div key={i} className="flex flex-1 items-end justify-center">
-                    <div className="w-full max-w-2.25 rounded-t-[3px] bg-[#f26422]" style={{ height: `${height}px` }} />
+            <div className="relative mt-3 h-[148px]">
+              <div className="absolute right-0 bottom-0 left-0 flex h-full items-end justify-around px-3 pb-5">
+                {[52, 70, 45, 82, 61, 88, 76].map((height, index) => (
+                  <div key={index} className="flex h-full w-[7%] items-end justify-center">
+                    <div className="w-full rounded-t-[3px] bg-[#f15b2a]" style={{ height: `${height}%`, opacity: 0.9 }} />
                   </div>
                 ))}
+              </div>
+
+              <div className="absolute right-0 bottom-0 left-0 h-px bg-[#eeeae7]" />
+
+              <div className="absolute bottom-[-2px] left-1/2 flex -translate-x-1/2 translate-y-full items-center gap-3 pt-2 text-[8px]">
+                <span className="flex items-center gap-1 text-[#f15b2a]">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#f15b2a]" />
+                  Delivered
+                </span>
+                <span className="flex items-center gap-1 text-[#e99b00]">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#e99b00]" />
+                  Late
+                </span>
               </div>
             </div>
           </div>

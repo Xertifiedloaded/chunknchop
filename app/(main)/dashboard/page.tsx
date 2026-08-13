@@ -16,9 +16,10 @@ interface DashboardStats {
 
 export default function CustomerDashboard() {
   const [isLoading, setIsLoading] = useState(true);
-  const { accessToken } = useAuthStore();
+  const user = useAuthStore((s) => s.user);
+  const isHydrated = useAuthStore((s) => s.isHydrated);
 
-  const fetcher = async ([url]: [string, string]) => {
+  const fetcher = async (url: string) => {
     const res = await fetchWithAuth(url);
     if (!res.ok) {
       throw new Error('Failed to load dashboard');
@@ -26,7 +27,7 @@ export default function CustomerDashboard() {
     return res.json();
   };
 
-  const { data: stats, error } = useSWR<DashboardStats>(accessToken ? ['/api/customer/dashboard', accessToken] : null, fetcher);
+  const { data: stats, error } = useSWR<DashboardStats>(isHydrated && user ? '/api/customer/dashboard' : null, fetcher);
 
   useEffect(() => {
     setIsLoading(false);

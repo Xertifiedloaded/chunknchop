@@ -18,7 +18,8 @@ interface PaymentMethod {
 }
 
 export default function PaymentMethodsPage() {
-  const { accessToken } = useAuthStore();
+  const user = useAuthStore((s) => s.user);
+  const isHydrated = useAuthStore((s) => s.isHydrated);
 
   const fetcher = async ([url]: [string, string]) => {
     const res = await fetchWithAuth(url);
@@ -28,7 +29,7 @@ export default function PaymentMethodsPage() {
     return res.json();
   };
 
-  const { data: paymentMethods, mutate } = useSWR(accessToken ? ['/api/customer/payment-methods', accessToken] : null, fetcher);
+  const { data: paymentMethods, mutate } = useSWR(isHydrated && user ? '/api/customer/payment-methods' : null, fetcher);
   const [showForm, setShowForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({

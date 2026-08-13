@@ -41,13 +41,14 @@ export default function WishlistPage() {
   const [isRemoving, setIsRemoving] = useState<string | null>(null);
   const [isMovingAll, setIsMovingAll] = useState(false);
 
-  const { user, accessToken } = useAuthStore();
+  const user = useAuthStore((s) => s.user);
+  const isHydrated = useAuthStore((s) => s.isHydrated);
   const { setItems: setCartItems } = useCartStore();
 
-  const { data: wishlist = [], mutate, error } = useSWR<WishlistItem[]>(accessToken ? ['/api/customer/wishlist', accessToken] : null, fetcher);
+  const { data: wishlist = [], mutate, error } = useSWR<WishlistItem[]>(isHydrated && user ? '/api/customer/wishlist' : null, fetcher);
 
   const refreshCart = async () => {
-    if (!accessToken || !user || user.role === 'SUPPLIER') return;
+    if (!isHydrated || !user || user.role === 'SUPPLIER') return;
 
     try {
       const res = await fetchWithAuth('/api/customer/cart', {
@@ -77,7 +78,7 @@ export default function WishlistPage() {
   };
 
   const handleRemove = async (productId: string) => {
-    if (!accessToken) {
+    if (!isHydrated || !user) {
       toast.error('Please sign in.');
       return;
     }
@@ -104,7 +105,7 @@ export default function WishlistPage() {
   };
 
   const handleAddToCart = async (productId: string) => {
-    if (!accessToken || !user) {
+    if (!isHydrated || !user) {
       toast.error('Please sign in to add items to your cart.');
       return;
     }
@@ -143,7 +144,7 @@ export default function WishlistPage() {
   };
 
   const handleMoveAll = async () => {
-    if (!accessToken || !user) {
+    if (!isHydrated || !user) {
       toast.error('Please sign in to move items to your cart.');
       return;
     }

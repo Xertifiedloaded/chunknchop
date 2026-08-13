@@ -22,18 +22,20 @@ interface Product {
 
 export default function SupplierDashboard() {
   const router = useRouter();
-  const { user, accessToken } = useAuthStore();
+  const user = useAuthStore((s) => s.user);
+  const isHydrated = useAuthStore((s) => s.isHydrated);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!isHydrated) return;
     if (!user || user.role !== 'SUPPLIER') {
       router.push('/auth/login');
       return;
     }
 
     fetchProducts();
-  }, [user, router]);
+  }, [isHydrated, user, router]);
 
   const fetchProducts = async () => {
     try {

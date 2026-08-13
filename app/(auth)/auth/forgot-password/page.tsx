@@ -4,6 +4,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Mail } from 'lucide-react';
+// eslint-disable-next-line no-console
+console.log('DEBUG forgot-password imports ArrowLeft:', typeof ArrowLeft, ArrowLeft, 'Mail:', typeof Mail, Mail);
 
 export default function ForgetPasswordPage() {
   const router = useRouter();
@@ -37,7 +39,7 @@ export default function ForgetPasswordPage() {
     <div className="space-y-6">
       <div>
         <Link href="/auth/login" className="text-muted-foreground mb-4 inline-flex items-center gap-1.5 text-sm hover:text-black">
-          <ArrowLeft size={16} />
+          {ArrowLeft && <ArrowLeft size={16} />}
           Back to login
         </Link>
 
@@ -51,7 +53,7 @@ export default function ForgetPasswordPage() {
             Email address
           </label>
           <div className="relative">
-            <Mail className="text-muted-foreground absolute top-1/2 left-3.5 -translate-y-1/2" size={18} />
+            {Mail && <Mail className="text-muted-foreground absolute top-1/2 left-3.5 -translate-y-1/2" size={18} />}
             <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" autoComplete="email" className="focus:border-brand focus:ring-brand/20 w-full rounded-xl border border-[#E5E7EB] py-3 pr-4 pl-11 text-sm text-black placeholder:text-[#9CA3AF] focus:ring-2 focus:outline-none" />
           </div>
           {error && <p className="text-sm text-red-500">{error}</p>}

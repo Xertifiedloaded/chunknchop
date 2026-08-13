@@ -13,7 +13,8 @@ import toast from 'react-hot-toast';
 
 export default function NewProductPage() {
   const router = useRouter();
-  const { user, accessToken } = useAuthStore();
+  const user = useAuthStore((s) => s.user);
+  const isHydrated = useAuthStore((s) => s.isHydrated);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -84,6 +85,7 @@ export default function NewProductPage() {
     }
   };
 
+  if (!isHydrated) return null;
   if (!user || user.role !== 'SUPPLIER') {
     return null;
   }

@@ -139,11 +139,20 @@ export async function POST(req: NextRequest) {
 
     const accessToken = generateAccessToken(user.id, user.email, user.role);
 
-    const response = NextResponse.json({
-      accessToken,
-    });
+    const response = NextResponse.json({});
 
+    // Ensure old access cookie is cleared
     response.cookies.delete('accessToken');
+
+    // Set new access cookie to mirror the JWT expiry
+    const { ACCESS_TOKEN_MAX_AGE_SECONDS } = await import('@/lib/auth');
+    response.cookies.set('accessToken', accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: ACCESS_TOKEN_MAX_AGE_SECONDS,
+      path: '/',
+    });
 
     // Set new refresh cookie
     response.cookies.set('refreshToken', newRefreshToken, {

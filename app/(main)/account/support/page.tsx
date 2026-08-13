@@ -22,7 +22,8 @@ interface SupportTicket {
 
 export default function SupportPage() {
   const router = useRouter();
-  const { user, accessToken } = useAuthStore();
+  const user = useAuthStore((s) => s.user);
+  const isHydrated = useAuthStore((s) => s.isHydrated);
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -34,13 +35,14 @@ export default function SupportPage() {
   });
 
   useEffect(() => {
+    if (!isHydrated) return;
     if (!user) {
       router.push('/auth/login?redirect=/account/support');
       return;
     }
 
     fetchTickets();
-  }, [user, router]);
+  }, [isHydrated, user, router]);
 
   const fetchTickets = async () => {
     try {

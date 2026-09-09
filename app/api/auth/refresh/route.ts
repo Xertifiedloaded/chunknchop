@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/db';
+import { prisma } from '@/lib/db';
 import { generateAccessToken, verifyToken, generateRefreshToken } from '@/lib/auth';
 
 // Minimal in-memory rate limiter for refresh endpoint

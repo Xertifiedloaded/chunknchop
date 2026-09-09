@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserFromRequest } from '@/lib/request';
-import prisma from '@/lib/db';
+import { prisma } from '@/lib/db';
 
 // GET /api/admin/riders — list riders with their current active-delivery count
 export async function GET(req: NextRequest) {

@@ -10,3 +10,20 @@ export function isMeatType(value: unknown): value is MeatTypeValue {
 export function formatMeatType(value: string): string {
   return value.charAt(0) + value.slice(1).toLowerCase();
 }
+
+export function meatTypeFromDisplay(name: string): MeatTypeValue | null {
+  if (!name) return null;
+  const exact = MEAT_TYPES.find((t) => formatMeatType(t) === name);
+  if (exact) return exact;
+
+  const lowerName = name.toLowerCase();
+  const contains = MEAT_TYPES.find((t) => lowerName.includes(formatMeatType(t).toLowerCase()));
+  if (contains) return contains;
+  const normalized = name
+    .toUpperCase()
+    .replace(/[^A-Z]/g, '');
+  const byNormalized = MEAT_TYPES.find((t) => t.replace(/[^A-Z]/g, '') === normalized);
+  if (byNormalized) return byNormalized;
+
+  return null;
+}

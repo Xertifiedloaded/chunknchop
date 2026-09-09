@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/db';
+import { prisma } from '@/lib/db';
 import { getUserFromRequest } from '@/lib/request';
 import { paystack } from '@/lib/paystack';
 // customer orders

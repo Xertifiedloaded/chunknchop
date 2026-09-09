@@ -36,15 +36,16 @@ export default function Shop() {
 
   const [isLoadingProducts, setIsLoadingProducts] = useState(true);
 
-  const [filters, setFilters] = useState<FilterState>(() =>
-    applySectionParam(
-      {
-        ...DEFAULT_FILTERS,
-        category: resolveCategoryFromSlug(searchParams.get('category')),
-      },
-      searchParams.get('section')
-    )
-  );
+// ShopProduct.tsx
+const [filters, setFilters] = useState<FilterState>(() =>
+  applySectionParam(
+    {
+      ...DEFAULT_FILTERS,
+      category: resolveCategoryFromSlug(searchParams.get('category')),
+    },
+    searchParams.get('section')
+  )
+);
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
@@ -175,10 +176,10 @@ export default function Shop() {
         <div className="mt-5">
           <CategoryPills
             active={filters.category}
-            onSelect={(cat) =>
+            onSelect={(slug) =>
               applyFilters({
                 ...filters,
-                category: cat,
+                category: resolveCategoryFromSlug(slug),
               })
             }
           />

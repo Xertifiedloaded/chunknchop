@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserFromRequest } from '@/lib/request';
-import prisma from '@/lib/db';
+import { prisma } from '@/lib/db';
 
 // POST /api/admin/orders/[id]/complete-delivery
 // Marks the order DELIVERED and, if the assigned rider has no other

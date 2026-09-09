@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/db';
+import { prisma } from '@/lib/db';
 import { verifyPassword, generateAccessToken, generateRefreshToken } from '@/lib/auth';
 import { z } from 'zod';
 
@@ -112,6 +112,14 @@ export async function POST(req: NextRequest) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: 'Invalid input', details: error.errors }, { status: 400 });
     }
+
+    // Handle Prisma connectivity errors gracefully with a 503 Service Unavailable
+    // so callers see an appropriate status instead of a generic 500.
+    const code = (error as any)?.code;
+    if (code === 'P1001' || code === 'P1010' || (error as any)?.message?.includes("Can't reach database")) {
+      return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
+    }
+
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

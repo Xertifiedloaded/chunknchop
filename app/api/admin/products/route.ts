@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserFromRequest } from '@/lib/request';
-import prisma from '@/lib/db';
+import { prisma } from '@/lib/db';
 import { uploadProductImage } from '@/lib/storage';
 // admin
 export async function GET(request: NextRequest) {
@@ -66,16 +66,11 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
 
     const name = String(formData.get('name') ?? '').trim();
-    const meatType = String(formData.get('meatType') ?? '');
     const categoryId = String(formData.get('categoryId') ?? '').trim();
     const locationId = String(formData.get('locationId') ?? '').trim();
 
     if (!name) {
       return NextResponse.json({ error: 'Name is required' }, { status: 400 });
-    }
-
-    if (!meatType) {
-      return NextResponse.json({ error: 'Meat type is required' }, { status: 400 });
     }
 
     if (!categoryId) {
@@ -86,7 +81,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'A storage location is required to stock this product' }, { status: 400 });
     }
 
-    const [category, location] = await Promise.all([prisma.category.findUnique({ where: { id: categoryId } }), prisma.storageLocation.findUnique({ where: { id: locationId } })]);
+    const [category, location] = await Promise.all([
+      prisma.category.findUnique({ where: { id: categoryId } }),
+      prisma.storageLocation.findUnique({ where: { id: locationId } }),
+    ]);
 
     // FIXED — this used to check `category.visible`, a field that doesn't
     // exist on the Category model (the schema field is `isActive`).
@@ -145,12 +143,30 @@ export async function POST(request: NextRequest) {
     // Product + its InventoryRecord + the opening InventoryLog entry are
     // created atomically. If any part fails, nothing is written — you can
     // never end up with a product that has no matching inventory row again.
+    // Derive a MeatType enum value from the selected category (server-side)
+    // so the frontend does not need to submit or rely on lib/meatTypes.
+    const CATEGORY_TO_MEATTYPE: Record<string, string> = {
+      beef: 'BEEF',
+      'chicken-eggs': 'CHICKEN',
+      seafood: 'SEAFOOD',
+      pork: 'PORK',
+      'goat-mutton': 'GOAT',
+      sausages: 'SAUSAGE',
+      bbq: 'BBQ',
+      'game-meat': 'GOAT',
+      dairy: 'SPICE', // fallback mapping; adjust if needed
+      spices: 'SPICE',
+    };
+
+    const slug = (category.slug || '').replace(/^\//, '').toLowerCase();
+    const derivedMeatType = CATEGORY_TO_MEATTYPE[slug] ?? (category.name ? category.name.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 10) : 'BEEF');
+
     const product = await prisma.$transaction(async (tx) => {
       const created = await tx.product.create({
         data: {
           name,
           description: String(formData.get('description') ?? ''),
-          meatType,
+          meatType: derivedMeatType,
           basePrice,
           stock,
           inStock: stock > 0,

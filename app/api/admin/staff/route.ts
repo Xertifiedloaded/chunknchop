@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserFromRequest } from '@/lib/request';
-import prisma from '@/lib/db';
+
 import { hashPassword } from '@/lib/auth';
 import { z } from 'zod';
 import { STAFF_ROLES, ROLE_META, ROLE_PERMISSIONS, permissionCount } from '@/lib/permission';
+import prisma from '@/lib/db';
 
 const staffSchema = z.object({
   email: z.string().email(),

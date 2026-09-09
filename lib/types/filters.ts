@@ -40,9 +40,16 @@ export function countActiveFilters(f: FilterState) {
   return count;
 }
 
+import { slugify } from '@/lib/slug';
+
 export function filterProducts(products: any[], f: FilterState): any[] {
   const result = products.filter((p) => {
-    if (f.category !== 'All' && p.category !== f.category) return false;
+    if (f.category !== 'All') {
+      const rawPCat = (p.categoryRef && p.categoryRef.slug) ? p.categoryRef.slug.replace(/^\//, '') : (typeof p.category === 'string' && p.category.trim()) ? p.category : (p.categoryRef && p.categoryRef.name) ? p.categoryRef.name : (p.categoryId ? String(p.categoryId) : '');
+      const pCat = rawPCat ? slugify(rawPCat) : '';
+const fCat = typeof f.category === 'string' ? slugify(f.category) : '';
+      if (!pCat || !fCat || pCat !== fCat) return false;
+    }
     if (p.basePrice > f.maxPrice) return false;
     if (f.preparations.length && !f.preparations.some((prep) => p.preparations.includes(prep))) return false;
     if (f.inStock && !p.inStock) return false;

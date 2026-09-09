@@ -1,19 +1,14 @@
-import { PrismaClient } from '@prisma/client';
-import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaClient } from "@prisma/client";
 
-declare global {
-  // eslint-disable-next-line no-var
-  var prismaClientSingleton: PrismaClient | undefined;
-}
+const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+export const prisma =
+  globalForPrisma.prisma ||
+  new PrismaClient({
+    // log: ['query'],
+  });
 
-let prisma: PrismaClient;
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
 
-if (!global.prismaClientSingleton) {
-  global.prismaClientSingleton = new PrismaClient({ adapter });
-}
-prisma = global.prismaClientSingleton;
-
+// Provide a default export for modules that import `prisma` as the default.
 export default prisma;
-export { prisma };

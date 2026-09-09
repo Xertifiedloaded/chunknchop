@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserFromRequest } from '@/lib/request';
-import prisma from '@/lib/db';
+import { prisma } from '@/lib/db';
 import { restoreStockForOrder } from '@/lib/inventory';
 import { OrderStatus } from '@prisma/client';
 

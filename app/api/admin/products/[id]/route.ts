@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserFromRequest } from '@/lib/request';
-import prisma from '@/lib/db';
+import { prisma } from '@/lib/db';
 import { uploadProductImage } from '@/lib/storage';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -117,23 +117,44 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       }
     }
 
+    // Accept categoryId when editing so the product's categoryId and
+    // legacy category string remain in sync with the selected Category.
+    const categoryId = String(formData.get('categoryId') ?? '').trim();
+    let categoryName: string | undefined = undefined;
+
+    if (categoryId) {
+      const found = await prisma.category.findUnique({ where: { id: categoryId } });
+      if (!found || !found.isActive) {
+        return NextResponse.json({ error: 'Selected category is invalid or not visible' }, { status: 400 });
+      }
+      categoryName = found.name;
+    }
+
+    const updateData: any = {
+      name,
+      description: String(formData.get('description') ?? ''),
+      meatType,
+      basePrice,
+      stock,
+      inStock: stock > 0,
+      tags: Array.isArray(tags) ? tags : [],
+      preparations: Array.isArray(preparations) ? preparations : [],
+      isNewArrival: formData.get('isNewArrival') === 'true',
+      isBestSeller: formData.get('isBestSeller') === 'true',
+      sameDayDelivery: formData.get('sameDayDelivery') === 'true',
+      images: [...(Array.isArray(existingImages) ? existingImages : []), ...uploadedUrls],
+    };
+
+    // If the client provided a categoryId, set both the FK and the legacy
+    // category string (keeps older parts of the app compatible).
+    if (categoryId) {
+      updateData.categoryId = categoryId;
+      updateData.category = categoryName ?? '';
+    }
+
     const product = await prisma.product.update({
       where: { id },
-      data: {
-        name,
-        description: String(formData.get('description') ?? ''),
-        meatType,
-        category: String(formData.get('category') ?? ''),
-        basePrice,
-        stock,
-        inStock: stock > 0,
-        tags: Array.isArray(tags) ? tags : [],
-        preparations: Array.isArray(preparations) ? preparations : [],
-        isNewArrival: formData.get('isNewArrival') === 'true',
-        isBestSeller: formData.get('isBestSeller') === 'true',
-        sameDayDelivery: formData.get('sameDayDelivery') === 'true',
-        images: [...(Array.isArray(existingImages) ? existingImages : []), ...uploadedUrls],
-      },
+      data: updateData,
     });
 
     return NextResponse.json(product);

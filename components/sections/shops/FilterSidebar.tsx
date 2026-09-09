@@ -1,7 +1,8 @@
 'use client';
 
+import React from 'react';
 import { X } from 'lucide-react';
-import { CATEGORIES, PREPARATIONS } from '@/lib/categories';
+import { PREPARATIONS } from '@/lib/categories';
 import { formatNaira } from '@/lib/format';
 import { FilterState, PRICE_MAX, PRICE_MIN } from '@/lib/filters';
 
@@ -24,6 +25,26 @@ export default function FilterSidebar({ filters, onChange, onClearAll, className
 
   const rangeProgress = Math.round(((filters.maxPrice - PRICE_MIN) / (PRICE_MAX - PRICE_MIN)) * 100);
 
+  const [categories, setCategories] = React.useState<string[]>([]);
+  React.useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      try {
+        const res = await fetch('/api/categories');
+        if (!res.ok) throw new Error('Failed to load categories');
+        const data = await res.json();
+        if (cancelled) return;
+        setCategories(data.map((c: any) => c.name));
+      } catch (err) {
+        console.error('Failed to load categories for filters:', err);
+      }
+    }
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <aside className={`flex flex-col ${className}`}>
       {!hideHeader && (
@@ -43,7 +64,7 @@ export default function FilterSidebar({ filters, onChange, onClearAll, className
               <input type="radio" name="category" className="text-brand h-4 w-4" checked={filters.category === 'All'} onChange={() => update({ category: 'All' })} />
               All
             </label>
-            {CATEGORIES.map((cat) => (
+            {categories.map((cat) => (
               <label key={cat} className="text-charcoal flex cursor-pointer items-center gap-2.5 text-sm">
                 <input type="radio" name="category" className="text-brand h-4 w-4" checked={filters.category === cat} onChange={() => update({ category: cat })} />
                 {cat}

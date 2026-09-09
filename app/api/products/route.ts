@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserFromRequest } from '@/lib/request';
-import prisma from '@/lib/db';
+import { prisma } from '@/lib/db';
 import { uploadProductImage } from '@/lib/storage';
 
 export async function GET(request: NextRequest) {
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
         category: true,
         categoryId: true,
         createdAt: true,
-        categoryRef: { select: { id: true, name: true } },
+        categoryRef: { select: { id: true, name: true, slug: true } },
         inventoryRecords: {
           select: {
             id: true,
@@ -33,15 +33,22 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    const formattedProducts = products.map((product) => ({
-      ...product,
-      basePrice: Number(product.basePrice),
-      rating: Number(product.rating),
-      reviewCount: Number(product.reviewCount),
-      stock: Number(product.stock),
+    const formatted = products.map((p) => ({
+      ...p,
+      basePrice: Number(p.basePrice),
+      rating: Number(p.rating),
+      reviewCount: Number(p.reviewCount),
+      stock: Number(p.stock),
+      createdAt: p.createdAt.toISOString(),
+      categoryRef: p.categoryRef
+        ? {
+            ...p.categoryRef,
+            slug: p.categoryRef.slug.replace(/^\//, ''),
+          }
+        : null,
     }));
 
-    return NextResponse.json({ products: formattedProducts });
+    return NextResponse.json({ products: formatted });
   } catch (error) {
     console.error('Error fetching products:', error);
 

@@ -1,7 +1,6 @@
 import { PrismaClient, LocationType } from '@prisma/client';
-import { PrismaPg } from '@prisma/adapter-pg';
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
-const prisma = new PrismaClient({ adapter });
+
+const prisma = new PrismaClient();
 
 const locations: { name: string; type: LocationType }[] = [
   { name: 'Cold Room 1', type: 'COLD_ROOM' },

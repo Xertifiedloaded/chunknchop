@@ -6,7 +6,6 @@ import { Loader2, ImagePlus, X } from 'lucide-react';
 import { PREPARATIONS } from '@/lib/categories';
 import { fetchWithAuth } from '@/lib/fetchClient';
 
-// Must match the Prisma `MeatType` enum exactly.
 const MEAT_TYPES = ['BEEF', 'CHICKEN', 'SEAFOOD', 'GOAT', 'PORK', 'TURKEY', 'BBQ', 'SAUSAGE', 'SPICE'];
 const UNITS = ['kg', 'g', 'lb', 'piece', 'pack'];
 const MAX_FILE_SIZE = 5 * 1024 * 1024;

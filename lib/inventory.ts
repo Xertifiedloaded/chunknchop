@@ -1,4 +1,4 @@
-import prisma from '@/lib/db';
+import { prisma } from '@/lib/db';
 import { InventoryChangeReason, Prisma } from '@prisma/client';
 
 type TxClient = Prisma.TransactionClient;

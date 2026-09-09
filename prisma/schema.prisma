@@ -3,11 +3,12 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
 }
 
 model User {
-  id              String           @id @default(cuid())
+  id              String @id @default(auto()) @map("_id") @db.ObjectId
   email           String           @unique
   password        String
   name            String?
@@ -28,7 +29,7 @@ model User {
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
 
-  @@index([email])
+  
 }
 
 enum UserRole {
@@ -47,8 +48,8 @@ enum StaffRole {
   WAREHOUSE
 }
 model SupplierProfile {
-  id               String    @id @default(cuid())
-  userId           String    @unique
+  id               String @id @default(auto()) @map("_id") @db.ObjectId
+  userId           String @db.ObjectId    @unique
   user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   storeName        String
   description      String?
@@ -65,8 +66,8 @@ model SupplierProfile {
 }
 
 model Product {
-  id         String @id @default(cuid())
-  supplierId String
+  id         String @id @default(auto()) @map("_id") @db.ObjectId
+  supplierId String @db.ObjectId
 
   supplier   User        @relation(fields: [supplierId], references: [id], onDelete: Cascade)
   cartItems  CartItem[]
@@ -84,7 +85,7 @@ model Product {
   meatType     MeatType
   preparations String[]
   category    String   
-  categoryId  String?
+  categoryId  String? @db.ObjectId
   categoryRef Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   isNewArrival    Boolean @default(false)
   isBestSeller    Boolean @default(false)
@@ -124,8 +125,8 @@ enum MeatType {
 }
 
 model ProductTier {
-  id        String  @id @default(cuid())
-  productId String
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  productId String @db.ObjectId
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   name            String // "Basic", "Professional", "Enterprise"
   description     String?
@@ -141,8 +142,8 @@ model ProductTier {
 }
 
 model ProductVariant {
-  id        String  @id @default(cuid())
-  productId String
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  productId String @db.ObjectId
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   name          String // "Red", "Large", etc
@@ -155,9 +156,9 @@ model ProductVariant {
 }
 
 model CartItem {
-  id                  String   @id @default(cuid())
-  userId              String
-  productId           String
+  id                  String @id @default(auto()) @map("_id") @db.ObjectId
+  userId              String @db.ObjectId
+  productId           String @db.ObjectId
   quantity            Int      @default(1)
   selectedTier        String?
   selectedPreparation String?
@@ -173,7 +174,7 @@ model CartItem {
 }
 
 model Rider {
-  id           String      @id @default(cuid())
+  id           String @id @default(auto()) @map("_id") @db.ObjectId
   name         String
   phone        String      @unique
   email        String?     @unique
@@ -195,8 +196,8 @@ model Rider {
 }
 
 model Order {
-  id                String        @id @default(cuid())
-  customerId        String
+  id                String @id @default(auto()) @map("_id") @db.ObjectId
+  customerId        String @db.ObjectId
   customer          User          @relation(fields: [customerId], references: [id], onDelete: Cascade)
   items             OrderItem[]
   subtotal          Float
@@ -214,7 +215,7 @@ model Order {
   shippingCountry   String
   trackingNumber    String?
   estimatedDelivery DateTime?
-  riderId String?
+  riderId String? @db.ObjectId
   rider   Rider?  @relation(fields: [riderId], references: [id])
 
   inventoryLogs InventoryLog[]
@@ -254,10 +255,10 @@ enum PaymentStatus {
 }
 
 model OrderItem {
-  id           String   @id @default(cuid())
-  orderId      String
+  id           String @id @default(auto()) @map("_id") @db.ObjectId
+  orderId      String @db.ObjectId
   order        Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  productId    String
+  productId    String @db.ObjectId
   product      Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
   quantity     Int
   pricePerUnit Float
@@ -270,8 +271,8 @@ model OrderItem {
 }
 
 model Subscription {
-  id         String @id @default(cuid())
-  customerId String
+  id         String @id @default(auto()) @map("_id") @db.ObjectId
+  customerId String @db.ObjectId
   customer   User   @relation(fields: [customerId], references: [id], onDelete: Cascade)
   tier String // Which tier (Basic, Pro, etc)
   price        Float
@@ -302,8 +303,8 @@ enum SubscriptionStatus {
 
 // Support tickets
 model SupportTicket {
-  id     String @id @default(cuid())
-  userId String
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   subject     String
@@ -339,10 +340,10 @@ enum TicketPriority {
 }
 
 model TicketMessage {
-  id          String        @id @default(cuid())
-  ticketId    String
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  ticketId    String @db.ObjectId
   ticket      SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  authorId    String
+  authorId    String @db.ObjectId
   message     String
   attachments String[]
   createdAt   DateTime      @default(now())
@@ -351,12 +352,12 @@ model TicketMessage {
 }
 
 model Rating {
-  id        String   @id @default(cuid())
-  productId String
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  productId String @db.ObjectId
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  userId    String
+  userId    String @db.ObjectId
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  score     Int      @db.SmallInt
+  score     Int
   title     String?
   comment   String?
   createdAt DateTime @default(now())
@@ -368,8 +369,8 @@ model Rating {
 }
 
 model RefreshToken {
-  id        String   @id @default(cuid())
-  userId    String
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String @db.ObjectId
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   token     String   @unique
   expiresAt DateTime
@@ -379,10 +380,10 @@ model RefreshToken {
 }
 
 model AnalyticsEvent {
-  id        String   @id @default(cuid())
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
   eventType String // "product_view", "add_to_cart", "purchase", etc
-  userId    String?
-  productId String?
+  userId    String? @db.ObjectId
+  productId String? @db.ObjectId
   metadata  String // JSON string for extra data
   createdAt DateTime @default(now())
 
@@ -392,7 +393,7 @@ model AnalyticsEvent {
 }
 
 model Category {
-  id          String  @id @default(cuid())
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
   name        String  @unique
   description String?
   image       String?
@@ -403,7 +404,7 @@ model Category {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([slug])
+  
 }
 
 
@@ -415,7 +416,7 @@ enum LocationType {
 }
 
 model StorageLocation {
-  id        String       @id @default(cuid())
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
   name      String       @unique 
   type      LocationType
   isActive  Boolean      @default(true)
@@ -426,10 +427,10 @@ model StorageLocation {
 }
 
 model InventoryRecord {
-  id         String          @id @default(cuid())
-  productId  String
+  id         String @id @default(auto()) @map("_id") @db.ObjectId
+  productId  String @db.ObjectId
   product    Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
-  locationId String
+  locationId String @db.ObjectId
   location   StorageLocation @relation(fields: [locationId], references: [id], onDelete: Restrict)
 
   onHand       Int       @default(0) 
@@ -451,19 +452,19 @@ model InventoryRecord {
 }
 
 model InventoryLog {
-  id            String                @id @default(cuid())
-  productId     String
+  id            String @id @default(auto()) @map("_id") @db.ObjectId
+  productId     String @db.ObjectId
   previousStock Int
   newStock      Int
   changeReason  InventoryChangeReason
   notes         String?
 
-  inventoryRecordId String?
+  inventoryRecordId String? @db.ObjectId
   inventoryRecord   InventoryRecord? @relation(fields: [inventoryRecordId], references: [id], onDelete: SetNull)
 
-  orderId String?
+  orderId String? @db.ObjectId
   order   Order?  @relation(fields: [orderId], references: [id], onDelete: SetNull)
-  performedById String?
+  performedById String? @db.ObjectId
 
   createdAt DateTime @default(now())
 
@@ -486,7 +487,7 @@ enum InventoryChangeReason {
 }
 
 model Promotion {
-  id                  String        @id @default(cuid())
+  id                  String @id @default(auto()) @map("_id") @db.ObjectId
   code                String        @unique
   description         String?
   type                PromotionType // PERCENTAGE, FIXED_AMOUNT
@@ -502,7 +503,7 @@ model Promotion {
   createdAt           DateTime      @default(now())
   updatedAt           DateTime      @updatedAt
 
-  @@index([code])
+  
 }
 
 enum PromotionType {
@@ -512,10 +513,10 @@ enum PromotionType {
 }
 
 model Wishlist {
-  id        String   @id @default(cuid())
-  userId    String
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String @db.ObjectId
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  productId String
+  productId String @db.ObjectId
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
 
@@ -525,7 +526,7 @@ model Wishlist {
 }
 
 model DeliveryZone {
-  id               String   @id @default(cuid())
+  id               String @id @default(auto()) @map("_id") @db.ObjectId
   name             String
   zipCodes         String[] // Delivery zones by zip code range
   state            String?
@@ -538,8 +539,8 @@ model DeliveryZone {
 }
 
 model Address {
-  id        String   @id @default(cuid())
-  userId    String
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String @db.ObjectId
   label     String
   name      String
   address   String
@@ -558,8 +559,8 @@ model Address {
 }
 
 model PaymentMethod {
-  id                        String            @id @default(cuid())
-  userId                    String
+  id                        String @id @default(auto()) @map("_id") @db.ObjectId
+  userId                    String @db.ObjectId
   user                      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   type                      PaymentMethodType // CARD, BANK_TRANSFER, DIGITAL_WALLET
   label                     String? // "Visa ending in 4242"

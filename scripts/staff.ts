@@ -1,11 +1,9 @@
 import 'dotenv/config';
 import { PrismaClient, UserRole } from '@prisma/client';
-import { PrismaPg } from '@prisma/adapter-pg';
 import bcrypt from 'bcryptjs';
 import { StaffRole } from '../lib/permission';
 
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
-const prisma = new PrismaClient({ adapter });
+const prisma = new PrismaClient();
 
 const staffMembers: {
   name: string;

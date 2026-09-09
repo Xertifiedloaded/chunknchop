@@ -1,6 +1,6 @@
 'use client';
 
-import Image from 'next/image';
+import React from 'react';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 
@@ -15,20 +15,34 @@ import game from '@/assets/Game_meat.svg';
 import diary from '@/assets/diary.svg';
 import spicies from '@/assets/spice.svg';
 
-const CATEGORIES = [
-  { name: 'Chicken & Eggs', image: layedChicken, slug: 'chicken-eggs' },
-  { name: 'Beef', image: beef, slug: 'beef' },
-  { name: 'Fish & Seafood', image: shrimp, slug: 'seafood' },
-  { name: 'Pork', image: pork, slug: 'pork' },
-  { name: 'Goat & Mutton', image: mutton, slug: 'goat-mutton' },
-  { name: 'Sausages', image: sausage, slug: 'sausages' },
-  { name: 'BBQ Packs', image: bbq, slug: 'bbq' },
-  { name: 'Game Meat', image: game, slug: 'game-meat' },
-  { name: 'Dairy', image: diary, slug: 'dairy' },
-  { name: 'Spices', image: spicies, slug: 'spices' },
-];
-
 export default function Categories() {
+  const [categories, setCategories] = React.useState<Array<{ name: string; slug: string; image?: string }>>(() => []);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      try {
+        const res = await fetch('/api/categories');
+        if (!res.ok) throw new Error('Failed to load categories');
+        const data = await res.json();
+        if (cancelled) return;
+        setCategories(data);
+      } catch (err) {
+        // Fallback to an empty list if fetch fails — intentionally silent so
+        // the landing page still renders.
+        console.error('Failed to fetch categories for landing:', err);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <section className="w-full bg-white">
       <div className="mx-auto max-w-7xl px-5 py-14 sm:px-8 lg:px-10 lg:py-20">
@@ -48,23 +62,54 @@ export default function Categories() {
         </div>
 
         <div className="mt-10 flex scrollbar-none gap-4 overflow-x-auto pb-3 sm:grid sm:grid-cols-3 sm:overflow-visible sm:pb-0 lg:grid-cols-5">
-          {CATEGORIES.map((category) => (
-            <Link key={category.name} href={`/shop?category=${category.slug}`} className="group relative min-w-42.5 overflow-hidden rounded-2xl bg-neutral-100 sm:min-w-0">
-              <div className="relative aspect-3/5 overflow-hidden sm:aspect-4/5">
-                <Image src={category.image} alt={category.name} fill sizes="(max-width: 640px) 170px, (max-width: 1024px) 33vw, 20vw" className="object-cover transition-transform duration-500 ease-out group-hover:scale-105" />
+          {loading ? (
+            <div className="text-sm text-neutral-500">Loading categories…</div>
+          ) : (
+            categories.map((category) => (
+              <Link key={category.name} href={`/shop?category=${category.slug}`} className="group relative min-w-42.5 overflow-hidden rounded-2xl bg-neutral-100 sm:min-w-0">
+                <div className="relative aspect-3/5 overflow-hidden sm:aspect-4/5">
+                  {/* If category.image is not provided by the API, the image component will be omitted */}
+                  {category.image ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={category.image} alt={category.name} className="object-cover w-full h-full transition-transform duration-500 ease-out group-hover:scale-105" />
+                  ) : (
+                    // fallback to local asset mapped by slug
+                    (() => {
+                      const map: Record<string, any> = {
+                        'chicken-eggs': layedChicken,
+                        beef,
+                        seafood: shrimp,
+                        pork,
+                        'goat-mutton': mutton,
+                        sausages: sausage,
+                        bbq,
+                        'game-meat': game,
+                        dairy: diary,
+                        spices: spicies,
+                      };
+                      const asset = map[category.slug] ?? null;
+                      return asset ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={asset.src ?? asset} alt={category.name} className="object-cover w-full h-full transition-transform duration-500 ease-out group-hover:scale-105" />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-neutral-600">{category.name}</div>
+                      );
+                    })()
+                  )}
 
-                <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/10 to-transparent" />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/10 to-transparent" />
 
-                <div className="absolute inset-x-0 bottom-0 flex items-center justify-between p-4">
-                  <span className="text-sm font-semibold text-white sm:text-base">{category.name}</span>
+                  <div className="absolute inset-x-0 bottom-0 flex items-center justify-between p-4">
+                    <span className="text-sm font-semibold text-white sm:text-base">{category.name}</span>
 
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/95 text-neutral-900 transition-all duration-300 group-hover:bg-orange-500 group-hover:text-white">
-                    <ArrowRight size={15} />
-                  </span>
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/95 text-neutral-900 transition-all duration-300 group-hover:bg-orange-500 group-hover:text-white">
+                      <ArrowRight size={15} />
+                    </span>
+                  </div>
                 </div>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            ))
+          )}
         </div>
 
         <Link href="/shop" className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border border-neutral-200 py-3.5 text-sm font-semibold text-neutral-900 transition-colors hover:border-orange-500 hover:text-orange-500 sm:hidden">

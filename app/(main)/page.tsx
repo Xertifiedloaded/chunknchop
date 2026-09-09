@@ -1,4 +1,4 @@
-import prisma from '@/lib/db';
+prisma
 
 import Header from '@/components/sections/common/Header';
 import Hero from '@/components/sections/main/Hero';
@@ -11,6 +11,7 @@ import DeliveryCoverage from '@/components/sections/main/DeliveryCoverage';
 import MobileAppPromo from '@/components/sections/main/MobileApp';
 import Footer from '@/components/sections/common/Footer';
 import Reviews, { ReviewsSkeleton } from '@/components/sections/main/Reviews';
+import { prisma } from '@/lib/db';
 
 export default async function HomePage() {
   let reviews = null;

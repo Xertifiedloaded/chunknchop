@@ -37,7 +37,8 @@ export default function ProductModal({ mode, productId, onClose, onSaved }: Prod
         setInitial({
           name: data.name ?? '',
           description: data.description ?? '',
-          meatType: data.meatType ?? '',
+          // Show the category name as the displayed meat type label (do not use the stored enum directly)
+          meatType: data.category ?? data.categoryRef?.name ?? '',
           categoryId: data.categoryId ?? data.category?.id ?? '',
           basePrice: data.basePrice != null ? String(data.basePrice) : '',
           stock: data.stock != null ? String(data.stock) : '',

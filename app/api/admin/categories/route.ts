@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserFromRequest } from '@/lib/request';
-import prisma from '@/lib/db';
+import { prisma } from '@/lib/db';
 import { slugify } from '@/lib/slug';
 export async function GET(request: NextRequest) {
   try {
@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
       return {
         id: category.id,
         name: category.name,
-        slug: `/${category.slug.replace(/^\//, '')}`,
+        slug: category.slug.replace(/^\//, ''),
         description: category.description,
         image: category.image,
         products: category._count.products,
@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
       {
         id: category.id,
         name: category.name,
-        slug: `/${category.slug}`,
+        slug: category.slug.replace(/^\//, ''),
         description: category.description,
         image: category.image,
         products: 0,

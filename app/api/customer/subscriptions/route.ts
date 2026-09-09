@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getUserFromRequest } from '@/lib/request';
-import Stripe from 'stripe';
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '');
+import stripe from '@/lib/stripe';
 
 export async function GET(request: NextRequest) {
   try {
@@ -44,12 +42,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Validate frequency
     if (!['WEEKLY', 'BIWEEKLY', 'MONTHLY'].includes(frequency)) {
       return NextResponse.json({ error: 'Invalid frequency' }, { status: 400 });
     }
 
-    // Get product tier details
     const productTier = await prisma.productTier.findUnique({
       where: { id: productTierId },
       include: {
@@ -61,14 +57,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Product tier not found' }, { status: 404 });
     }
 
-    // Create subscription
     const subscription = await prisma.subscription.create({
       data: {
         customerId: user.id,
         productTierId,
         frequency,
         status: 'ACTIVE',
-        nextDeliveryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+        nextDeliveryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       },
       include: {
         productTier: {

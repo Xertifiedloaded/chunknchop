@@ -1,11 +1,6 @@
-import { createClient } from '@supabase/supabase-js';
+import { v2 as cloudinary } from 'cloudinary';
 
-const STORAGE_BUCKET = 'product-images';
 const MAX_FILE_SIZE = 20 * 1024 * 1024;
-
-function getSupabaseAdmin() {
-  return createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_KEY!);
-}
 
 export async function uploadProductImage(file: File): Promise<string> {
   if (!file.type.startsWith('image/')) {
@@ -15,21 +10,33 @@ export async function uploadProductImage(file: File): Promise<string> {
     throw new Error(`"${file.name}" is over the 20MB limit.`);
   }
 
-  const ext = file.name.split('.').pop() || 'jpg';
-  const path = `${crypto.randomUUID()}.${ext}`;
-  const bytes = Buffer.from(await file.arrayBuffer());
-
-  const supabase = getSupabaseAdmin();
-  const { error } = await supabase.storage.from(STORAGE_BUCKET).upload(path, bytes, {
-    contentType: file.type,
-    cacheControl: '3600',
-    upsert: false,
-  });
-
-  if (error) {
-    throw new Error(`Could not upload "${file.name}": ${error.message}`);
+  if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+    throw new Error('Cloudinary credentials are not set in environment variables');
   }
 
-  const { data } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path);
-  return data.publicUrl;
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+    secure: true,
+  });
+
+  const bytes = Buffer.from(await file.arrayBuffer());
+  const dataUri = `data:${file.type};base64,${bytes.toString('base64')}`;
+
+  const folder = process.env.CLOUDINARY_UPLOAD_FOLDER || 'product-images';
+
+  const result = await cloudinary.uploader.upload(dataUri, {
+    folder,
+    resource_type: 'image',
+    use_filename: true,
+    unique_filename: true,
+    overwrite: false,
+  });
+
+  if (!result || !result.secure_url) {
+    throw new Error('Image upload failed');
+  }
+
+  return result.secure_url;
 }

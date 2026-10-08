@@ -295,7 +295,7 @@ export default function ComingSoon() {
                 key={problem.title}
                 className="min-h-61.25 rounded-xl bg-white p-5"
               >
-                <div className="mb-4 text-xl text-[#8c252b]">
+                <div className="mb-4 text-5xl text-[#8c252b]">
                   {problem.icon}
                 </div>
 
@@ -390,7 +390,7 @@ export default function ComingSoon() {
             <Founder
               image="/Ismaila_Emmanuel.jpg"
               name="Ismaila Emmanuel"
-              role="Co-founder · Animal Genetics & Financial Engineering"
+              role="Co-founder · Animal Biotechnology & Financial Engineering"
             />
 
             <Founder

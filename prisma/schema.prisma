@@ -1,0 +1,595 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String @id @default(auto()) @map("_id") @db.ObjectId
+  email           String           @unique
+  password        String
+  name            String?
+  role            UserRole         @default(CUSTOMER)
+   staffRole  StaffRole?
+  shift      String?
+  supplierProfile SupplierProfile?
+  products        Product[]
+  cart            CartItem[]
+  orders          Order[]
+  subscriptions   Subscription[]
+  supportTickets  SupportTicket[]
+  ratings         Rating[]
+  wishlist        Wishlist[]
+  addresses       Address[]
+  paymentMethods  PaymentMethod[]
+  refreshTokens   RefreshToken[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+}
+
+enum UserRole {
+  CUSTOMER
+  SUPPLIER
+  ADMIN
+  STAFF
+}
+enum StaffRole {
+  SUPER_ADMIN
+  OPS_MANAGER
+  PROCESSOR
+  SUPPORT
+  RIDER
+  BUTCHER
+  WAREHOUSE
+}
+model SupplierProfile {
+  id               String @id @default(auto()) @map("_id") @db.ObjectId
+  userId           String @db.ObjectId    @unique
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  storeName        String
+  description      String?
+  logo             String?
+  banner           String?
+  website          String?
+  rating           Float     @default(5.0)
+  totalReviews     Int       @default(0)
+  totalSales       Int       @default(0)
+  isVerified       Boolean   @default(false)
+  verificationDate DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+model Product {
+  id         String @id @default(auto()) @map("_id") @db.ObjectId
+  supplierId String @db.ObjectId
+
+  supplier   User        @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  cartItems  CartItem[]
+  orderItems OrderItem[]
+
+  name         String
+  description  String
+  images       String[]
+  basePrice    Float
+  stock        Int       @default(0)
+  inStock      Boolean   @default(true)
+  sku          String?   @unique
+  unit         String    @default("kg")
+  reorderPoint Int       @default(0)
+  meatType     String
+  preparations String[]
+  category     String
+  categoryId   String?   @db.ObjectId
+  categoryRef  Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  isNewArrival    Boolean  @default(false)
+  isBestSeller    Boolean  @default(false)
+  sameDayDelivery Boolean  @default(false)
+  tags            String[]
+
+  tiers    ProductTier[]
+  variants ProductVariant[]
+
+  rating       Float      @default(5.0)
+  reviewCount  Int        @default(0)
+  ratings      Rating[]
+  wishlistedBy Wishlist[]
+
+  inventoryRecords InventoryRecord[]
+
+  isActive   Boolean   @default(true)
+  isArchived Boolean   @default(false)
+  deletedAt  DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([supplierId])
+  @@index([category])
+  @@index([meatType])
+  @@index([isActive, isArchived])
+}
+
+model ProductTier {
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  productId String @db.ObjectId
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name            String // "Basic", "Professional", "Enterprise"
+  description     String?
+  price           Float
+  discount        Float? // Percentage discount for bulk
+  minimumQuantity Int      @default(1)
+  features        String[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([productId])
+}
+
+model ProductVariant {
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  productId String @db.ObjectId
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  name          String // "Red", "Large", etc
+  value         String
+  priceModifier Float  @default(0)
+
+  createdAt DateTime @default(now())
+
+  @@index([productId])
+}
+
+model CartItem {
+  id                  String @id @default(auto()) @map("_id") @db.ObjectId
+  userId              String @db.ObjectId
+  productId           String @db.ObjectId
+  quantity            Int      @default(1)
+  selectedTier        String?
+  selectedPreparation String?
+  selectedVariants    Json?
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product             Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@unique([userId, productId])
+  @@index([userId])
+  @@index([productId])
+}
+
+model Rider {
+  id           String @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  phone        String      @unique
+  email        String?     @unique
+  vehicleType  String? // "Motorcycle", "Van", "Bicycle"
+  licensePlate String?
+
+  status   RiderStatus @default(AVAILABLE)
+  isActive Boolean     @default(true)
+
+  totalDeliveries Int   @default(0)
+  rating          Float @default(5.0)
+
+  orders Order[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+}
+
+model Order {
+  id                String @id @default(auto()) @map("_id") @db.ObjectId
+  customerId        String @db.ObjectId
+  customer          User          @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  items             OrderItem[]
+  subtotal          Float
+  tax               Float         @default(0)
+  shipping          Float         @default(0)
+  total             Float
+  status            OrderStatus   @default(PENDING)
+  paymentStatus     PaymentStatus @default(PENDING)
+  paymentMethod     String?
+  paystackReference String?       @unique
+  shippingAddress   String
+  shippingCity      String
+  shippingState     String
+  shippingZip       String
+  shippingCountry   String
+  trackingNumber    String?
+  estimatedDelivery DateTime?
+  riderId String? @db.ObjectId
+  rider   Rider?  @relation(fields: [riderId], references: [id])
+
+  inventoryLogs InventoryLog[]
+
+  createdAt    DateTime  @default(now())
+  paidAt       DateTime?
+  shippedAt    DateTime?
+  deliveredAt  DateTime?
+  updatedAt    DateTime  @updatedAt
+
+  @@index([customerId])
+  @@index([status])
+  @@index([riderId])
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  READY_FOR_DISPATCH
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+  RETURNED
+}
+
+enum RiderStatus {
+  AVAILABLE
+  ON_DELIVERY
+  OFFLINE
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+model OrderItem {
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  orderId           String   @db.ObjectId
+  order             Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId         String?  @db.ObjectId
+  product           Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productName       String?
+  productImage      String?
+  productSku        String?
+  productCategoryId String?  @db.ObjectId
+  quantity          Int
+  pricePerUnit      Float
+  tier              String?
+  variants          Json?
+  createdAt         DateTime @default(now())
+
+  @@index([orderId])
+  @@index([productId])
+  @@index([productCategoryId])
+}
+
+model Subscription {
+  id         String @id @default(auto()) @map("_id") @db.ObjectId
+  customerId String @db.ObjectId
+  customer   User   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  tier String // Which tier (Basic, Pro, etc)
+  price        Float
+  billingCycle Int // Days
+  status                   SubscriptionStatus @default(ACTIVE)
+  paystackSubscriptionCode String?
+  nextBillingDate DateTime
+  cancelledAt     DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([customerId])
+  @@index([status])
+}
+
+enum SubscriptionType {
+  MONTHLY_DELIVERY
+  QUARTERLY_DELIVERY
+  ANNUAL_DELIVERY
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAUSED
+  CANCELLED
+}
+
+// Support tickets
+model SupportTicket {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  subject     String
+  description String
+  category    String
+
+  status   TicketStatus   @default(OPEN)
+  priority TicketPriority @default(MEDIUM)
+
+  messages TicketMessage[]
+
+  createdAt  DateTime  @default(now())
+  resolvedAt DateTime?
+  updatedAt  DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING_CUSTOMER
+  RESOLVED
+  CLOSED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+model TicketMessage {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  ticketId    String @db.ObjectId
+  ticket      SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  authorId    String @db.ObjectId
+  message     String
+  attachments String[]
+  createdAt   DateTime      @default(now())
+
+  @@index([ticketId])
+}
+
+model Rating {
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  productId String @db.ObjectId
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId    String @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  score     Int
+  title     String?
+  comment   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([productId, userId])
+  @@index([productId])
+  @@index([userId])
+}
+
+model RefreshToken {
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model AnalyticsEvent {
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  eventType String // "product_view", "add_to_cart", "purchase", etc
+  userId    String? @db.ObjectId
+  productId String? @db.ObjectId
+  metadata  String // JSON string for extra data
+  createdAt DateTime @default(now())
+
+  @@index([eventType])
+  @@index([userId])
+  @@index([productId])
+}
+
+model Category {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  name        String  @unique
+  description String?
+  image       String?
+  slug        String  @unique
+  color       String  @default("#f45d27") 
+  isActive    Boolean @default(true)       
+  products Product[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  
+}
+
+
+enum LocationType {
+  COLD_ROOM
+  CHILLER
+  FREEZER
+  DRY_STORE
+}
+
+model StorageLocation {
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  name      String       @unique 
+  type      LocationType
+  isActive  Boolean      @default(true)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  inventoryRecords InventoryRecord[]
+}
+
+model InventoryRecord {
+  id         String @id @default(auto()) @map("_id") @db.ObjectId
+  productId  String @db.ObjectId
+  product    Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  locationId String @db.ObjectId
+  location   StorageLocation @relation(fields: [locationId], references: [id], onDelete: Restrict)
+
+  onHand       Int       @default(0) 
+  committed    Int       @default(0) 
+  incoming     Int       @default(0) 
+  reorderPoint Int       @default(0)
+  batchNumber  String?
+  expiryDate   DateTime?
+
+  logs InventoryLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([productId, locationId, batchNumber])
+  @@index([productId])
+  @@index([locationId])
+  @@index([expiryDate])
+}
+
+model InventoryLog {
+  id            String                @id @default(auto()) @map("_id") @db.ObjectId
+  productId     String                @db.ObjectId
+  productName   String?
+  previousStock Int
+  newStock      Int
+  changeReason  InventoryChangeReason
+  notes         String?
+
+  inventoryRecordId String?          @db.ObjectId
+  inventoryRecord   InventoryRecord? @relation(fields: [inventoryRecordId], references: [id], onDelete: SetNull)
+
+  orderId       String? @db.ObjectId
+  order         Order?  @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  performedById String? @db.ObjectId
+
+  createdAt DateTime @default(now())
+
+  @@index([productId])
+  @@index([inventoryRecordId])
+  @@index([orderId])
+}
+
+enum InventoryChangeReason {
+  PURCHASE
+  RESTOCK
+  ADJUSTMENT
+  DAMAGE
+  EXPIRY
+  RETURN
+  ORDER_RESERVED
+  ORDER_FULFILLED
+  ORDER_CANCELLED
+  TRANSFER
+}
+
+model Promotion {
+  id                  String @id @default(auto()) @map("_id") @db.ObjectId
+  code                String        @unique
+  description         String?
+  type                PromotionType // PERCENTAGE, FIXED_AMOUNT
+  value               Float // 10 for 10%, or 5 for $5 off
+  startDate           DateTime
+  endDate             DateTime
+  maxUses             Int?
+  currentUses         Int           @default(0)
+  minOrderAmount      Float?
+  applicableProducts  String[] // Product IDs
+  applicableMeatTypes String[] // MeatType values
+  isActive            Boolean       @default(true)
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  
+}
+
+enum PromotionType {
+  PERCENTAGE
+  FIXED_AMOUNT
+  FREE_SHIPPING
+}
+
+model Wishlist {
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String @db.ObjectId
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+  @@index([userId])
+  @@index([productId])
+}
+
+model DeliveryZone {
+  id               String @id @default(auto()) @map("_id") @db.ObjectId
+  name             String
+  zipCodes         String[] // Delivery zones by zip code range
+  state            String?
+  baseCost         Float
+  freeDeliveryOver Float? // Free delivery for orders over this amount
+  estimatedDays    Int // Estimated delivery days
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model Address {
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String @db.ObjectId
+  label     String
+  name      String
+  address   String
+  city      String
+  state     String
+  zipCode   String
+  phone     String
+  country   String   @default("Nigeria")
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, isDefault])
+}
+
+model PaymentMethod {
+  id                        String @id @default(auto()) @map("_id") @db.ObjectId
+  userId                    String @db.ObjectId
+  user                      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type                      PaymentMethodType // CARD, BANK_TRANSFER, DIGITAL_WALLET
+  label                     String? // "Visa ending in 4242"
+  cardLast4                 String?
+  cardBrand                 String? // visa, mastercard, verve
+  cardExpiry                String? // MM/YY, derived from exp_month/exp_year
+  paystackAuthorizationCode String?           @unique
+  paystackCustomerCode      String?
+
+  bankName         String? // for BANK_TRANSFER type
+  bankAccountLast4 String?
+
+  isDefault Boolean @default(false)
+  isActive  Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([paystackCustomerCode])
+}
+
+enum PaymentMethodType {
+  CARD
+  BANK_TRANSFER
+  DIGITAL_WALLET
+}
+
+
+model WaitlistEntry {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  email     String   @unique
+  createdAt DateTime @default(now())
+
+  @@map("waitlist")
+}

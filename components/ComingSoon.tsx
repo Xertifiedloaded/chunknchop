@@ -130,7 +130,7 @@ export default function ComingSoon() {
               href="#"
               className="flex items-center"
             >
-      Chunk<span className="text-brand text-lg">N</span>chop 
+              Chunk<span className="text-brand text-lg">N</span>chop
             </a>
 
             <span className="rounded-full animate-pulse border border-[#575250] px-4 py-2 text-xs font-medium uppercase tracking-[0.18em] text-[#bcb5b1]">
@@ -228,10 +228,10 @@ export default function ComingSoon() {
                 {message && (
                   <div
                     className={`rounded-md px-3 py-2 text-sm leading-4 ${status === "error"
-                        ? "bg-red-50 text-red-700"
-                        : status === "already_joined"
-                          ? "bg-yellow-50 text-yellow-700"
-                          : "bg-green-50 text-green-700"
+                      ? "bg-red-50 text-red-700"
+                      : status === "already_joined"
+                        ? "bg-yellow-50 text-yellow-700"
+                        : "bg-green-50 text-green-700"
                       }`}
                   >
                     {message}
@@ -282,10 +282,10 @@ export default function ComingSoon() {
               E don happen to you?
             </p>
 
-            <h2 className="mt-3 max-w-162.5 font-impact text-[32px] font-black leading-[1.02]  sm:text-[42px]">
+            <h2 className="mt-3 max-w-162.5 font-impact text-[32px] font-black leading-normal  sm:text-[42px]">
               Buying meat shouldn’t cost you
               <br className="hidden sm:block" />
-              a whole Saturday.
+              <span className="text-brand">     a whole Saturday.</span>
             </h2>
           </div>
 
@@ -295,7 +295,7 @@ export default function ComingSoon() {
                 key={problem.title}
                 className="min-h-61.25 rounded-xl bg-white p-5"
               >
-                <div className="mb-4 text-5xl text-[#8c252b]">
+                <div className="mb-4 text-4xl text-[#8c252b]">
                   {problem.icon}
                 </div>
 
@@ -394,7 +394,7 @@ export default function ComingSoon() {
             />
 
             <Founder
-              image="/Makinde_Olaitan.PNG"
+              image="/Makinde_Olaitan.jpg"
               name="Makinde Olaitan"
               role="Co-founder · Animal Biotechnology & Software Engineering"
             />

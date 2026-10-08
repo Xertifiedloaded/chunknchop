@@ -390,7 +390,7 @@ export default function ComingSoon() {
             <Founder
               image="/Ismaila_Emmanuel.jpg"
               name="Ismaila Emmanuel"
-              role="Co-founder · Animal Genetics & Financial Engineering"
+              role="Co-founder · Animal Biotechnology & Financial Engineering"
             />
 
             <Founder

@@ -1,14 +1,14 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
-import { getUserFromRequest } from '@/lib/request';
-import { uploadProductImage } from '@/lib/storage';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { getUserFromRequest } from "@/lib/request";
+import { uploadProductImage } from "@/lib/storage";
 
 export async function GET(request: NextRequest) {
   try {
     const user = getUserFromRequest(request);
 
-    if (!user || user.role !== 'SUPPLIER') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!user || user.role !== "SUPPLIER") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const products = await prisma.product.findMany({
@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
         supplierId: user.id,
       },
       orderBy: {
-        createdAt: 'desc',
+        createdAt: "desc",
       },
       select: {
         id: true,
@@ -51,15 +51,15 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(formattedProducts);
   } catch (error) {
-    console.error('Error fetching supplier products:', error);
+    console.error("Error fetching supplier products:", error);
 
     return NextResponse.json(
       {
-        error: 'Failed to fetch products',
+        error: "Failed to fetch products",
       },
       {
         status: 500,
-      }
+      },
     );
   }
 }
@@ -68,41 +68,44 @@ export async function POST(request: NextRequest) {
   try {
     const user = getUserFromRequest(request);
 
-    if (!user || user.role !== 'SUPPLIER') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!user || user.role !== "SUPPLIER") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const formData = await request.formData();
 
-    const name = String(formData.get('name') ?? '').trim();
-    const meatType = String(formData.get('meatType') ?? '');
+    const name = String(formData.get("name") ?? "").trim();
+    const meatType = String(formData.get("meatType") ?? "");
 
     if (!name) {
-      return NextResponse.json({ error: 'Name is required' }, { status: 400 });
+      return NextResponse.json({ error: "Name is required" }, { status: 400 });
     }
 
     if (!meatType) {
-      return NextResponse.json({ error: 'Meat type is required' }, { status: 400 });
+      return NextResponse.json(
+        { error: "Meat type is required" },
+        { status: 400 },
+      );
     }
 
-    const basePrice = Number(formData.get('basePrice'));
-    const stock = Number(formData.get('stock'));
+    const basePrice = Number(formData.get("basePrice"));
+    const stock = Number(formData.get("stock"));
 
     if (!Number.isFinite(basePrice) || basePrice < 0) {
       return NextResponse.json(
         {
-          error: 'Base price must be a valid non-negative number',
+          error: "Base price must be a valid non-negative number",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (!Number.isFinite(stock) || stock < 0 || !Number.isInteger(stock)) {
       return NextResponse.json(
         {
-          error: 'Stock must be a valid non-negative whole number',
+          error: "Stock must be a valid non-negative whole number",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -111,21 +114,25 @@ export async function POST(request: NextRequest) {
     let existingImages: unknown = [];
 
     try {
-      tags = JSON.parse(String(formData.get('tags') ?? '[]'));
+      tags = JSON.parse(String(formData.get("tags") ?? "[]"));
 
-      preparations = JSON.parse(String(formData.get('preparations') ?? '[]'));
+      preparations = JSON.parse(String(formData.get("preparations") ?? "[]"));
 
-      existingImages = JSON.parse(String(formData.get('existingImages') ?? '[]'));
+      existingImages = JSON.parse(
+        String(formData.get("existingImages") ?? "[]"),
+      );
     } catch {
       return NextResponse.json(
         {
-          error: 'Malformed tags, preparations, or images data',
+          error: "Malformed tags, preparations, or images data",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    const imageFiles = formData.getAll('images').filter((value): value is File => value instanceof File);
+    const imageFiles = formData
+      .getAll("images")
+      .filter((value): value is File => value instanceof File);
 
     const uploadedUrls: string[] = [];
 
@@ -137,9 +144,10 @@ export async function POST(request: NextRequest) {
       } catch (error) {
         return NextResponse.json(
           {
-            error: error instanceof Error ? error.message : 'Image upload failed',
+            error:
+              error instanceof Error ? error.message : "Image upload failed",
           },
-          { status: 400 }
+          { status: 400 },
         );
       }
     }
@@ -148,7 +156,7 @@ export async function POST(request: NextRequest) {
       data: {
         name,
 
-        description: String(formData.get('description') ?? ''),
+        description: String(formData.get("description") ?? ""),
 
         meatType,
 
@@ -158,23 +166,26 @@ export async function POST(request: NextRequest) {
 
         inStock: stock > 0,
 
-        category: String(formData.get('category') ?? ''),
+        category: String(formData.get("category") ?? ""),
 
         tags: Array.isArray(tags) ? tags : [],
 
         preparations: Array.isArray(preparations) ? preparations : [],
 
-        isNewArrival: formData.get('isNewArrival') === 'true',
+        isNewArrival: formData.get("isNewArrival") === "true",
 
-        isBestSeller: formData.get('isBestSeller') === 'true',
+        isBestSeller: formData.get("isBestSeller") === "true",
 
-        sameDayDelivery: formData.get('sameDayDelivery') === 'true',
+        sameDayDelivery: formData.get("sameDayDelivery") === "true",
 
         // The important difference from the admin route:
         // the supplier can only create products under their own ID.
         supplierId: user.id,
 
-        images: [...(Array.isArray(existingImages) ? existingImages : []), ...uploadedUrls],
+        images: [
+          ...(Array.isArray(existingImages) ? existingImages : []),
+          ...uploadedUrls,
+        ],
       },
     });
 
@@ -182,15 +193,15 @@ export async function POST(request: NextRequest) {
       status: 201,
     });
   } catch (error) {
-    console.error('Error creating supplier product:', error);
+    console.error("Error creating supplier product:", error);
 
     return NextResponse.json(
       {
-        error: 'Internal server error',
+        error: "Internal server error",
       },
       {
         status: 500,
-      }
+      },
     );
   }
 }

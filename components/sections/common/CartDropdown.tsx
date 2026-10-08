@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { fetchWithAuth } from '@/lib/fetchClient';
+import { fetchWithAuth } from "@/lib/fetchClient";
 
-import { useCallback, useEffect, useState } from 'react';
-import { Loader2, Minus, Plus, Trash2, X } from 'lucide-react';
-import Link from 'next/link';
-import toast from 'react-hot-toast';
-import { useAuthStore } from '@/lib/store/authStore';
-import { useCartStore } from '@/lib/store/cartStore';
-import { formatNaira } from '@/lib/format';
+import { useCallback, useEffect, useState } from "react";
+import { Loader2, Minus, Plus, Trash2, X } from "lucide-react";
+import Link from "next/link";
+import toast from "react-hot-toast";
+import { useAuthStore } from "@/lib/store/authStore";
+import { useCartStore } from "@/lib/store/cartStore";
+import { formatNaira } from "@/lib/format";
 
 interface CartDropdownProps {
   isOpen: boolean;
@@ -19,12 +19,18 @@ export default function CartDropdown({ isOpen, onClose }: CartDropdownProps) {
   const user = useAuthStore((s) => s.user);
   const isHydrated = useAuthStore((s) => s.isHydrated);
 
-  const { items: cartItems, setItems: setCartItems, getTotalPrice, setLoading: setCartLoading, isLoading: cartLoading } = useCartStore();
+  const {
+    items: cartItems,
+    setItems: setCartItems,
+    getTotalPrice,
+    setLoading: setCartLoading,
+    isLoading: cartLoading,
+  } = useCartStore();
 
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [removingId, setRemovingId] = useState<string | null>(null);
 
-  const isSupplier = user?.role === 'SUPPLIER';
+  const isSupplier = user?.role === "SUPPLIER";
 
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -39,29 +45,29 @@ export default function CartDropdown({ isOpen, onClose }: CartDropdownProps) {
     try {
       setCartLoading(true);
 
-      const res = await fetchWithAuth('/api/customer/cart', {
-        method: 'GET',
-        cache: 'no-store',
+      const res = await fetchWithAuth("/api/customer/cart", {
+        method: "GET",
+        cache: "no-store",
       });
 
       if (!res.ok) {
         const error = await res.json().catch(() => null);
 
-        if (error?.code === 'TOKEN_EXPIRED' || error?.code === 'NO_TOKEN') {
+        if (error?.code === "TOKEN_EXPIRED" || error?.code === "NO_TOKEN") {
           useAuthStore.getState().logout();
-          toast.error('Your session expired — please sign in again');
+          toast.error("Your session expired — please sign in again");
           setCartItems([]);
           return;
         }
 
-        throw new Error(error?.error || 'Failed to fetch cart');
+        throw new Error(error?.error || "Failed to fetch cart");
       }
 
       const data = await res.json();
 
       setCartItems(data.cartItems || []);
     } catch (error) {
-      console.error('[cart] failed to fetch cart:', error);
+      console.error("[cart] failed to fetch cart:", error);
     } finally {
       setCartLoading(false);
     }
@@ -77,7 +83,7 @@ export default function CartDropdown({ isOpen, onClose }: CartDropdownProps) {
 
   async function handleRemoveItem(cartItemId: string) {
     if (!isHydrated || !user) {
-      toast.error('Please sign in to manage your cart');
+      toast.error("Please sign in to manage your cart");
       return;
     }
 
@@ -87,22 +93,22 @@ export default function CartDropdown({ isOpen, onClose }: CartDropdownProps) {
     setRemovingId(cartItemId);
     try {
       const res = await fetchWithAuth(`/api/customer/cart/${cartItemId}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
 
       if (!res.ok) {
         const error = await res.json().catch(() => null);
 
-        throw new Error(error?.error || 'Failed to remove item');
+        throw new Error(error?.error || "Failed to remove item");
       }
 
-      toast.success('Item removed');
+      toast.success("Item removed");
     } catch (error) {
-      console.error('[cart] remove error:', error);
+      console.error("[cart] remove error:", error);
 
       setCartItems(previousItems);
 
-      toast.error('Failed to remove item');
+      toast.error("Failed to remove item");
     } finally {
       setRemovingId(null);
     }
@@ -121,7 +127,7 @@ export default function CartDropdown({ isOpen, onClose }: CartDropdownProps) {
     }
 
     if (!isHydrated || !user) {
-      toast.error('Please sign in to manage your cart');
+      toast.error("Please sign in to manage your cart");
       return;
     }
 
@@ -134,17 +140,17 @@ export default function CartDropdown({ isOpen, onClose }: CartDropdownProps) {
               ...cartItem,
               quantity: newQuantity,
             }
-          : cartItem
-      )
+          : cartItem,
+      ),
     );
 
     setUpdatingId(cartItemId);
 
     try {
-      const res = await fetchWithAuth('/api/customer/cart', {
-        method: 'POST',
+      const res = await fetchWithAuth("/api/customer/cart", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           productId: item.productId,
@@ -158,15 +164,15 @@ export default function CartDropdown({ isOpen, onClose }: CartDropdownProps) {
       if (!res.ok) {
         const error = await res.json().catch(() => null);
 
-        throw new Error(error?.error || 'Failed to update quantity');
+        throw new Error(error?.error || "Failed to update quantity");
       }
 
       await fetchCart();
     } catch (error) {
-      console.error('[cart] update quantity error:', error);
+      console.error("[cart] update quantity error:", error);
       setCartItems(previousItems);
 
-      toast.error('Failed to update quantity');
+      toast.error("Failed to update quantity");
     } finally {
       setUpdatingId(null);
     }
@@ -177,14 +183,21 @@ export default function CartDropdown({ isOpen, onClose }: CartDropdownProps) {
   }
 
   return (
-    <div className={`overflow-hidden border-t border-neutral-100 shadow-lg transition-all duration-300 ${isOpen ? 'max-h-175 opacity-100' : 'max-h-0 opacity-0'}`}>
+    <div
+      className={`overflow-hidden border-t border-neutral-100 shadow-lg transition-all duration-300 ${isOpen ? "max-h-175 opacity-100" : "max-h-0 opacity-0"}`}
+    >
       <div className="mx-auto max-w-7xl px-6 py-5 lg:px-10">
         <div className="flex items-center justify-between">
           <p className="text-sm font-bold text-[#2D2D2D]">
-            Your order ({cartCount} {cartCount === 1 ? 'item' : 'items'})
+            Your order ({cartCount} {cartCount === 1 ? "item" : "items"})
           </p>
 
-          <button type="button" onClick={onClose} aria-label="Close cart" className="text-neutral-400 transition hover:text-neutral-700">
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close cart"
+            className="text-neutral-400 transition hover:text-neutral-700"
+          >
             <X size={16} />
           </button>
         </div>
@@ -197,14 +210,22 @@ export default function CartDropdown({ isOpen, onClose }: CartDropdownProps) {
           <div className="py-8 text-center">
             <p className="text-sm text-neutral-400">Your cart is empty.</p>
 
-            <Link href="/shop" onClick={onClose} className="bg-brand mt-4 inline-block rounded-md px-5 py-2 text-sm font-semibold text-white transition hover:opacity-90">
+            <Link
+              href="/shop"
+              onClick={onClose}
+              className="bg-brand mt-4 inline-block rounded-md px-5 py-2 text-sm font-semibold text-white transition hover:opacity-90"
+            >
               Continue Shopping
             </Link>
           </div>
         ) : (
           <div className="mt-4 flex max-h-96 flex-col gap-3 overflow-y-auto">
             {cartItems.map((item) => {
-              const tierPrice = item.selectedTier ? item.product.tiers.find((tier) => tier.name === item.selectedTier)?.price : undefined;
+              const tierPrice = item.selectedTier
+                ? item.product.tiers.find(
+                    (tier) => tier.name === item.selectedTier,
+                  )?.price
+                : undefined;
 
               const itemPrice = tierPrice ?? item.product.basePrice;
 
@@ -213,33 +234,89 @@ export default function CartDropdown({ isOpen, onClose }: CartDropdownProps) {
               const isRemoving = removingId === item.id;
 
               return (
-                <div key={item.id} className="flex items-center gap-3 rounded-xl bg-[#F7F5F4] p-3">
-                  {item.product.images?.[0] ? <img src={item.product.images[0]} alt={item.product.name} loading="lazy" className="h-12 w-12 shrink-0 rounded-lg object-cover" /> : <div className="h-12 w-12 shrink-0 rounded-lg bg-[#E8A68A]" />}
+                <div
+                  key={item.id}
+                  className="flex items-center gap-3 rounded-xl bg-[#F7F5F4] p-3"
+                >
+                  {item.product.images?.[0] ? (
+                    <img
+                      src={item.product.images[0]}
+                      alt={item.product.name}
+                      loading="lazy"
+                      className="h-12 w-12 shrink-0 rounded-lg object-cover"
+                    />
+                  ) : (
+                    <div className="h-12 w-12 shrink-0 rounded-lg bg-[#E8A68A]" />
+                  )}
 
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-[#2D2D2D]">{item.product.name}</p>
+                    <p className="truncate text-sm font-semibold text-[#2D2D2D]">
+                      {item.product.name}
+                    </p>
 
-                    {item.selectedTier && <p className="truncate text-xs text-neutral-400">{item.selectedTier}</p>}
+                    {item.selectedTier && (
+                      <p className="truncate text-xs text-neutral-400">
+                        {item.selectedTier}
+                      </p>
+                    )}
 
-                    {item.selectedPreparation && <p className="truncate text-xs text-neutral-400">{item.selectedPreparation}</p>}
+                    {item.selectedPreparation && (
+                      <p className="truncate text-xs text-neutral-400">
+                        {item.selectedPreparation}
+                      </p>
+                    )}
 
-                    <p className="text-xs text-neutral-400">{formatNaira(itemPrice)}</p>
+                    <p className="text-xs text-neutral-400">
+                      {formatNaira(itemPrice)}
+                    </p>
                   </div>
 
                   <div className="flex items-center gap-1.5 text-[#2D2D2D]">
-                    <button type="button" disabled={isUpdating || isRemoving} onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)} aria-label={`Decrease quantity of ${item.product.name}`} className="flex h-6 w-6 items-center justify-center rounded-full border border-neutral-200 bg-white transition hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50">
+                    <button
+                      type="button"
+                      disabled={isUpdating || isRemoving}
+                      onClick={() =>
+                        handleUpdateQuantity(item.id, item.quantity - 1)
+                      }
+                      aria-label={`Decrease quantity of ${item.product.name}`}
+                      className="flex h-6 w-6 items-center justify-center rounded-full border border-neutral-200 bg-white transition hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
                       <Minus size={12} />
                     </button>
 
-                    <span className="w-4 text-center text-xs font-semibold">{isUpdating ? <Loader2 size={12} className="mx-auto animate-spin" /> : item.quantity}</span>
+                    <span className="w-4 text-center text-xs font-semibold">
+                      {isUpdating ? (
+                        <Loader2 size={12} className="mx-auto animate-spin" />
+                      ) : (
+                        item.quantity
+                      )}
+                    </span>
 
-                    <button type="button" disabled={isUpdating || isRemoving} onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)} aria-label={`Increase quantity of ${item.product.name}`} className="flex h-6 w-6 items-center justify-center rounded-full border border-neutral-200 bg-white transition hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50">
+                    <button
+                      type="button"
+                      disabled={isUpdating || isRemoving}
+                      onClick={() =>
+                        handleUpdateQuantity(item.id, item.quantity + 1)
+                      }
+                      aria-label={`Increase quantity of ${item.product.name}`}
+                      className="flex h-6 w-6 items-center justify-center rounded-full border border-neutral-200 bg-white transition hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
                       <Plus size={12} />
                     </button>
                   </div>
 
-                  <button type="button" disabled={isRemoving} onClick={() => handleRemoveItem(item.id)} aria-label={`Remove ${item.product.name} from cart`} className="text-[#2D2D2D] transition hover:text-red-500 disabled:opacity-50">
-                    {isRemoving ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                  <button
+                    type="button"
+                    disabled={isRemoving}
+                    onClick={() => handleRemoveItem(item.id)}
+                    aria-label={`Remove ${item.product.name} from cart`}
+                    className="text-[#2D2D2D] transition hover:text-red-500 disabled:opacity-50"
+                  >
+                    {isRemoving ? (
+                      <Loader2 size={14} className="animate-spin" />
+                    ) : (
+                      <Trash2 size={14} />
+                    )}
                   </button>
                 </div>
               );
@@ -252,10 +329,16 @@ export default function CartDropdown({ isOpen, onClose }: CartDropdownProps) {
             <div>
               <span className="text-sm text-neutral-500">Subtotal</span>
 
-              <p className="text-base font-bold text-[#2D2D2D]">{formatNaira(cartTotal)}</p>
+              <p className="text-base font-bold text-[#2D2D2D]">
+                {formatNaira(cartTotal)}
+              </p>
             </div>
 
-            <Link href="/checkout" onClick={onClose} className="bg-brand rounded-md px-8 py-2.5 text-sm font-semibold text-white transition hover:opacity-90">
+            <Link
+              href="/checkout"
+              onClick={onClose}
+              className="bg-brand rounded-md px-8 py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
+            >
               Checkout
             </Link>
           </div>

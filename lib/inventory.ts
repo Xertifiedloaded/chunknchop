@@ -1,22 +1,30 @@
-import { prisma } from '@/lib/db';
-import { InventoryChangeReason, Prisma } from '@prisma/client';
+import { prisma } from "@/lib/db";
+import { InventoryChangeReason, Prisma } from "@prisma/client";
 
 type TxClient = Prisma.TransactionClient;
 
 const EXPIRING_SOON_WINDOW_MS = 72 * 60 * 60 * 1000;
 
-export type InventoryStatus = 'Healthy' | 'Low stock' | 'Out of stock' | 'Expiring soon';
+export type InventoryStatus =
+  "Healthy" | "Low stock" | "Out of stock" | "Expiring soon";
 
-export function getInventoryStatus(record: { onHand: number; reorderPoint: number; expiryDate: Date | null }): InventoryStatus {
-  if (record.onHand <= 0) return 'Out of stock';
+export function getInventoryStatus(record: {
+  onHand: number;
+  reorderPoint: number;
+  expiryDate: Date | null;
+}): InventoryStatus {
+  if (record.onHand <= 0) return "Out of stock";
 
-  if (record.expiryDate && record.expiryDate.getTime() - Date.now() <= EXPIRING_SOON_WINDOW_MS) {
-    return 'Expiring soon';
+  if (
+    record.expiryDate &&
+    record.expiryDate.getTime() - Date.now() <= EXPIRING_SOON_WINDOW_MS
+  ) {
+    return "Expiring soon";
   }
 
-  if (record.onHand <= record.reorderPoint) return 'Low stock';
+  if (record.onHand <= record.reorderPoint) return "Low stock";
 
-  return 'Healthy';
+  return "Healthy";
 }
 
 async function recomputeProductAggregate(tx: TxClient, productId: string) {
@@ -39,7 +47,13 @@ async function recomputeProductAggregate(tx: TxClient, productId: string) {
  * Creates the first InventoryRecord for a brand-new product. Called from
  * POST /api/admin/products so a product never exists without a stock row.
  */
-export async function createInitialInventoryRecord(params: { productId: string; locationId: string; onHand: number; reorderPoint: number; performedById?: string }) {
+export async function createInitialInventoryRecord(params: {
+  productId: string;
+  locationId: string;
+  onHand: number;
+  reorderPoint: number;
+  performedById?: string;
+}) {
   const { productId, locationId, onHand, reorderPoint, performedById } = params;
 
   return prisma.$transaction(async (tx) => {
@@ -54,7 +68,7 @@ export async function createInitialInventoryRecord(params: { productId: string; 
           previousStock: 0,
           newStock: onHand,
           changeReason: InventoryChangeReason.RESTOCK,
-          notes: 'Initial stock on product creation',
+          notes: "Initial stock on product creation",
           inventoryRecordId: record.id,
           performedById,
         },
@@ -68,16 +82,25 @@ export async function createInitialInventoryRecord(params: { productId: string; 
 }
 
 /** Manual admin adjustment — used by the "Adjust" action on the Inventory page. */
-export async function adjustInventoryRecord(params: { inventoryRecordId: string; newOnHand: number; changeReason: InventoryChangeReason; notes?: string; performedById?: string }) {
-  const { inventoryRecordId, newOnHand, changeReason, notes, performedById } = params;
+export async function adjustInventoryRecord(params: {
+  inventoryRecordId: string;
+  newOnHand: number;
+  changeReason: InventoryChangeReason;
+  notes?: string;
+  performedById?: string;
+}) {
+  const { inventoryRecordId, newOnHand, changeReason, notes, performedById } =
+    params;
 
   if (!Number.isInteger(newOnHand) || newOnHand < 0) {
-    throw new Error('newOnHand must be a non-negative whole number');
+    throw new Error("newOnHand must be a non-negative whole number");
   }
 
   return prisma.$transaction(async (tx) => {
-    const record = await tx.inventoryRecord.findUnique({ where: { id: inventoryRecordId } });
-    if (!record) throw new Error('Inventory record not found');
+    const record = await tx.inventoryRecord.findUnique({
+      where: { id: inventoryRecordId },
+    });
+    if (!record) throw new Error("Inventory record not found");
 
     await tx.inventoryLog.create({
       data: {
@@ -108,14 +131,17 @@ export async function deductStockForOrder(orderId: string) {
       where: { id: orderId },
       include: { items: true },
     });
-    if (!order) throw new Error('Order not found');
+    if (!order) throw new Error("Order not found");
 
     for (const item of order.items) {
       let remaining = item.quantity;
 
       const records = await tx.inventoryRecord.findMany({
         where: { productId: item.productId, onHand: { gt: 0 } },
-        orderBy: [{ expiryDate: { sort: 'asc', nulls: 'last' } }, { createdAt: 'asc' }],
+        orderBy: [
+          { expiryDate: { sort: "asc", nulls: "last" } },
+          { createdAt: "asc" },
+        ],
       });
 
       for (const record of records) {
@@ -147,7 +173,9 @@ export async function deductStockForOrder(orderId: string) {
 
       if (remaining > 0) {
         // Not enough physical stock anywhere — fail loudly instead of going negative.
-        throw new Error(`Insufficient stock for product ${item.productId} (short by ${remaining})`);
+        throw new Error(
+          `Insufficient stock for product ${item.productId} (short by ${remaining})`,
+        );
       }
 
       await recomputeProductAggregate(tx, item.productId);
@@ -168,23 +196,29 @@ export async function restoreStockForOrder(orderId: string) {
       prisma.product.updateMany({
         where: { id: item.productId as string, isArchived: false },
         data: { stock: { increment: item.quantity }, inStock: true },
-      })
-    )
+      }),
+    ),
   );
 }
 
 /** Reserves stock at cart/checkout time without deducting onHand yet. Optional, symmetric with restore below. */
 export async function reserveStockForOrder(orderId: string) {
   return prisma.$transaction(async (tx) => {
-    const order = await tx.order.findUnique({ where: { id: orderId }, include: { items: true } });
-    if (!order) throw new Error('Order not found');
+    const order = await tx.order.findUnique({
+      where: { id: orderId },
+      include: { items: true },
+    });
+    if (!order) throw new Error("Order not found");
 
     for (const item of order.items) {
       let remaining = item.quantity;
 
       const records = await tx.inventoryRecord.findMany({
         where: { productId: item.productId },
-        orderBy: [{ expiryDate: { sort: 'asc', nulls: 'last' } }, { createdAt: 'asc' }],
+        orderBy: [
+          { expiryDate: { sort: "asc", nulls: "last" } },
+          { createdAt: "asc" },
+        ],
       });
 
       for (const record of records) {
@@ -215,7 +249,9 @@ export async function reserveStockForOrder(orderId: string) {
       }
 
       if (remaining > 0) {
-        throw new Error(`Insufficient available stock for product ${item.productId} (short by ${remaining})`);
+        throw new Error(
+          `Insufficient available stock for product ${item.productId} (short by ${remaining})`,
+        );
       }
     }
   });

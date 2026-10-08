@@ -1,7 +1,7 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 
-import { apiFetch, getCsrfToken, onSessionExpired } from '@/lib/api-client';
-import type { User } from '@/lib/types';
+import { apiFetch, getCsrfToken, onSessionExpired } from "@/lib/api-client";
+import type { User } from "@/lib/types";
 
 interface AuthState {
   user: User | null;
@@ -30,10 +30,10 @@ export const useAuthStore = create<AuthState>()((set) => ({
     let succeeded = false;
     try {
       const csrf = getCsrfToken();
-      const res = await fetch('/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include',
-        headers: csrf ? { 'X-CSRF-Token': csrf } : {},
+      const res = await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+        headers: csrf ? { "X-CSRF-Token": csrf } : {},
       });
       succeeded = res.ok;
     } catch {
@@ -55,7 +55,7 @@ async function fetchSession(): Promise<User | null> {
   const { setUser, setHydrated } = useAuthStore.getState();
 
   try {
-    const res = await apiFetch('/api/auth/me', { cache: 'no-store' });
+    const res = await apiFetch("/api/auth/me", { cache: "no-store" });
 
     if (res.status === 401 || res.status === 403) {
       setUser(null);

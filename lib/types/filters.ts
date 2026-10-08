@@ -1,4 +1,9 @@
-export const SORT_OPTIONS = ['Newest', 'Price: Low to High', 'Price: High to Low', 'Top Rated'] as const;
+export const SORT_OPTIONS = [
+  "Newest",
+  "Price: Low to High",
+  "Price: High to Low",
+  "Top Rated",
+] as const;
 export type SortOption = (typeof SORT_OPTIONS)[number];
 
 export const PRICE_MIN = 0;
@@ -7,7 +12,7 @@ export const PRICE_MAX = 50000;
 export interface FilterState {
   search: string;
   sort: SortOption;
-  category: string | 'All';
+  category: string | "All";
   maxPrice: number;
   preparations: string[];
   inStock: boolean;
@@ -17,9 +22,9 @@ export interface FilterState {
 }
 
 export const DEFAULT_FILTERS: FilterState = {
-  search: '',
-  sort: 'Newest',
-  category: 'All',
+  search: "",
+  sort: "Newest",
+  category: "All",
   maxPrice: PRICE_MAX,
   preparations: [],
   inStock: false,
@@ -30,7 +35,7 @@ export const DEFAULT_FILTERS: FilterState = {
 
 export function countActiveFilters(f: FilterState) {
   let count = 0;
-  if (f.category !== 'All') count++;
+  if (f.category !== "All") count++;
   if (f.maxPrice < PRICE_MAX) count++;
   if (f.preparations.length) count++;
   if (f.inStock) count++;
@@ -40,34 +45,51 @@ export function countActiveFilters(f: FilterState) {
   return count;
 }
 
-import { slugify } from '@/lib/slug';
+import { slugify } from "@/lib/slug";
 
 export function filterProducts(products: any[], f: FilterState): any[] {
   const result = products.filter((p) => {
-    if (f.category !== 'All') {
-      const rawPCat = (p.categoryRef && p.categoryRef.slug) ? p.categoryRef.slug.replace(/^\//, '') : (typeof p.category === 'string' && p.category.trim()) ? p.category : (p.categoryRef && p.categoryRef.name) ? p.categoryRef.name : (p.categoryId ? String(p.categoryId) : '');
-      const pCat = rawPCat ? slugify(rawPCat) : '';
-const fCat = typeof f.category === 'string' ? slugify(f.category) : '';
+    if (f.category !== "All") {
+      const rawPCat =
+        p.categoryRef && p.categoryRef.slug
+          ? p.categoryRef.slug.replace(/^\//, "")
+          : typeof p.category === "string" && p.category.trim()
+            ? p.category
+            : p.categoryRef && p.categoryRef.name
+              ? p.categoryRef.name
+              : p.categoryId
+                ? String(p.categoryId)
+                : "";
+      const pCat = rawPCat ? slugify(rawPCat) : "";
+      const fCat = typeof f.category === "string" ? slugify(f.category) : "";
       if (!pCat || !fCat || pCat !== fCat) return false;
     }
     if (p.basePrice > f.maxPrice) return false;
-    if (f.preparations.length && !f.preparations.some((prep) => p.preparations.includes(prep))) return false;
+    if (
+      f.preparations.length &&
+      !f.preparations.some((prep) => p.preparations.includes(prep))
+    )
+      return false;
     if (f.inStock && !p.inStock) return false;
     if (f.sameDayDelivery && !p.sameDayDelivery) return false;
     if (f.newArrival && !p.isNewArrival) return false;
     if (f.bestSeller && !p.isBestSeller) return false;
-    if (f.search && !p.name.toLowerCase().includes(f.search.toLowerCase())) return false;
+    if (f.search && !p.name.toLowerCase().includes(f.search.toLowerCase()))
+      return false;
     return true;
   });
 
   switch (f.sort) {
-    case 'Price: Low to High':
+    case "Price: Low to High":
       return [...result].sort((a, b) => a.basePrice - b.basePrice);
-    case 'Price: High to Low':
+    case "Price: High to Low":
       return [...result].sort((a, b) => b.basePrice - a.basePrice);
-    case 'Top Rated':
+    case "Top Rated":
       return [...result].sort((a, b) => b.rating - a.rating);
     default:
-      return [...result].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      return [...result].sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      );
   }
 }

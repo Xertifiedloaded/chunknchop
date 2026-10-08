@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import { Suspense, useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
-import type { VerifyResult } from '@/components/checkout/types';
-import { PaymentStatusCard } from '@/components/checkout/PaymentStatusCard';
-import { fetchWithAuth } from '@/lib/fetchClient';
+import type { VerifyResult } from "@/components/checkout/types";
+import { PaymentStatusCard } from "@/components/checkout/PaymentStatusCard";
+import { fetchWithAuth } from "@/lib/fetchClient";
 
 function CheckoutCallbackContent() {
   const searchParams = useSearchParams();
 
-  const reference = searchParams.get('reference') || searchParams.get('trxref');
+  const reference = searchParams.get("reference") || searchParams.get("trxref");
 
   const [loading, setLoading] = useState(true);
   const [result, setResult] = useState<VerifyResult | null>(null);
@@ -18,8 +18,8 @@ function CheckoutCallbackContent() {
   useEffect(() => {
     if (!reference) {
       setResult({
-        status: 'error',
-        message: 'No transaction reference found in the URL.',
+        status: "error",
+        message: "No transaction reference found in the URL.",
       });
 
       setLoading(false);
@@ -32,11 +32,14 @@ function CheckoutCallbackContent() {
       try {
         setLoading(true);
 
-        const res = await fetchWithAuth(`/api/customer/orders/verify?reference=${encodeURIComponent(reference)}`, {
-          method: 'GET',
-          credentials: 'include',
-          cache: 'no-store',
-        });
+        const res = await fetchWithAuth(
+          `/api/customer/orders/verify?reference=${encodeURIComponent(reference)}`,
+          {
+            method: "GET",
+            credentials: "include",
+            cache: "no-store",
+          },
+        );
 
         const data = await res.json();
 
@@ -46,8 +49,9 @@ function CheckoutCallbackContent() {
 
         if (!res.ok) {
           setResult({
-            status: 'error',
-            message: data?.message || data?.error || 'Payment verification failed.',
+            status: "error",
+            message:
+              data?.message || data?.error || "Payment verification failed.",
           });
 
           return;
@@ -55,12 +59,12 @@ function CheckoutCallbackContent() {
 
         setResult(data as VerifyResult);
       } catch (error) {
-        console.error('Payment verification error:', error);
+        console.error("Payment verification error:", error);
 
         if (!cancelled) {
           setResult({
-            status: 'error',
-            message: 'Something went wrong while verifying your payment.',
+            status: "error",
+            message: "Something went wrong while verifying your payment.",
           });
         }
       } finally {

@@ -56,4 +56,4 @@ export interface DeliveryDate {
   slots: DeliverySlot[];
 }
 
-export type DeliveryMethod = 'home' | 'pickup';
+export type DeliveryMethod = "home" | "pickup";

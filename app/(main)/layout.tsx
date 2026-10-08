@@ -1,16 +1,16 @@
-import Header from '@/components/sections/common/Header';
-import Footer from '@/components/sections/common/Footer';
-import MobileAppPromo from '@/components/sections/main/MobileApp';
-import ComingSoon from '@/components/ComingSoon';
 
+import MobileAppPromo from "@/components/sections/MobileApp";
+
+import Header from "@/components/sections/common/Header";
+import Footer from "@/components/sections/common/Footer";
+import ComingSoon from "@/components/ComingSoon";
 
 export default function MainLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const isComingSoon =
-    process.env.IS_COMING_SOON === 'true';
+  const isComingSoon = process.env.IS_COMING_SOON === "true";
 
   if (isComingSoon) {
     return <ComingSoon />;
@@ -18,9 +18,9 @@ export default function MainLayout({
 
   return (
     <div className="text-charcoal bg-white">
-      {/* <Header /> */}
+      <Header />
       {children}
-      {/* <Footer /> */}
+      <Footer />
     </div>
   );
 }

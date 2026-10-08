@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getUserFromRequest } from '@/lib/request';
-import { prisma } from '@/lib/db';
+import { NextRequest, NextResponse } from "next/server";
+import { getUserFromRequest } from "@/lib/request";
+import { prisma } from "@/lib/db";
 
 const ASSUMED_COST_RATIO = 0.616; // implies ~38.4% gross margin
 
@@ -17,18 +17,18 @@ function endOfDay(d: Date) {
 }
 
 function monthKey(d: Date) {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 }
 
 function monthLabel(d: Date) {
-  return d.toLocaleDateString('en-US', { month: 'short' });
+  return d.toLocaleDateString("en-US", { month: "short" });
 }
 
 export async function GET(request: NextRequest) {
   try {
     const user = getUserFromRequest(request);
-    if (!user || user.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!user || user.role !== "ADMIN") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const params = request.nextUrl.searchParams;
@@ -38,12 +38,16 @@ export async function GET(request: NextRequest) {
     // to the last 7 days if nothing is provided.
     const now = new Date();
     const defaultEnd = endOfDay(now);
-    const defaultStart = startOfDay(new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000));
+    const defaultStart = startOfDay(
+      new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000),
+    );
 
-    const startParam = params.get('start');
-    const endParam = params.get('end');
+    const startParam = params.get("start");
+    const endParam = params.get("end");
 
-    const rangeStart = startParam ? startOfDay(new Date(startParam)) : defaultStart;
+    const rangeStart = startParam
+      ? startOfDay(new Date(startParam))
+      : defaultStart;
     const rangeEnd = endParam ? endOfDay(new Date(endParam)) : defaultEnd;
 
     // Previous period of equal length, used for % change indicators.
@@ -55,31 +59,45 @@ export async function GET(request: NextRequest) {
     const prevDateWhere = { createdAt: { gte: prevStart, lte: prevEnd } };
 
     // ---------- KPI CARDS ----------
-    const [currentOrders, prevOrders, currentPaidAgg, prevPaidAgg, currentRefunds, prevRefunds] =
-      await Promise.all([
-        prisma.order.count({ where: dateWhere }),
-        prisma.order.count({ where: prevDateWhere }),
-        prisma.order.aggregate({
-          where: { ...dateWhere, paymentStatus: 'PAID' },
-          _sum: { total: true },
-        }),
-        prisma.order.aggregate({
-          where: { ...prevDateWhere, paymentStatus: 'PAID' },
-          _sum: { total: true },
-        }),
-        prisma.order.count({ where: { ...dateWhere, paymentStatus: 'REFUNDED' } }),
-        prisma.order.count({ where: { ...prevDateWhere, paymentStatus: 'REFUNDED' } }),
-      ]);
+    const [
+      currentOrders,
+      prevOrders,
+      currentPaidAgg,
+      prevPaidAgg,
+      currentRefunds,
+      prevRefunds,
+    ] = await Promise.all([
+      prisma.order.count({ where: dateWhere }),
+      prisma.order.count({ where: prevDateWhere }),
+      prisma.order.aggregate({
+        where: { ...dateWhere, paymentStatus: "PAID" },
+        _sum: { total: true },
+      }),
+      prisma.order.aggregate({
+        where: { ...prevDateWhere, paymentStatus: "PAID" },
+        _sum: { total: true },
+      }),
+      prisma.order.count({
+        where: { ...dateWhere, paymentStatus: "REFUNDED" },
+      }),
+      prisma.order.count({
+        where: { ...prevDateWhere, paymentStatus: "REFUNDED" },
+      }),
+    ]);
 
     const revenue = currentPaidAgg._sum.total || 0;
     const prevRevenue = prevPaidAgg._sum.total || 0;
-    const revenueChangePct = prevRevenue > 0 ? ((revenue - prevRevenue) / prevRevenue) * 100 : 0;
+    const revenueChangePct =
+      prevRevenue > 0 ? ((revenue - prevRevenue) / prevRevenue) * 100 : 0;
 
-    const ordersChangePct = prevOrders > 0 ? ((currentOrders - prevOrders) / prevOrders) * 100 : 0;
+    const ordersChangePct =
+      prevOrders > 0 ? ((currentOrders - prevOrders) / prevOrders) * 100 : 0;
     const aov = currentOrders > 0 ? revenue / currentOrders : 0;
 
-    const refundRate = currentOrders > 0 ? (currentRefunds / currentOrders) * 100 : 0;
-    const prevRefundRate = prevOrders > 0 ? (prevRefunds / prevOrders) * 100 : 0;
+    const refundRate =
+      currentOrders > 0 ? (currentRefunds / currentOrders) * 100 : 0;
+    const prevRefundRate =
+      prevOrders > 0 ? (prevRefunds / prevOrders) * 100 : 0;
     const refundRateChangePct = refundRate - prevRefundRate;
 
     const grossMarginPct = (1 - ASSUMED_COST_RATIO) * 100;
@@ -87,7 +105,7 @@ export async function GET(request: NextRequest) {
     const currentGrossProfit = revenue * (1 - ASSUMED_COST_RATIO);
     const marginChangePct =
       prevRevenue > 0 && revenue > 0
-        ? ((currentGrossProfit / revenue - prevGrossProfit / prevRevenue) * 100)
+        ? (currentGrossProfit / revenue - prevGrossProfit / prevRevenue) * 100
         : 0;
 
     // Simple target: current-period revenue vs. a 5% growth target on the
@@ -97,7 +115,10 @@ export async function GET(request: NextRequest) {
     // ---------- REVENUE VS TARGET (trailing 6 months) ----------
     const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
     const monthlyOrders = await prisma.order.findMany({
-      where: { paymentStatus: 'PAID', createdAt: { gte: sixMonthsAgo, lte: rangeEnd } },
+      where: {
+        paymentStatus: "PAID",
+        createdAt: { gte: sixMonthsAgo, lte: rangeEnd },
+      },
       select: { total: true, createdAt: true },
     });
 
@@ -121,7 +142,9 @@ export async function GET(request: NextRequest) {
     }));
 
     // ---------- DELIVERY / ZONE METRICS ----------
-    const zones = await prisma.deliveryZone.findMany({ where: { isActive: true } });
+    const zones = await prisma.deliveryZone.findMany({
+      where: { isActive: true },
+    });
 
     const ordersForZones = await prisma.order.findMany({
       where: dateWhere,
@@ -147,7 +170,7 @@ export async function GET(request: NextRequest) {
 
     const resolveZoneName = (zip: string, city: string) => {
       const match = zones.find((z) => z.zipCodes.includes(zip));
-      return match ? match.name : city || 'Unassigned';
+      return match ? match.name : city || "Unassigned";
     };
 
     for (const o of ordersForZones) {
@@ -178,9 +201,12 @@ export async function GET(request: NextRequest) {
       .map((z) => ({
         zone: z.name,
         orders: z.orders,
-        onTimeRate: z.delivered > 0 ? Math.round((z.onTime / z.delivered) * 100) : 0,
+        onTimeRate:
+          z.delivered > 0 ? Math.round((z.onTime / z.delivered) * 100) : 0,
         avgDurationMinutes:
-          z.durationSamples > 0 ? Math.round(z.totalDurationMs / z.durationSamples / 60000) : 0,
+          z.durationSamples > 0
+            ? Math.round(z.totalDurationMs / z.durationSamples / 60000)
+            : 0,
       }))
       .sort((a, b) => b.orders - a.orders);
 
@@ -192,10 +218,10 @@ export async function GET(request: NextRequest) {
     }));
 
     // ---------- REPORT CATALOGUE ----------
-    const periodLabel = `${rangeStart.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-    })} – ${rangeEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+    const periodLabel = `${rangeStart.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    })} – ${rangeEnd.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
 
     const [
       paidOrderCount,
@@ -205,63 +231,73 @@ export async function GET(request: NextRequest) {
       deliveredWithRiderCount,
       activePromotionCount,
     ] = await Promise.all([
-      prisma.order.count({ where: { ...dateWhere, paymentStatus: 'PAID' } }),
+      prisma.order.count({ where: { ...dateWhere, paymentStatus: "PAID" } }),
       prisma.orderItem.count({ where: { order: dateWhere } }),
       prisma.inventoryRecord.count(),
-      prisma.user.count({ where: { role: 'CUSTOMER' } }),
+      prisma.user.count({ where: { role: "CUSTOMER" } }),
       prisma.order.count({ where: { ...dateWhere, riderId: { not: null } } }),
       prisma.promotion.count({
-        where: { isActive: true, startDate: { lte: rangeEnd }, endDate: { gte: rangeStart } },
+        where: {
+          isActive: true,
+          startDate: { lte: rangeEnd },
+          endDate: { gte: rangeStart },
+        },
       }),
     ]);
 
     const reportCatalogue = [
       {
-        name: 'Revenue Report',
-        description: 'Gross revenue, net of refunds, split by channel and zone.',
+        name: "Revenue Report",
+        description:
+          "Gross revenue, net of refunds, split by channel and zone.",
         period: periodLabel,
         rows: paidOrderCount,
       },
       {
-        name: 'Sales Report',
-        description: 'Units sold by product, category and preparation style.',
+        name: "Sales Report",
+        description: "Units sold by product, category and preparation style.",
         period: periodLabel,
         rows: orderItemCount,
       },
       {
-        name: 'Inventory Report',
-        description: 'Opening stock, intake, wastage and closing balance in kg.',
+        name: "Inventory Report",
+        description:
+          "Opening stock, intake, wastage and closing balance in kg.",
         period: periodLabel,
         rows: inventoryRecordCount,
       },
       {
-        name: 'Customer Report',
-        description: 'Acquisition, retention cohorts and lifetime value.',
-        period: 'All time',
+        name: "Customer Report",
+        description: "Acquisition, retention cohorts and lifetime value.",
+        period: "All time",
         rows: customerCount,
       },
       {
-        name: 'Order Report',
-        description: 'Order lifecycle timings from placement to delivery.',
+        name: "Order Report",
+        description: "Order lifecycle timings from placement to delivery.",
         period: periodLabel,
         rows: currentOrders,
       },
       {
-        name: 'Delivery Report',
-        description: 'Rider performance, on-time rate and cold-chain breaches.',
+        name: "Delivery Report",
+        description: "Rider performance, on-time rate and cold-chain breaches.",
         period: periodLabel,
         rows: deliveredWithRiderCount,
       },
       {
-        name: 'Marketing Report',
-        description: 'Coupon redemption, campaign ROAS and referral velocity.',
+        name: "Marketing Report",
+        description: "Coupon redemption, campaign ROAS and referral velocity.",
         period: periodLabel,
         rows: activePromotionCount,
       },
     ];
 
     return NextResponse.json({
-      range: { start: rangeStart.toISOString(), end: rangeEnd.toISOString(), label: periodLabel },
+      range: {
+        start: rangeStart.toISOString(),
+        end: rangeEnd.toISOString(),
+        label: periodLabel,
+      },
       kpis: {
         revenue: Math.round(revenue),
         revenueChangePct: Math.round(revenueChangePct * 10) / 10,
@@ -281,7 +317,10 @@ export async function GET(request: NextRequest) {
       reportCatalogue,
     });
   } catch (error) {
-    console.error('Reports error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error("Reports error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }

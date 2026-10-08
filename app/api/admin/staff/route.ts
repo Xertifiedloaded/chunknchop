@@ -1,10 +1,15 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getUserFromRequest } from '@/lib/request';
+import { NextRequest, NextResponse } from "next/server";
+import { getUserFromRequest } from "@/lib/request";
 
-import { hashPassword } from '@/lib/auth';
-import { z } from 'zod';
-import { STAFF_ROLES, ROLE_META, ROLE_PERMISSIONS, permissionCount } from '@/lib/permission';
-import prisma from '@/lib/db';
+import { hashPassword } from "@/lib/auth";
+import { z } from "zod";
+import {
+  STAFF_ROLES,
+  ROLE_META,
+  ROLE_PERMISSIONS,
+  permissionCount,
+} from "@/lib/permission";
+import prisma from "@/lib/db";
 
 const staffSchema = z.object({
   email: z.string().email(),
@@ -19,28 +24,32 @@ export async function GET(req: NextRequest) {
   try {
     const current = await getUserFromRequest(req);
 
-    if (!current || current.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!current || current.role !== "ADMIN") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const staff = await prisma.user.findMany({
       where: {
-        role: 'STAFF',
+        role: "STAFF",
       },
       orderBy: {
-        name: 'asc',
+        name: "asc",
       },
     });
 
     const formatted = staff.map((s) => {
       const staffRole = s.staffRole;
 
-      const roleMeta = staffRole ? ROLE_META[staffRole as keyof typeof ROLE_META] : null;
+      const roleMeta = staffRole
+        ? ROLE_META[staffRole as keyof typeof ROLE_META]
+        : null;
 
-      const rolePermissions = staffRole ? ROLE_PERMISSIONS[staffRole as keyof typeof ROLE_PERMISSIONS] : {};
+      const rolePermissions = staffRole
+        ? ROLE_PERMISSIONS[staffRole as keyof typeof ROLE_PERMISSIONS]
+        : {};
 
       const permissions = Object.entries(rolePermissions || {})
-        .filter(([, level]) => level !== 'None')
+        .filter(([, level]) => level !== "None")
         .map(([area, level]) => ({
           area,
           level,
@@ -57,16 +66,21 @@ export async function GET(req: NextRequest) {
         description: roleMeta?.description ?? null,
         color: roleMeta?.color ?? null,
         permissions,
-        permissionCount: staffRole ? permissionCount(staffRole as keyof typeof ROLE_PERMISSIONS) : 0,
+        permissionCount: staffRole
+          ? permissionCount(staffRole as keyof typeof ROLE_PERMISSIONS)
+          : 0,
         shift: s.shift,
       };
     });
 
     return NextResponse.json(formatted);
   } catch (error) {
-    console.error('Error listing staff:', error);
+    console.error("Error listing staff:", error);
 
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }
 
@@ -74,8 +88,8 @@ export async function POST(req: NextRequest) {
   try {
     const current = await getUserFromRequest(req);
 
-    if (!current || current.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!current || current.role !== "ADMIN") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await req.json();
@@ -89,7 +103,10 @@ export async function POST(req: NextRequest) {
     });
 
     if (exists) {
-      return NextResponse.json({ error: 'User already exists' }, { status: 409 });
+      return NextResponse.json(
+        { error: "User already exists" },
+        { status: 409 },
+      );
     }
 
     const hashed = hashPassword(password);
@@ -99,7 +116,7 @@ export async function POST(req: NextRequest) {
         email,
         password: hashed,
         name: name ?? null,
-        role: 'STAFF',
+        role: "STAFF",
         staffRole,
         shift: shift || null,
       },
@@ -118,23 +135,26 @@ export async function POST(req: NextRequest) {
       },
       {
         status: 201,
-      }
+      },
     );
   } catch (error) {
-    console.error('Error creating staff:', error);
+    console.error("Error creating staff:", error);
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         {
-          error: 'Invalid input',
+          error: "Invalid input",
           details: error.errors,
         },
         {
           status: 400,
-        }
+        },
       );
     }
 
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }

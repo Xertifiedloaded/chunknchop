@@ -1,5 +1,5 @@
 export type VerifySuccess = {
-  status: 'success';
+  status: "success";
   reference: string;
   orderId: string;
   total: number;
@@ -8,14 +8,14 @@ export type VerifySuccess = {
 };
 
 export type VerifyFailed = {
-  status: 'failed';
+  status: "failed";
   reference: string;
   orderId?: string;
   message: string;
 };
 
 export type VerifyError = {
-  status: 'error';
+  status: "error";
   message: string;
 };
 

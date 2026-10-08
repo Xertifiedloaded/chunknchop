@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import ProductCard from '@/components/sections/shops/ProductCard';
-import type { Product } from '@/lib/types';
+import Link from "next/link";
+import ProductCard from "@/components/sections/shops/ProductCard";
+import type { Product } from "@/lib/types";
 
 interface ProductSectionProps {
   title: string;
@@ -11,7 +11,12 @@ interface ProductSectionProps {
   viewAllHref?: string;
 }
 
-export default function ProductSection({ title, description, products, viewAllHref = '/shop' }: ProductSectionProps) {
+export default function ProductSection({
+  title,
+  description,
+  products,
+  viewAllHref = "/shop",
+}: ProductSectionProps) {
   if (products.length === 0) {
     return null;
   }
@@ -20,12 +25,19 @@ export default function ProductSection({ title, description, products, viewAllHr
     <section className="mx-auto max-w-7xl space-y-16 px-4 py-16 text-black sm:px-6 lg:px-8">
       <div className="mb-6 flex items-end justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-gray-900">{title}</h2>
+          <h2 className="text-2xl font-bold tracking-tight text-gray-900">
+            {title}
+          </h2>
 
-          {description && <p className="mt-1 text-sm text-gray-500">{description}</p>}
+          {description && (
+            <p className="mt-1 text-sm text-gray-500">{description}</p>
+          )}
         </div>
 
-        <Link href={viewAllHref} className="shrink-0 text-sm font-semibold text-orange-500 transition hover:text-orange-600">
+        <Link
+          href={viewAllHref}
+          className="shrink-0 text-sm font-semibold text-orange-500 transition hover:text-orange-600"
+        >
           View all
           <span className="ml-1">›</span>
         </Link>

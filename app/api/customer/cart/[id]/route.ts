@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 
-import { prisma } from '@/lib/db';
-import { getUserFromRequest } from '@/lib/request';
+import { prisma } from "@/lib/db";
+import { getUserFromRequest } from "@/lib/request";
 
 export async function DELETE(
   req: NextRequest,
@@ -11,7 +11,7 @@ export async function DELETE(
     params: Promise<{
       id: string;
     }>;
-  }
+  },
 ) {
   try {
     const user = getUserFromRequest(req);
@@ -19,11 +19,11 @@ export async function DELETE(
     if (!user) {
       return NextResponse.json(
         {
-          error: 'Unauthorized',
+          error: "Unauthorized",
         },
         {
           status: 401,
-        }
+        },
       );
     }
 
@@ -38,11 +38,11 @@ export async function DELETE(
     if (!cartItem || cartItem.userId !== user.id) {
       return NextResponse.json(
         {
-          error: 'Cart item not found',
+          error: "Cart item not found",
         },
         {
           status: 404,
-        }
+        },
       );
     }
 
@@ -54,18 +54,18 @@ export async function DELETE(
 
     return NextResponse.json({
       success: true,
-      message: 'Item removed from cart',
+      message: "Item removed from cart",
     });
   } catch (error) {
-    console.error('[cart DELETE] Failed:', error);
+    console.error("[cart DELETE] Failed:", error);
 
     return NextResponse.json(
       {
-        error: 'Failed to remove item from cart',
+        error: "Failed to remove item from cart",
       },
       {
         status: 500,
-      }
+      },
     );
   }
 }

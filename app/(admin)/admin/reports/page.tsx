@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useMemo, useState } from 'react';
-import useSWR from 'swr';
-import { fetchWithAuth } from '@/lib/fetchClient';
+import { useMemo, useState } from "react";
+import useSWR from "swr";
+import { fetchWithAuth } from "@/lib/fetchClient";
 
 interface ReportsResponse {
   range: { start: string; end: string; label: string };
@@ -20,7 +20,11 @@ interface ReportsResponse {
     refundCount: number;
   };
   revenueVsTarget: Array<{ month: string; revenue: number; target: number }>;
-  deliveryPerformance: Array<{ label: string; value: number; onTimeRate: number }>;
+  deliveryPerformance: Array<{
+    label: string;
+    value: number;
+    onTimeRate: number;
+  }>;
   zoneEconomics: Array<{
     zone: string;
     orders: number;
@@ -53,15 +57,27 @@ function buildPresets() {
   const twoMonthsAgoStart = new Date(now.getFullYear(), now.getMonth() - 2, 1);
 
   const label = (start: Date, end: Date) =>
-    `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${end.toLocaleDateString(
-      'en-US',
-      { month: 'short', day: 'numeric', year: 'numeric' }
+    `${start.toLocaleDateString("en-US", { month: "short", day: "numeric" })} – ${end.toLocaleDateString(
+      "en-US",
+      { month: "short", day: "numeric", year: "numeric" },
     )}`;
 
   return [
-    { label: label(thisWeekStart, thisWeekEnd), start: thisWeekStart, end: thisWeekEnd },
-    { label: label(lastMonthStart, lastMonthEnd), start: lastMonthStart, end: lastMonthEnd },
-    { label: label(twoMonthsAgoStart, twoMonthsAgoEnd), start: twoMonthsAgoStart, end: twoMonthsAgoEnd },
+    {
+      label: label(thisWeekStart, thisWeekEnd),
+      start: thisWeekStart,
+      end: thisWeekEnd,
+    },
+    {
+      label: label(lastMonthStart, lastMonthEnd),
+      start: lastMonthStart,
+      end: lastMonthEnd,
+    },
+    {
+      label: label(twoMonthsAgoStart, twoMonthsAgoEnd),
+      start: twoMonthsAgoStart,
+      end: twoMonthsAgoEnd,
+    },
   ];
 }
 
@@ -76,16 +92,18 @@ export default function ReportsPage() {
   const { data, error, isLoading } = useSWR<ReportsResponse>(queryKey, fetcher);
 
   const getStatusColor = (percentage: number) => {
-    if (percentage <= 89) return 'text-red-500';
-    if (percentage <= 94) return 'text-amber-500';
-    return 'text-emerald-500';
+    if (percentage <= 89) return "text-red-500";
+    if (percentage <= 94) return "text-amber-500";
+    return "text-emerald-500";
   };
 
   const downloadCsv = (filename: string, rows: (string | number)[][]) => {
-    const csv = rows.map((row) => row.map((cell) => `"${cell}"`).join(',')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const csv = rows
+      .map((row) => row.map((cell) => `"${cell}"`).join(","))
+      .join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = url;
     link.download = filename;
     document.body.appendChild(link);
@@ -96,25 +114,28 @@ export default function ReportsPage() {
 
   const exportCSV = () => {
     if (!data) return;
-    downloadCsv('reports-analytics.csv', [
-      ['Metric', 'Value'],
-      ['Revenue', `₦${(data.kpis.revenue / 1_000_000).toFixed(1)}M`],
-      ['Gross Margin', `${data.kpis.grossMarginPct}%`],
-      ['Orders', String(data.kpis.orders)],
-      ['Refund Rate', `${data.kpis.refundRatePct}%`],
+    downloadCsv("reports-analytics.csv", [
+      ["Metric", "Value"],
+      ["Revenue", `₦${(data.kpis.revenue / 1_000_000).toFixed(1)}M`],
+      ["Gross Margin", `${data.kpis.grossMarginPct}%`],
+      ["Orders", String(data.kpis.orders)],
+      ["Refund Rate", `${data.kpis.refundRatePct}%`],
     ]);
   };
 
-  const exportReport = (report: { name: string; description: string; period: string; rows: number }, format: 'CSV' | 'PDF') => {
-    if (format === 'PDF') {
+  const exportReport = (
+    report: { name: string; description: string; period: string; rows: number },
+    format: "CSV" | "PDF",
+  ) => {
+    if (format === "PDF") {
       window.print();
       return;
     }
-    downloadCsv(`${report.name.toLowerCase().replaceAll(' ', '-')}.csv`, [
-      ['Report', report.name],
-      ['Description', report.description],
-      ['Period', report.period],
-      ['Rows', String(report.rows)],
+    downloadCsv(`${report.name.toLowerCase().replaceAll(" ", "-")}.csv`, [
+      ["Report", report.name],
+      ["Description", report.description],
+      ["Period", report.period],
+      ["Rows", String(report.rows)],
     ]);
   };
 
@@ -134,7 +155,13 @@ export default function ReportsPage() {
     );
   }
 
-  const { kpis, revenueVsTarget, deliveryPerformance, zoneEconomics, reportCatalogue } = data;
+  const {
+    kpis,
+    revenueVsTarget,
+    deliveryPerformance,
+    zoneEconomics,
+    reportCatalogue,
+  } = data;
 
   const chartValues = revenueVsTarget.flatMap((m) => [m.revenue, m.target]);
   const maxVal = Math.max(1, ...chartValues);
@@ -147,13 +174,21 @@ export default function ReportsPage() {
 
   const toY = (v: number) => {
     if (maxVal === minVal) return chartHeight / 2;
-    return topPad + usableHeight - ((v - minVal) / (maxVal - minVal)) * usableHeight;
+    return (
+      topPad + usableHeight - ((v - minVal) / (maxVal - minVal)) * usableHeight
+    );
   };
   const toX = (i: number) =>
-    revenueVsTarget.length > 1 ? (i / (revenueVsTarget.length - 1)) * chartWidth : 0;
+    revenueVsTarget.length > 1
+      ? (i / (revenueVsTarget.length - 1)) * chartWidth
+      : 0;
 
-  const revenuePoints = revenueVsTarget.map((m, i) => [toX(i), toY(m.revenue)] as const);
-  const targetPoints = revenueVsTarget.map((m, i) => [toX(i), toY(m.target)] as const);
+  const revenuePoints = revenueVsTarget.map(
+    (m, i) => [toX(i), toY(m.revenue)] as const,
+  );
+  const targetPoints = revenueVsTarget.map(
+    (m, i) => [toX(i), toY(m.target)] as const,
+  );
 
   return (
     <main className="min-h-screen bg-[#f7f8f9] px-3 py-5 text-[#292929] sm:px-5 lg:px-6">
@@ -161,9 +196,12 @@ export default function ReportsPage() {
         {/* Header */}
         <header className="mb-5 flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
           <div>
-            <h1 className="text-[20px] font-bold tracking-[-0.4px]">Reports &amp; Analytics</h1>
+            <h1 className="text-[20px] font-bold tracking-[-0.4px]">
+              Reports &amp; Analytics
+            </h1>
             <p className="mt-1 text-[11px] text-[#929292]">
-              Financial, operational and marketing reporting across the ChunkNChop business.
+              Financial, operational and marketing reporting across the
+              ChunkNChop business.
             </p>
           </div>
 
@@ -210,10 +248,13 @@ export default function ReportsPage() {
             <div className="flex items-center gap-2 text-[9px] text-[#999]">
               <span
                 className={`rounded-[5px] px-[5px] py-[3px] font-bold ${
-                  kpis.revenueChangePct >= 0 ? 'bg-[#eaf8f3] text-[#119b6b]' : 'bg-[#fff0ee] text-[#df3e34]'
+                  kpis.revenueChangePct >= 0
+                    ? "bg-[#eaf8f3] text-[#119b6b]"
+                    : "bg-[#fff0ee] text-[#df3e34]"
                 }`}
               >
-                {kpis.revenueChangePct >= 0 ? '↗' : '↘'} {Math.abs(kpis.revenueChangePct)}%
+                {kpis.revenueChangePct >= 0 ? "↗" : "↘"}{" "}
+                {Math.abs(kpis.revenueChangePct)}%
               </span>
               <span>Target ₦{(kpis.target / 1_000_000).toFixed(1)}M</span>
             </div>
@@ -221,14 +262,19 @@ export default function ReportsPage() {
 
           <div className="min-h-[108px] rounded-[15px] border border-[#e5e5e5] bg-white px-[17px] py-[17px] shadow-[0_5px_14px_rgba(0,0,0,0.045)]">
             <p className="mb-[7px] text-[10px] text-[#8c8c8c]">Gross Margin</p>
-            <p className="mb-[11px] text-[21px] font-bold tracking-[-0.5px]">{kpis.grossMarginPct}%</p>
+            <p className="mb-[11px] text-[21px] font-bold tracking-[-0.5px]">
+              {kpis.grossMarginPct}%
+            </p>
             <div className="flex items-center gap-2 text-[9px] text-[#999]">
               <span
                 className={`rounded-[5px] px-[5px] py-[3px] font-bold ${
-                  kpis.marginChangePct >= 0 ? 'bg-[#eaf8f3] text-[#119b6b]' : 'bg-[#fff0ee] text-[#df3e34]'
+                  kpis.marginChangePct >= 0
+                    ? "bg-[#eaf8f3] text-[#119b6b]"
+                    : "bg-[#fff0ee] text-[#df3e34]"
                 }`}
               >
-                {kpis.marginChangePct >= 0 ? '↗' : '↘'} {Math.abs(kpis.marginChangePct)}%
+                {kpis.marginChangePct >= 0 ? "↗" : "↘"}{" "}
+                {Math.abs(kpis.marginChangePct)}%
               </span>
               <span>vs prior period</span>
             </div>
@@ -236,14 +282,19 @@ export default function ReportsPage() {
 
           <div className="min-h-[108px] rounded-[15px] border border-[#e5e5e5] bg-white px-[17px] py-[17px] shadow-[0_5px_14px_rgba(0,0,0,0.045)]">
             <p className="mb-[7px] text-[10px] text-[#8c8c8c]">Orders</p>
-            <p className="mb-[11px] text-[21px] font-bold tracking-[-0.5px]">{kpis.orders.toLocaleString()}</p>
+            <p className="mb-[11px] text-[21px] font-bold tracking-[-0.5px]">
+              {kpis.orders.toLocaleString()}
+            </p>
             <div className="flex items-center gap-2 text-[9px] text-[#999]">
               <span
                 className={`rounded-[5px] px-[5px] py-[3px] font-bold ${
-                  kpis.ordersChangePct >= 0 ? 'bg-[#eaf8f3] text-[#119b6b]' : 'bg-[#fff0ee] text-[#df3e34]'
+                  kpis.ordersChangePct >= 0
+                    ? "bg-[#eaf8f3] text-[#119b6b]"
+                    : "bg-[#fff0ee] text-[#df3e34]"
                 }`}
               >
-                {kpis.ordersChangePct >= 0 ? '↗' : '↘'} {Math.abs(kpis.ordersChangePct)}%
+                {kpis.ordersChangePct >= 0 ? "↗" : "↘"}{" "}
+                {Math.abs(kpis.ordersChangePct)}%
               </span>
               <span>AOV ₦{kpis.aov.toLocaleString()}</span>
             </div>
@@ -251,14 +302,19 @@ export default function ReportsPage() {
 
           <div className="min-h-[108px] rounded-[15px] border border-[#e5e5e5] bg-white px-[17px] py-[17px] shadow-[0_5px_14px_rgba(0,0,0,0.045)]">
             <p className="mb-[7px] text-[10px] text-[#8c8c8c]">Refund Rate</p>
-            <p className="mb-[11px] text-[21px] font-bold tracking-[-0.5px]">{kpis.refundRatePct}%</p>
+            <p className="mb-[11px] text-[21px] font-bold tracking-[-0.5px]">
+              {kpis.refundRatePct}%
+            </p>
             <div className="flex items-center gap-2 text-[9px] text-[#999]">
               <span
                 className={`rounded-[5px] px-[5px] py-[3px] font-bold ${
-                  kpis.refundRateChangePct <= 0 ? 'bg-[#eaf8f3] text-[#119b6b]' : 'bg-[#fff0ee] text-[#df3e34]'
+                  kpis.refundRateChangePct <= 0
+                    ? "bg-[#eaf8f3] text-[#119b6b]"
+                    : "bg-[#fff0ee] text-[#df3e34]"
                 }`}
               >
-                {kpis.refundRateChangePct <= 0 ? '↘' : '↗'} {Math.abs(kpis.refundRateChangePct)}%
+                {kpis.refundRateChangePct <= 0 ? "↘" : "↗"}{" "}
+                {Math.abs(kpis.refundRateChangePct)}%
               </span>
               <span>{kpis.refundCount} refunds this period</span>
             </div>
@@ -269,7 +325,9 @@ export default function ReportsPage() {
         <section className="relative mb-[22px] h-[350px] rounded-[15px] border border-[#e5e5e5] bg-white shadow-[0_5px_14px_rgba(0,0,0,0.045)]">
           <div className="px-5 pt-[17px]">
             <h2 className="text-[11.5px] font-bold">Revenue vs Target</h2>
-            <p className="mt-1 text-[9.5px] text-[#969696]">Monthly gross revenue against the commercial plan</p>
+            <p className="mt-1 text-[9.5px] text-[#969696]">
+              Monthly gross revenue against the commercial plan
+            </p>
           </div>
 
           <div className="absolute right-5 top-[67px] flex gap-3 text-[9px] text-[#555]">
@@ -284,13 +342,17 @@ export default function ReportsPage() {
           </div>
 
           <div className="absolute bottom-[54px] left-[30px] right-[30px] top-[105px] sm:left-[70px] sm:right-[70px] lg:left-[100px] lg:right-[80px]">
-            <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} preserveAspectRatio="none" className="h-full w-full">
+            <svg
+              viewBox={`0 0 ${chartWidth} ${chartHeight}`}
+              preserveAspectRatio="none"
+              className="h-full w-full"
+            >
               <line x1="0" y1="30" x2={chartWidth} y2="30" stroke="#f0f0f0" />
               <line x1="0" y1="80" x2={chartWidth} y2="80" stroke="#f0f0f0" />
               <line x1="0" y1="130" x2={chartWidth} y2="130" stroke="#f0f0f0" />
 
               <polyline
-                points={targetPoints.map(([x, y]) => `${x},${y}`).join(' ')}
+                points={targetPoints.map(([x, y]) => `${x},${y}`).join(" ")}
                 fill="none"
                 stroke="#292929"
                 strokeWidth="2"
@@ -298,7 +360,7 @@ export default function ReportsPage() {
               />
 
               <polyline
-                points={revenuePoints.map(([x, y]) => `${x},${y}`).join(' ')}
+                points={revenuePoints.map(([x, y]) => `${x},${y}`).join(" ")}
                 fill="none"
                 stroke="#f26322"
                 strokeWidth="2.5"
@@ -322,8 +384,12 @@ export default function ReportsPage() {
         <section className="mb-[22px] grid grid-cols-1 gap-[18px] lg:grid-cols-2">
           <section className="h-[307px] overflow-hidden rounded-[15px] border border-[#e5e5e5] bg-white shadow-[0_5px_14px_rgba(0,0,0,0.045)]">
             <div className="px-5 pt-[17px]">
-              <h2 className="text-[11.5px] font-bold">Delivery Performance by Zone</h2>
-              <p className="mt-1 text-[9.5px] text-[#969696]">Order volume, selected period</p>
+              <h2 className="text-[11.5px] font-bold">
+                Delivery Performance by Zone
+              </h2>
+              <p className="mt-1 text-[9.5px] text-[#969696]">
+                Order volume, selected period
+              </p>
             </div>
 
             <div className="relative mx-[22px] mt-[17px] h-[220px]">
@@ -337,7 +403,9 @@ export default function ReportsPage() {
 
               <div className="relative z-10 flex h-full items-end justify-around overflow-x-auto border-b border-[#ededed] px-5 pb-6">
                 {deliveryPerformance.length === 0 ? (
-                  <p className="self-center text-[10px] text-[#999]">No delivery data for this period</p>
+                  <p className="self-center text-[10px] text-[#999]">
+                    No delivery data for this period
+                  </p>
                 ) : (
                   deliveryPerformance.map((bar) => (
                     <div
@@ -349,7 +417,9 @@ export default function ReportsPage() {
                         style={{ height: `${bar.value}%` }}
                         title={`${bar.onTimeRate}% on-time`}
                       />
-                      <span className="text-[9px] text-[#999]">{bar.label}</span>
+                      <span className="text-[9px] text-[#999]">
+                        {bar.label}
+                      </span>
                     </div>
                   ))
                 )}
@@ -360,7 +430,9 @@ export default function ReportsPage() {
           <section className="h-[307px] overflow-hidden rounded-[15px] border border-[#e5e5e5] bg-white shadow-[0_5px_14px_rgba(0,0,0,0.045)]">
             <div className="px-5 pt-[17px]">
               <h2 className="text-[11.5px] font-bold">Zone Economics</h2>
-              <p className="mt-1 text-[9.5px] text-[#969696]">On-time rate and average delivery duration</p>
+              <p className="mt-1 text-[9.5px] text-[#969696]">
+                On-time rate and average delivery duration
+              </p>
             </div>
 
             <table className="mt-[14px] w-full border-collapse text-[10.5px]">
@@ -383,7 +455,10 @@ export default function ReportsPage() {
               <tbody>
                 {zoneEconomics.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="px-5 py-4 text-center text-[10px] text-[#999]">
+                    <td
+                      colSpan={4}
+                      className="px-5 py-4 text-center text-[10px] text-[#999]"
+                    >
                       No zone data for this period
                     </td>
                   </tr>
@@ -398,7 +473,7 @@ export default function ReportsPage() {
                       </td>
                       <td
                         className={`border-b border-[#ededed] px-5 py-[9.5px] text-right font-bold ${getStatusColor(
-                          zone.onTimeRate
+                          zone.onTimeRate,
                         )}`}
                       >
                         {zone.onTimeRate}%
@@ -418,7 +493,9 @@ export default function ReportsPage() {
         <section className="overflow-hidden rounded-[15px] border border-[#e5e5e5] bg-white shadow-[0_5px_14px_rgba(0,0,0,0.045)]">
           <div className="px-5 pb-[15px] pt-[17px]">
             <h2 className="text-[11.5px] font-bold">Report Catalogue</h2>
-            <p className="mt-1 text-[9.5px] text-[#969696]">Generate and export any standard report</p>
+            <p className="mt-1 text-[9.5px] text-[#969696]">
+              Generate and export any standard report
+            </p>
           </div>
 
           <div className="overflow-x-auto">
@@ -458,11 +535,17 @@ export default function ReportsPage() {
                       {report.rows.toLocaleString()}
                     </td>
                     <td className="border-b border-[#ededed] px-[18px] py-[10px] text-right text-[10px] font-semibold text-[#f26322]">
-                      <button onClick={() => exportReport(report, 'CSV')} className="hover:underline">
+                      <button
+                        onClick={() => exportReport(report, "CSV")}
+                        className="hover:underline"
+                      >
                         CSV
                       </button>
                       <span className="mx-1.5 text-[#d4d4d4]">·</span>
-                      <button onClick={() => exportReport(report, 'PDF')} className="hover:underline">
+                      <button
+                        onClick={() => exportReport(report, "PDF")}
+                        className="hover:underline"
+                      >
                         PDF
                       </button>
                     </td>

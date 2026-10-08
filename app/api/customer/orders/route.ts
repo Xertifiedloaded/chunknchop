@@ -1,12 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
-import { getUserFromRequest } from '@/lib/request';
-import { paystack } from '@/lib/paystack';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { getUserFromRequest } from "@/lib/request";
+import { paystack } from "@/lib/paystack";
 
 class CheckoutError extends Error {
   constructor(
     message: string,
-    public status = 400
+    public status = 400,
   ) {
     super(message);
   }
@@ -15,7 +15,7 @@ class CheckoutError extends Error {
 const TAX_RATE = 0.08;
 const FREE_SHIPPING_THRESHOLD = 100;
 const SHIPPING_FEE = 10;
-const UNAVAILABLE_PRODUCT_NAME = 'Unavailable product';
+const UNAVAILABLE_PRODUCT_NAME = "Unavailable product";
 
 const round2 = (value: number) => Math.round(value * 100) / 100;
 
@@ -24,18 +24,35 @@ export async function POST(req: NextRequest) {
     const user = getUserFromRequest(req);
 
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await req.json();
-    const { items, shippingAddress, shippingCity, shippingState, shippingZip, shippingCountry } = body;
+    const {
+      items,
+      shippingAddress,
+      shippingCity,
+      shippingState,
+      shippingZip,
+      shippingCountry,
+    } = body;
 
-    if (!Array.isArray(items) || items.length === 0 || !items.every((id) => typeof id === 'string')) {
-      throw new CheckoutError('No items in cart');
+    if (
+      !Array.isArray(items) ||
+      items.length === 0 ||
+      !items.every((id) => typeof id === "string")
+    ) {
+      throw new CheckoutError("No items in cart");
     }
 
-    if (!shippingAddress || !shippingCity || !shippingState || !shippingZip || !shippingCountry) {
-      throw new CheckoutError('Missing shipping details');
+    if (
+      !shippingAddress ||
+      !shippingCity ||
+      !shippingState ||
+      !shippingZip ||
+      !shippingCountry
+    ) {
+      throw new CheckoutError("Missing shipping details");
     }
 
     const cartItemIds = [...new Set<string>(items)];
@@ -47,7 +64,7 @@ export async function POST(req: NextRequest) {
       });
 
       if (cartItems.length !== cartItemIds.length) {
-        throw new CheckoutError('Cart item not found');
+        throw new CheckoutError("Cart item not found");
       }
 
       let subtotal = 0;
@@ -70,7 +87,8 @@ export async function POST(req: NextRequest) {
         }
 
         const tierPrice = cartItem.selectedTier
-          ? product.tiers.find((tier) => tier.name === cartItem.selectedTier)?.price
+          ? product.tiers.find((tier) => tier.name === cartItem.selectedTier)
+              ?.price
           : undefined;
         const pricePerUnit = tierPrice ?? product.basePrice;
 
@@ -101,8 +119,8 @@ export async function POST(req: NextRequest) {
           tax,
           shipping,
           total,
-          status: 'PENDING',
-          paymentStatus: 'PENDING',
+          status: "PENDING",
+          paymentStatus: "PENDING",
           shippingAddress,
           shippingCity,
           shippingState,
@@ -126,7 +144,7 @@ export async function POST(req: NextRequest) {
       const init = await paystack.initializeTransaction({
         email: user.email,
         amount: Math.round(order.total * 100),
-        currency: 'NGN',
+        currency: "NGN",
         reference,
         callback_url: `${process.env.APP_URL}/checkout/callback`,
         metadata: { orderId: order.id, userId: user.id },
@@ -143,12 +161,12 @@ export async function POST(req: NextRequest) {
         reference,
       });
     } catch (paystackError) {
-      console.error('Paystack init error:', paystackError);
+      console.error("Paystack init error:", paystackError);
 
       await prisma.$transaction([
         prisma.order.update({
           where: { id: order.id },
-          data: { status: 'CANCELLED' },
+          data: { status: "CANCELLED" },
         }),
         ...order.items
           .filter((item) => item.productId)
@@ -156,20 +174,29 @@ export async function POST(req: NextRequest) {
             prisma.product.updateMany({
               where: { id: item.productId as string, isArchived: false },
               data: { stock: { increment: item.quantity }, inStock: true },
-            })
+            }),
           ),
       ]);
 
-      throw new CheckoutError('Failed to initialize payment. Please try again.', 502);
+      throw new CheckoutError(
+        "Failed to initialize payment. Please try again.",
+        502,
+      );
     }
   } catch (error) {
-    console.error('Checkout error:', error);
+    console.error("Checkout error:", error);
 
     if (error instanceof CheckoutError) {
-      return NextResponse.json({ error: error.message }, { status: error.status });
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.status },
+      );
     }
 
-    return NextResponse.json({ error: 'Failed to create order' }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to create order" },
+      { status: 500 },
+    );
   }
 }
 
@@ -178,7 +205,7 @@ export async function GET(req: NextRequest) {
     const user = getUserFromRequest(req);
 
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const orders = await prisma.order.findMany({
@@ -186,18 +213,21 @@ export async function GET(req: NextRequest) {
       include: {
         items: {
           include: {
-            product: { select: { id: true, name: true, images: true, isArchived: true } },
+            product: {
+              select: { id: true, name: true, images: true, isArchived: true },
+            },
           },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
 
     const formatted = orders.map((order) => ({
       ...order,
       items: order.items.map((item) => ({
         ...item,
-        productName: item.productName ?? item.product?.name ?? UNAVAILABLE_PRODUCT_NAME,
+        productName:
+          item.productName ?? item.product?.name ?? UNAVAILABLE_PRODUCT_NAME,
         productImage: item.productImage ?? item.product?.images?.[0] ?? null,
         productUnavailable: !item.product || item.product.isArchived,
       })),
@@ -205,7 +235,10 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ orders: formatted }, { status: 200 });
   } catch (error) {
-    console.error('[GET /api/customer/orders]', error);
-    return NextResponse.json({ error: 'Failed to fetch orders', orders: [] }, { status: 500 });
+    console.error("[GET /api/customer/orders]", error);
+    return NextResponse.json(
+      { error: "Failed to fetch orders", orders: [] },
+      { status: 500 },
+    );
   }
 }

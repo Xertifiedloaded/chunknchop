@@ -1,10 +1,12 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 
-import type { Notification } from '@/lib/types';
+import type { Notification } from "@/lib/types";
 
 interface NotificationStore {
   notifications: Notification[];
-  addNotification: (notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => void;
+  addNotification: (
+    notification: Omit<Notification, "id" | "timestamp" | "read">,
+  ) => void;
   markAsRead: (id: string) => void;
   removeNotification: (id: string) => void;
   clearAll: () => void;
@@ -28,7 +30,9 @@ export const useNotificationStore = create<NotificationStore>((set) => ({
 
   markAsRead: (id) =>
     set((state) => ({
-      notifications: state.notifications.map((n) => (n.id === id ? { ...n, read: true } : n)),
+      notifications: state.notifications.map((n) =>
+        n.id === id ? { ...n, read: true } : n,
+      ),
     })),
 
   removeNotification: (id) =>

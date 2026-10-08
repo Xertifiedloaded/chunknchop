@@ -1,6 +1,6 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 
-import type { Product } from '@/lib/types';
+import type { Product } from "@/lib/types";
 
 interface ProductState {
   products: Product[];

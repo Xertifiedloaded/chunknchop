@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getUserFromRequest } from '@/lib/request';
-import { prisma } from '@/lib/db';
+import { NextRequest, NextResponse } from "next/server";
+import { getUserFromRequest } from "@/lib/request";
+import { prisma } from "@/lib/db";
 
 interface RouteContext {
   params: Promise<{
@@ -13,14 +13,17 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
   try {
     const user = getUserFromRequest(request);
 
-    if (!user || user.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!user || user.role !== "ADMIN") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { id } = await params;
 
     if (!id) {
-      return NextResponse.json({ error: 'Order ID is required' }, { status: 400 });
+      return NextResponse.json(
+        { error: "Order ID is required" },
+        { status: 400 },
+      );
     }
 
     const order = await prisma.order.findUnique({
@@ -61,12 +64,17 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
     });
 
     if (!order) {
-      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+      return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
-    const itemsCount = order.items.reduce((sum, item) => sum + item.quantity, 0);
+    const itemsCount = order.items.reduce(
+      (sum, item) => sum + item.quantity,
+      0,
+    );
 
-    const productSummary = order.items.map((item) => item.product.name).join(', ');
+    const productSummary = order.items
+      .map((item) => item.product.name)
+      .join(", ");
 
     const formattedOrder = {
       id: order.id,
@@ -94,13 +102,13 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
       // --------------------------------------------------
       customer: {
         id: order.customer.id,
-        name: order.customer.name || 'Unknown',
+        name: order.customer.name || "Unknown",
         email: order.customer.email,
       },
 
       // Also expose these directly if your frontend
       // already uses the list API structure.
-      customerName: order.customer.name || 'Unknown',
+      customerName: order.customer.name || "Unknown",
       customerEmail: order.customer.email,
 
       // --------------------------------------------------
@@ -179,15 +187,15 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
 
     return NextResponse.json(formattedOrder);
   } catch (error) {
-    console.error('Error fetching admin order:', error);
+    console.error("Error fetching admin order:", error);
 
     return NextResponse.json(
       {
-        error: 'Internal server error',
+        error: "Internal server error",
       },
       {
         status: 500,
-      }
+      },
     );
   }
 }

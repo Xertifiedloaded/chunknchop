@@ -1,16 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getUserFromRequest } from '@/lib/request';
-import { prisma } from '@/lib/db';
+import { NextRequest, NextResponse } from "next/server";
+import { getUserFromRequest } from "@/lib/request";
+import { prisma } from "@/lib/db";
 
 export async function GET(request: NextRequest) {
   try {
     const user = getUserFromRequest(request);
-    if (!user || user.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!user || user.role !== "ADMIN") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const customers = await prisma.user.findMany({
-      where: { role: 'CUSTOMER' },
+      where: { role: "CUSTOMER" },
       select: {
         id: true,
         name: true,
@@ -35,7 +35,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(formattedCustomers);
   } catch (error) {
-    console.error('Error fetching customers:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error("Error fetching customers:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }

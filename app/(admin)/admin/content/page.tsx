@@ -1,11 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-  ExternalLink,
-  Plus,
-  Circle,
-} from "lucide-react";
+import { ExternalLink, Plus, Circle } from "lucide-react";
 
 type Tab = {
   label: string;
@@ -63,16 +59,14 @@ const heroItems = [
   },
   {
     title: "The Cold Chain Promise",
-    description:
-      "Every cut travels at -18°C from our cold room to your door.",
+    description: "Every cut travels at -18°C from our cold room to your door.",
     button: "Learn More",
     status: "live",
     date: "Updated Aug 1, 2026",
   },
   {
     title: "Detty December Packs",
-    description:
-      "Pre-order party bundles for the festive rush.",
+    description: "Pre-order party bundles for the festive rush.",
     button: "Pre-order",
     status: "draft",
     date: "Updated Jul 22, 2026",
@@ -90,11 +84,7 @@ const deliveryLocations = [
   "Ibadan",
 ];
 
-function StatusBadge({
-  status,
-}: {
-  status: "live" | "published" | "draft";
-}) {
+function StatusBadge({ status }: { status: "live" | "published" | "draft" }) {
   const isDraft = status === "draft";
 
   return (
@@ -102,14 +92,10 @@ function StatusBadge({
       className={[
         "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1",
         "text-[11px] font-semibold",
-        isDraft
-          ? "bg-[#fff8e7] text-[#c77b00]"
-          : "bg-[#e9faf3] text-[#009765]",
+        isDraft ? "bg-[#fff8e7] text-[#c77b00]" : "bg-[#e9faf3] text-[#009765]",
       ].join(" ")}
     >
-      <Circle
-        className="h-[6px] w-[6px] fill-current stroke-0"
-      />
+      <Circle className="h-[6px] w-[6px] fill-current stroke-0" />
       {status}
     </span>
   );
@@ -237,9 +223,7 @@ function HeroCards() {
         >
           {/* Hero preview */}
           <div className="flex h-[136px] flex-col items-center justify-center bg-[#2d2925] px-5 text-center">
-            <h3 className="text-[17px] font-bold text-white">
-              {item.title}
-            </h3>
+            <h3 className="text-[17px] font-bold text-white">{item.title}</h3>
 
             <button
               type="button"
@@ -258,9 +242,7 @@ function HeroCards() {
             <div className="mt-3 flex items-center justify-between">
               <StatusBadge status={item.status as "live" | "draft"} />
 
-              <span className="text-[11px] text-[#918a83]">
-                {item.date}
-              </span>
+              <span className="text-[11px] text-[#918a83]">{item.date}</span>
             </div>
           </div>
         </article>
@@ -316,9 +298,7 @@ function RecipeTable() {
               </td>
 
               <td className="px-5 py-[16px]">
-                <StatusBadge
-                  status={recipe.status as "published" | "draft"}
-                />
+                <StatusBadge status={recipe.status as "published" | "draft"} />
               </td>
             </tr>
           ))}
@@ -336,9 +316,7 @@ function EmptyTab({ tab }: { tab: string }) {
           <span className="text-lg">+</span>
         </div>
 
-        <h3 className="mt-3 text-[15px] font-semibold">
-          {tab}
-        </h3>
+        <h3 className="mt-3 text-[15px] font-semibold">{tab}</h3>
 
         <p className="mt-1 text-[13px] text-[#918a83]">
           Manage your {tab.toLowerCase()} content here.

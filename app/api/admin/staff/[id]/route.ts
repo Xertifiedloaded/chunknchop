@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getUserFromRequest } from '@/lib/request';
-import prisma from '@/lib/db';
-import { hashPassword } from '@/lib/auth';
-import { z } from 'zod';
-import { STAFF_ROLES } from '@/lib/permission';
+import { NextRequest, NextResponse } from "next/server";
+import { getUserFromRequest } from "@/lib/request";
+import prisma from "@/lib/db";
+import { hashPassword } from "@/lib/auth";
+import { z } from "zod";
+import { STAFF_ROLES } from "@/lib/permission";
 
 const updateSchema = z.object({
   email: z.string().email().optional(),
@@ -14,13 +14,16 @@ const updateSchema = z.object({
   shift: z.string().optional(),
 });
 
-export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
   try {
     const { id } = await params;
     const current = await getUserFromRequest(req);
 
-    if (!current || current.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!current || current.role !== "ADMIN") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await req.json();
@@ -28,15 +31,23 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
     const existing = await prisma.user.findUnique({ where: { id } });
 
-    if (!existing || existing.role !== 'STAFF') {
-      return NextResponse.json({ error: 'Staff member not found' }, { status: 404 });
+    if (!existing || existing.role !== "STAFF") {
+      return NextResponse.json(
+        { error: "Staff member not found" },
+        { status: 404 },
+      );
     }
 
     if (data.email && data.email !== existing.email) {
-      const emailTaken = await prisma.user.findUnique({ where: { email: data.email } });
+      const emailTaken = await prisma.user.findUnique({
+        where: { email: data.email },
+      });
 
       if (emailTaken) {
-        return NextResponse.json({ error: 'Email already in use' }, { status: 409 });
+        return NextResponse.json(
+          { error: "Email already in use" },
+          { status: 409 },
+        );
       }
     }
 
@@ -62,37 +73,52 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       },
     });
   } catch (error) {
-    console.error('Error updating staff:', error);
+    console.error("Error updating staff:", error);
 
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: 'Invalid input', details: error.errors }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invalid input", details: error.errors },
+        { status: 400 },
+      );
     }
 
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
   try {
     const { id } = await params;
     const current = await getUserFromRequest(req);
 
-    if (!current || current.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!current || current.role !== "ADMIN") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const existing = await prisma.user.findUnique({ where: { id } });
 
-    if (!existing || existing.role !== 'STAFF') {
-      return NextResponse.json({ error: 'Staff member not found' }, { status: 404 });
+    if (!existing || existing.role !== "STAFF") {
+      return NextResponse.json(
+        { error: "Staff member not found" },
+        { status: 404 },
+      );
     }
 
     await prisma.user.delete({ where: { id } });
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error deleting staff:', error);
+    console.error("Error deleting staff:", error);
 
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }

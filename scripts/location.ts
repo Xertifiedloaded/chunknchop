@@ -1,17 +1,17 @@
-import { PrismaClient, LocationType } from '@prisma/client';
+import { PrismaClient, LocationType } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
 const locations: { name: string; type: LocationType }[] = [
-  { name: 'Cold Room 1', type: 'COLD_ROOM' },
-  { name: 'Cold Room 2', type: 'COLD_ROOM' },
-  { name: 'Chiller 1', type: 'CHILLER' },
-  { name: 'Chiller 2', type: 'CHILLER' },
-  { name: 'Chiller 3', type: 'CHILLER' },
-  { name: 'Freezer 1', type: 'FREEZER' },
-  { name: 'Freezer 2', type: 'FREEZER' },
-  { name: 'Freezer 3', type: 'FREEZER' },
-  { name: 'Dry Store', type: 'DRY_STORE' },
+  { name: "Cold Room 1", type: "COLD_ROOM" },
+  { name: "Cold Room 2", type: "COLD_ROOM" },
+  { name: "Chiller 1", type: "CHILLER" },
+  { name: "Chiller 2", type: "CHILLER" },
+  { name: "Chiller 3", type: "CHILLER" },
+  { name: "Freezer 1", type: "FREEZER" },
+  { name: "Freezer 2", type: "FREEZER" },
+  { name: "Freezer 3", type: "FREEZER" },
+  { name: "Dry Store", type: "DRY_STORE" },
 ];
 
 async function main() {
@@ -27,12 +27,12 @@ async function main() {
     console.log(`  ✓ ${result.name} (${result.type})`);
   }
 
-  console.log('Done.');
+  console.log("Done.");
 }
 
 main()
   .catch((error) => {
-    console.error('Seed failed:', error);
+    console.error("Seed failed:", error);
     process.exit(1);
   })
   .finally(async () => {

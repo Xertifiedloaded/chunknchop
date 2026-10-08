@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import type { VerifyError } from './types';
+import Link from "next/link";
+import type { VerifyError } from "./types";
 
 export function ErrorState({ result }: { result: VerifyError }) {
   return (
@@ -11,11 +11,18 @@ export function ErrorState({ result }: { result: VerifyError }) {
         <span className="text-2xl font-bold text-amber-600">!</span>
       </div>
 
-      <h1 className="text-xl font-semibold text-neutral-900">Couldn&apos;t verify payment</h1>
+      <h1 className="text-xl font-semibold text-neutral-900">
+        Couldn&apos;t verify payment
+      </h1>
 
-      <p className="mt-2 text-sm leading-6 text-neutral-500">{result.message}</p>
+      <p className="mt-2 text-sm leading-6 text-neutral-500">
+        {result.message}
+      </p>
 
-      <Link href="/checkout" className="mt-6 inline-block text-sm font-medium text-neutral-900 underline underline-offset-2">
+      <Link
+        href="/checkout"
+        className="mt-6 inline-block text-sm font-medium text-neutral-900 underline underline-offset-2"
+      >
         Back to checkout
       </Link>
     </div>

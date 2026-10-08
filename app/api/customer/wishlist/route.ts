@@ -1,12 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
-import { getUserFromRequest } from '@/lib/request';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { getUserFromRequest } from "@/lib/request";
 
 export async function GET(request: NextRequest) {
   try {
     const user = getUserFromRequest(request);
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const wishlist = await prisma.wishlist.findMany({
@@ -28,8 +28,11 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(wishlist);
   } catch (error) {
-    console.error('Wishlist error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error("Wishlist error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }
 
@@ -37,7 +40,7 @@ export async function POST(request: NextRequest) {
   try {
     const user = getUserFromRequest(request);
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { productId } = await request.json();
@@ -52,7 +55,10 @@ export async function POST(request: NextRequest) {
     });
 
     if (existingWishlistItem) {
-      return NextResponse.json({ error: 'Already in wishlist' }, { status: 400 });
+      return NextResponse.json(
+        { error: "Already in wishlist" },
+        { status: 400 },
+      );
     }
 
     const wishlistItem = await prisma.wishlist.create({
@@ -64,7 +70,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(wishlistItem);
   } catch (error) {
-    console.error('Wishlist POST error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error("Wishlist POST error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }

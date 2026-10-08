@@ -1,12 +1,12 @@
-import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
-import { ACTIVE_PRODUCT_FILTER } from '@/lib/products';
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { ACTIVE_PRODUCT_FILTER } from "@/lib/products";
 
 export async function GET() {
   try {
     const products = await prisma.product.findMany({
       where: ACTIVE_PRODUCT_FILTER,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       select: {
         id: true,
         name: true,
@@ -17,6 +17,7 @@ export async function GET() {
         inStock: true,
         rating: true,
         reviewCount: true,
+        description: true,
         isNewArrival: true,
         isBestSeller: true,
         category: true,
@@ -30,13 +31,19 @@ export async function GET() {
       ...product,
       createdAt: product.createdAt.toISOString(),
       categoryRef: product.categoryRef
-        ? { ...product.categoryRef, slug: product.categoryRef.slug.replace(/^\//, '') }
+        ? {
+            ...product.categoryRef,
+            slug: product.categoryRef.slug.replace(/^\//, ""),
+          }
         : null,
     }));
 
     return NextResponse.json({ products: formatted });
   } catch (error) {
-    console.error('Error fetching products:', error);
-    return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 });
+    console.error("Error fetching products:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch products" },
+      { status: 500 },
+    );
   }
 }

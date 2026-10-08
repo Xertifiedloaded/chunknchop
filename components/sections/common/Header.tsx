@@ -1,422 +1,543 @@
-'use client';
+"use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { Search, ShoppingBag, Menu, X, LogOut, Package, ChevronRight, LayoutGrid } from 'lucide-react';
-import toast from 'react-hot-toast';
-import logo from '../../../assets/header-logo.svg';
-import { useAuthStore } from '@/lib/store/authStore';
-import { useCartStore } from '@/lib/store/cartStore';
-import CartDropdown from './CartDropdown';
-import { NAV_LINKS, ROLE_STYLES } from '@/lib';
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import {
+  Search,
+  ShoppingBag,
+  LogOut,
+  Package,
+  LayoutGrid,
+  Menu,
+  X,
+} from "lucide-react";
+import toast from "react-hot-toast";
+import { useAuthStore } from "@/lib/store/authStore";
+import { useCartStore } from "@/lib/store/cartStore";
+import CartDropdown from "./CartDropdown";
+import { ROLE_STYLES } from "@/lib";
 
-type Panel = 'menu' | 'search' | 'cart' | 'account' | null;
-
+type Panel = "menu" | "search" | "cart" | "account" | null;
 type SessionUser = {
   name?: string | null;
   email: string;
   role?: string;
   staffRole?: string | null;
 };
+type NavEntry = { label: string; href?: string; id?: string };
 
-const ACCOUNT_LINKS = [
-  { href: '/orders', label: 'Orders' },
-  { href: '/account/subscriptions', label: 'Subscriptions' },
-  { href: '/account/wholesale', label: 'Wholesale' },
-  { href: '/account/support', label: 'Support' },
+const NAV: NavEntry[] = [
+  { label: "SHOP", href: "/shop" },
+  { label: "MEATBOX", id: "meatbox" },
+  { label: "HOW IT WORKS", id: "how" },
+  { label: "FAQ", id: "faq" },
 ];
 
-const dropdownLinkClass = 'text-charcoal block px-4 py-2.5 text-sm hover:bg-neutral-50';
-const drawerWorkspaceLinkClass = 'text-charcoal flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-[13.5px] font-medium transition-colors hover:bg-neutral-50';
+const ACCOUNT_LINKS = [
+  { href: "/orders", label: "Orders" },
+  { href: "/account/subscriptions", label: "Subscriptions" },
+  { href: "/account/wholesale", label: "Wholesale" },
+  { href: "/account/support", label: "Support" },
+];
 
-function getRoleStyle(role?: string) {
-  return ROLE_STYLES[role ?? ''] ?? ROLE_STYLES.CUSTOMER;
-}
+const WORKSPACE: Record<
+  string,
+  { href: string; label: string; Icon: typeof Package }
+> = {
+  ADMIN: { href: "/admin", label: "Admin", Icon: LayoutGrid },
+  SUPPLIER: { href: "/supplier/dashboard", label: "Dashboard", Icon: Package },
+  STAFF: { href: "/staff/dashboard", label: "Staff Dashboard", Icon: Package },
+};
 
-function formatStaffRole(staffRole?: string | null) {
-  if (!staffRole) return 'Staff';
+const navCls =
+  "text-[11px] font-bold tracking-[0.12em] transition hover:text-white";
+const dropCls =
+  "block px-4 py-2 text-[13px] font-medium text-[#c9beb7] transition hover:bg-white/5 hover:text-white";
+const mobileCls =
+  "block w-full text-left text-[13px] font-semibold tracking-wider transition hover:text-white";
+const btnCls =
+  "flex h-8 items-center justify-center px-3.5 text-[11px] font-black tracking-wider transition";
+const outlineBtn = `${btnCls} border border-white/50 hover:bg-white hover:text-black`;
+const solidBtn = `${btnCls} bg-white text-black hover:bg-[#e9e1d9]`;
 
-  return staffRole
-    .toLowerCase()
-    .split(/[_\s]+/)
-    .filter(Boolean)
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-}
+const roleStyle = (role?: string) =>
+  ROLE_STYLES[role ?? ""] ?? ROLE_STYLES.CUSTOMER;
+const firstName = (u: SessionUser) =>
+  u.name?.split(" ")[0] ?? u.email.split("@")[0];
 
-function getRoleLabel(user?: Pick<SessionUser, 'role' | 'staffRole'> | null) {
-  return user?.role === 'STAFF' ? formatStaffRole(user.staffRole) : getRoleStyle(user?.role).label;
-}
+const roleLabel = (u: SessionUser) =>
+  u.role === "STAFF"
+    ? (u.staffRole ?? "Staff")
+        .toLowerCase()
+        .split(/[_\s]+/)
+        .filter(Boolean)
+        .map((w) => w[0].toUpperCase() + w.slice(1))
+        .join(" ")
+    : roleStyle(u.role).label;
 
-function getInitial(user: SessionUser) {
-  return (user.name?.trim()?.[0] ?? user.email[0]).toUpperCase();
-}
-
-function getFirstName(user: SessionUser) {
-  return user.name?.split(' ')[0] ?? user.email.split('@')[0];
-}
-
-function Avatar({ user, sizeClass, colorClass }: { user: SessionUser; sizeClass: string; colorClass: string }) {
-  return <span className={`flex shrink-0 items-center justify-center rounded-full font-semibold text-white uppercase ${sizeClass} ${colorClass}`}>{getInitial(user)}</span>;
-}
-
-function DrawerLink({ href, onClick, children }: { href: string; onClick?: () => void; children: React.ReactNode }) {
+function Avatar({ user, size }: { user: SessionUser; size: string }) {
   return (
-    <Link href={href} onClick={onClick} className="text-charcoal group flex items-center justify-between rounded-lg px-3 py-2.5 text-[13.5px] font-medium transition-colors hover:bg-neutral-50 active:bg-neutral-100">
-      <span>{children}</span>
-      <ChevronRight size={15} className="text-neutral-300 transition-transform group-hover:translate-x-0.5 group-hover:text-neutral-400" />
-    </Link>
+    <span
+      className={`flex shrink-0 items-center justify-center rounded-full font-semibold text-white uppercase ${size} ${roleStyle(user.role).avatar}`}
+    >
+      {(user.name?.trim()?.[0] ?? user.email[0]).toUpperCase()}
+    </span>
   );
 }
 
-function DrawerSectionLabel({ children }: { children: React.ReactNode }) {
-  return <p className="px-3 pt-4 pb-1.5 text-[10.5px] font-semibold tracking-[0.08em] text-neutral-400 uppercase">{children}</p>;
+function RoleBadge({ user }: { user: SessionUser }) {
+  return (
+    <span
+      className={`inline-block rounded px-1.5 py-0.5 text-[9px] font-semibold ${roleStyle(user.role).badge}`}
+    >
+      {roleLabel(user)}
+    </span>
+  );
 }
 
-export default function HeaderOld() {
+function NavItem({
+  item,
+  className,
+  activeHref,
+  onScroll,
+  onNavigate,
+}: {
+  item: NavEntry;
+  className: string;
+  activeHref: boolean;
+  onScroll: (id: string) => void;
+  onNavigate: () => void;
+}) {
+  const color = activeHref ? "text-white" : "text-[#c9beb7]";
+
+  if (item.href) {
+    return (
+      <Link
+        href={item.href}
+        onClick={onNavigate}
+        className={`${className} ${color}`}
+        aria-current={activeHref ? "page" : undefined}
+      >
+        {item.label}
+      </Link>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => onScroll(item.id!)}
+      className={`${className} ${color}`}
+    >
+      {item.label}
+    </button>
+  );
+}
+
+function MobileSection({
+  title,
+  index,
+  open,
+  children,
+}: {
+  title: string;
+  index: number;
+  open: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      className={`mb-5 transition-all duration-300 ease-out ${open ? "translate-y-0 opacity-100" : "-translate-y-2 opacity-0"}`}
+      style={{ transitionDelay: open ? `${120 + index * 60}ms` : "0ms" }}
+    >
+      <p className="mb-2.5 text-[9px] font-bold tracking-[0.2em] text-[#7d6f66] uppercase">
+        {title}
+      </p>
+      <div className="flex flex-col gap-3.5">{children}</div>
+    </div>
+  );
+}
+
+export default function Header() {
   const router = useRouter();
-  const user = useAuthStore((state) => state.user) as SessionUser | null;
-  const isHydrated = useAuthStore((state) => state.isHydrated);
-  const logout = useAuthStore((state) => state.logout);
-  const cartItems = useCartStore((state) => state.items);
-  const setCartItems = useCartStore((state) => state.setItems);
+  const pathname = usePathname();
+  const user = useAuthStore((s) => s.user) as SessionUser | null;
+  const isHydrated = useAuthStore((s) => s.isHydrated);
+  const logout = useAuthStore((s) => s.logout);
+  const cartItems = useCartStore((s) => s.items);
+  const setCartItems = useCartStore((s) => s.setItems);
 
   const [panel, setPanel] = useState<Panel>(null);
-  const [query, setQuery] = useState('');
-  const searchInputRef = useRef<HTMLInputElement>(null);
+  const [query, setQuery] = useState("");
+  const searchRef = useRef<HTMLInputElement>(null);
   const accountRef = useRef<HTMLDivElement>(null);
 
-  const menuOpen = panel === 'menu';
-  const searchOpen = panel === 'search';
-  const cartOpen = panel === 'cart';
-  const accountOpen = panel === 'account';
+  const workspace = user?.role ? WORKSPACE[user.role] : undefined;
+  const isInternal = user?.role === "SUPPLIER" || user?.role === "STAFF";
+  const showCart = !!user && !isInternal;
+  const searchOpen = panel === "search";
+  const menuOpen = panel === "menu";
+  const accountOpen = panel === "account";
 
-  const isSupplier = user?.role === 'SUPPLIER';
-  const isAdmin = user?.role === 'ADMIN';
-  const isStaff = user?.role === 'STAFF';
-  const isInternalRole = isSupplier || isStaff;
-  const roleStyle = getRoleStyle(user?.role);
-  const roleLabel = getRoleLabel(user);
+  const cartCount = useMemo(
+    () => (showCart ? cartItems.reduce((sum, i) => sum + i.quantity, 0) : 0),
+    [showCart, cartItems],
+  );
 
-  const cartCount = useMemo(() => {
-    if (!user || isInternalRole) return 0;
-    return cartItems.reduce((sum, item) => sum + item.quantity, 0);
-  }, [user, isInternalRole, cartItems]);
-
-  const toggle = useCallback((name: Exclude<Panel, null>) => {
-    setPanel((current) => (current === name ? null : name));
-  }, []);
-
+  const toggle = useCallback(
+    (name: Exclude<Panel, null>) => setPanel((p) => (p === name ? null : name)),
+    [],
+  );
   const closeAll = useCallback(() => setPanel(null), []);
 
-  useEffect(() => {
-    if (searchOpen) searchInputRef.current?.focus();
-  }, [searchOpen]);
+  const scrollTo = useCallback(
+    (id: string) => {
+      closeAll();
+      if (pathname === "/")
+        document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+      else router.push(`/#${id}`);
+    },
+    [pathname, router, closeAll],
+  );
 
   useEffect(() => {
+    closeAll();
+  }, [pathname, closeAll]);
+
+  useEffect(() => {
+    if (searchOpen) searchRef.current?.focus();
     if (!panel) return;
 
-    function handleKey(event: KeyboardEvent) {
-      if (event.key === 'Escape') setPanel(null);
-    }
-
-    document.addEventListener('keydown', handleKey);
-    return () => document.removeEventListener('keydown', handleKey);
-  }, [panel]);
-
-  useEffect(() => {
-    if (!accountOpen) return;
-
-    function handleClick(event: MouseEvent) {
-      if (accountRef.current && !accountRef.current.contains(event.target as Node)) {
-        setPanel(null);
-      }
-    }
-
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, [accountOpen]);
-
-  useEffect(() => {
-    if (!menuOpen) return;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = previousOverflow;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && closeAll();
+    const onClick = (e: MouseEvent) => {
+      if (accountOpen && !accountRef.current?.contains(e.target as Node))
+        closeAll();
     };
-  }, [menuOpen]);
 
-  function handleSearchSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const trimmedQuery = query.trim();
-    if (!trimmedQuery) return;
-    router.push(`/shop?search=${encodeURIComponent(trimmedQuery)}`);
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("mousedown", onClick);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("mousedown", onClick);
+    };
+  }, [panel, searchOpen, accountOpen, closeAll]);
+
+  function handleSearch(e: React.FormEvent) {
+    e.preventDefault();
+    const q = query.trim();
+    if (!q) return;
+    router.push(`/shop?search=${encodeURIComponent(q)}`);
     closeAll();
   }
 
   async function handleLogout() {
     closeAll();
-    const succeeded = await logout();
+    const ok = await logout();
     setCartItems([]);
-    if (!succeeded) toast.error('Logout request failed');
-    router.push('/');
+    if (!ok) toast.error("Logout request failed");
+    router.push("/");
     router.refresh();
   }
 
+  const isActive = (item: NavEntry) =>
+    !!item.href && pathname.startsWith(item.href);
+
   return (
-    <header className="relative z-50 overflow-x-hidden border-b border-neutral-100 bg-white">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-2 lg:px-10">
-        <div className="relative flex min-w-0 shrink-0 items-center">
-          <Link href="/" onClick={closeAll} className={`block transition-all duration-200 ${menuOpen && user ? 'pointer-events-none opacity-0' : 'opacity-100'}`}>
-            <Image src={logo} alt="ChunkNChop" priority className="h-auto w-32 sm:w-40" />
-          </Link>
+    <header className="sticky top-0 z-50 border-b border-white/5 bg-[#0e0a09]/95 text-white backdrop-blur-md">
+      <div className="mx-auto flex h-13 max-w-295 items-center justify-between px-4 sm:px-5 lg:px-8">
+        <Link
+          href="/"
+          onClick={closeAll}
+          className="text-[15px] font-black tracking-[-0.5px]"
+        >
+          CHUNKN<span className="text-[#b9aaa0]">CHOP</span>
+        </Link>
 
-          {user && (
-            <div className={`absolute left-0 flex items-center gap-2 transition-all duration-200 lg:hidden ${menuOpen ? 'opacity-100' : 'pointer-events-none opacity-0'}`}>
-              <Avatar user={user} sizeClass="h-8 w-8 text-xs" colorClass={roleStyle.avatar} />
-
-              <div className="flex min-w-0 flex-col leading-tight">
-                <span className="text-charcoal max-w-32 truncate text-xs font-semibold">{getFirstName(user)}</span>
-                <span className={`w-fit rounded px-1.5 py-0.5 text-[9px] font-semibold ${roleStyle.badge}`}>{roleLabel}</span>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <nav className="hidden items-center gap-6 lg:flex">
-          {!isInternalRole &&
-            NAV_LINKS.map((link) => (
-              <Link key={link.label} href={link.href} className="text-charcoal text-sm transition-colors hover:text-neutral-900">
-                {link.label}
-              </Link>
+        <nav className="hidden items-center gap-7 md:flex">
+          {!isInternal &&
+            NAV.map((item) => (
+              <NavItem
+                key={item.label}
+                item={item}
+                className={navCls}
+                activeHref={isActive(item)}
+                onScroll={scrollTo}
+                onNavigate={closeAll}
+              />
             ))}
 
-          {isSupplier && (
-            <Link href="/supplier/dashboard" className="text-charcoal flex items-center gap-2 text-sm">
-              <Package size={16} />
-              Dashboard
-            </Link>
-          )}
-
-          {isStaff && (
-            <Link href="/staff/dashboard" className="text-charcoal flex items-center gap-2 text-sm">
-              <Package size={16} />
-              Staff Dashboard
-            </Link>
-          )}
-
-          {isAdmin && (
-            <Link href="/admin" className="text-charcoal text-sm">
-              Admin
+          {workspace && (
+            <Link
+              href={workspace.href}
+              className={`${navCls} flex items-center gap-1.5 text-[#c9beb7]`}
+            >
+              <workspace.Icon size={14} />
+              {workspace.label.toUpperCase()}
             </Link>
           )}
         </nav>
 
-        <div className="flex items-center gap-4 sm:gap-6">
-          {!isInternalRole && (
-            <button type="button" onClick={() => toggle('search')} aria-label={searchOpen ? 'Close search' : 'Open search'} className="text-neutral-500 transition hover:text-neutral-900">
-              {searchOpen ? <X size={20} /> : <Search size={20} />}
+        <div className="flex items-center gap-3">
+          {!isInternal && (
+            <button
+              type="button"
+              onClick={() => toggle("search")}
+              aria-label={searchOpen ? "Close search" : "Open search"}
+              className="text-[#c9beb7] transition hover:text-white"
+            >
+              {searchOpen ? <X size={18} /> : <Search size={18} />}
             </button>
           )}
 
-          <div ref={accountRef} className="relative hidden sm:block">
+          <div
+            ref={accountRef}
+            className="relative hidden items-center gap-2 sm:flex"
+          >
             {!isHydrated ? (
-              <div className="h-8 w-24" aria-hidden="true" />
+              <div className="h-8 w-20" aria-hidden="true" />
             ) : user ? (
               <>
-                <button type="button" onClick={() => toggle('account')} aria-label="Open account menu" aria-expanded={accountOpen} className="flex items-center gap-2 text-neutral-500 transition hover:text-neutral-900">
-                  <Avatar user={user} sizeClass="h-8 w-8 text-xs" colorClass={roleStyle.avatar} />
-
-                  <span className="hidden flex-col items-start md:flex">
-                    <span className="text-charcoal max-w-30 truncate text-xs font-medium">{getFirstName(user)}</span>
-
-                    {(isAdmin || isInternalRole) && <span className={`rounded px-1.5 py-0.5 text-[10px] leading-tight font-semibold ${roleStyle.badge}`}>{roleLabel}</span>}
+                <button
+                  type="button"
+                  onClick={() => toggle("account")}
+                  aria-label="Open account menu"
+                  aria-expanded={accountOpen}
+                  className="flex items-center gap-2 text-[#c9beb7] transition hover:text-white"
+                >
+                  <Avatar user={user} size="h-7 w-7 text-[11px]" />
+                  <span className="hidden max-w-28 truncate text-xs font-semibold md:block">
+                    {firstName(user)}
                   </span>
                 </button>
 
-                {accountOpen && (
-                  <div className="animate-in fade-in slide-in-from-top-1 absolute right-0 mt-3 w-52 overflow-hidden rounded-lg border border-neutral-100 bg-white shadow-lg duration-200">
-                    <div className="border-b border-neutral-100 px-4 py-2.5">
-                      <p className="truncate text-xs text-neutral-400">{user.email}</p>
-                      <span className={`mt-1 inline-block rounded px-1.5 py-0.5 text-[10px] font-semibold ${roleStyle.badge}`}>{roleLabel}</span>
+                <div
+                  className={`absolute top-full right-0 mt-3 w-52 origin-top-right border border-white/10 bg-[#16100e] shadow-xl transition-all duration-200 ${
+                    accountOpen
+                      ? "visible scale-100 opacity-100"
+                      : "invisible scale-95 opacity-0"
+                  }`}
+                >
+                  <div className="border-b border-white/10 px-4 py-2.5">
+                    <p className="truncate text-[11px] text-[#9a8d84]">
+                      {user.email}
+                    </p>
+                    <div className="mt-1">
+                      <RoleBadge user={user} />
                     </div>
-
-                    {!isInternalRole &&
-                      ACCOUNT_LINKS.map((link) => (
-                        <Link key={link.href} href={link.href} onClick={closeAll} className={dropdownLinkClass}>
-                          {link.label}
-                        </Link>
-                      ))}
-
-                    {isSupplier && (
-                      <Link href="/supplier/dashboard" onClick={closeAll} className={dropdownLinkClass}>
-                        Dashboard
-                      </Link>
-                    )}
-
-                    {isStaff && (
-                      <Link href="/staff/dashboard" onClick={closeAll} className={dropdownLinkClass}>
-                        Staff Dashboard
-                      </Link>
-                    )}
-
-                    <button type="button" onClick={handleLogout} className="flex w-full items-center gap-2 border-t border-neutral-100 px-4 py-2.5 text-left text-sm text-red-500 hover:bg-red-50">
-                      <LogOut size={14} />
-                      Logout
-                    </button>
                   </div>
-                )}
+
+                  {workspace && (
+                    <Link
+                      href={workspace.href}
+                      onClick={closeAll}
+                      className={dropCls}
+                    >
+                      {workspace.label}
+                    </Link>
+                  )}
+                  {!isInternal &&
+                    ACCOUNT_LINKS.map((l) => (
+                      <Link
+                        key={l.href}
+                        href={l.href}
+                        onClick={closeAll}
+                        className={dropCls}
+                      >
+                        {l.label}
+                      </Link>
+                    ))}
+
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="flex w-full items-center gap-2 border-t border-white/10 px-4 py-2 text-[13px] font-medium text-red-400 transition hover:bg-red-500/10"
+                  >
+                    <LogOut size={13} /> Logout
+                  </button>
+                </div>
               </>
             ) : (
-              <div className="flex items-center gap-3">
-                <Link href="/auth/login" className="text-charcoal text-sm">
-                  Sign In
+              <>
+                <Link href="/auth/login" className={outlineBtn}>
+                  LOG IN
                 </Link>
-
-                <Link href="/auth/signup" className="bg-brand rounded-md px-4 py-1.5 text-sm font-semibold text-white transition hover:opacity-90">
-                  Sign Up
+                <Link href="/auth/signup" className={solidBtn}>
+                  SIGN UP
                 </Link>
-              </div>
+              </>
             )}
           </div>
 
-          {!isInternalRole && (
-            <button type="button" onClick={() => toggle('cart')} aria-label="Open shopping cart" className="relative text-neutral-500 transition hover:text-neutral-900">
-              <ShoppingBag size={20} />
-
-              {cartCount > 0 && <span className="absolute -top-2 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-[#e07a3f] text-[10px] font-semibold text-white">{cartCount}</span>}
+          {showCart && (
+            <button
+              type="button"
+              onClick={() => toggle("cart")}
+              aria-label={`Open cart, ${cartCount} items`}
+              className={`${btnCls} relative bg-brand hover:bg-[#aa1f1b]`}
+            >
+              <ShoppingBag size={16} className="sm:hidden" />
+              {cartCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-white px-1 text-[9px] font-bold text-black sm:hidden">
+                  {cartCount}
+                </span>
+              )}
+              <span className="hidden sm:inline">CART ({cartCount})</span>
             </button>
           )}
 
-          <button type="button" onClick={() => toggle('menu')} aria-label={menuOpen ? 'Close menu' : 'Open menu'} aria-expanded={menuOpen} className="text-charcoal lg:hidden">
-            <span className="relative block h-[22px] w-[22px]">
-              <Menu size={22} className={`absolute inset-0 transition-all duration-200 ${menuOpen ? 'rotate-90 opacity-0' : 'rotate-0 opacity-100'}`} />
-              <X size={22} className={`absolute inset-0 transition-all duration-200 ${menuOpen ? 'rotate-0 opacity-100' : '-rotate-90 opacity-0'}`} />
-            </span>
+          <button
+            type="button"
+            onClick={() => toggle("menu")}
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={menuOpen}
+            className="relative h-5.5 w-5.5 md:hidden"
+          >
+            <Menu
+              size={22}
+              className={`absolute inset-0 transition-all duration-300 ${menuOpen ? "rotate-90 opacity-0" : "rotate-0 opacity-100"}`}
+            />
+            <X
+              size={22}
+              className={`absolute inset-0 transition-all duration-300 ${menuOpen ? "rotate-0 opacity-100" : "-rotate-90 opacity-0"}`}
+            />
           </button>
         </div>
       </div>
 
-      {!isInternalRole && (
-        <div className={`grid overflow-hidden border-t border-neutral-100 transition-[grid-template-rows] duration-300 ease-in-out ${searchOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr] border-t-0'}`}>
+      {!isInternal && (
+        <div
+          className={`grid transition-[grid-template-rows] duration-300 ${searchOpen ? "grid-rows-[1fr] border-t border-white/5" : "grid-rows-[0fr]"}`}
+        >
           <div className="overflow-hidden">
-            <form onSubmit={handleSearchSubmit} className="mx-auto flex max-w-7xl items-center gap-3 px-6 py-3 lg:px-10">
-              <Search size={18} className="text-neutral-400" />
-
-              <input ref={searchInputRef} type="text" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search premium meat..." aria-label="Search products" className="text-charcoal w-full bg-transparent text-sm outline-none placeholder:text-neutral-400" />
+            <form
+              onSubmit={handleSearch}
+              className="mx-auto flex max-w-295 items-center gap-3 px-4 py-2.5 sm:px-5 lg:px-8"
+            >
+              <Search size={16} className="text-[#7d6f66]" />
+              <input
+                ref={searchRef}
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search premium meat..."
+                aria-label="Search products"
+                tabIndex={searchOpen ? 0 : -1}
+                className="w-full bg-transparent text-[13px] outline-none placeholder:text-[#7d6f66]"
+              />
             </form>
           </div>
         </div>
       )}
 
-      {!isInternalRole && <CartDropdown isOpen={cartOpen} onClose={closeAll} />}
+      {showCart && (
+        <CartDropdown isOpen={panel === "cart"} onClose={closeAll} />
+      )}
 
-      <div onClick={closeAll} aria-hidden="true" className={`fixed inset-0 z-[60] bg-black/45 backdrop-blur-[1px] transition-opacity duration-300 lg:hidden ${menuOpen ? 'opacity-100' : 'pointer-events-none opacity-0'}`} />
-
-      <aside role="dialog" aria-modal="true" aria-label="Navigation menu" className={`fixed inset-y-0 right-0 z-[70] flex h-dvh w-full max-w-xs flex-col bg-white shadow-2xl transition-transform duration-300 ease-out lg:hidden ${menuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-        <div className="flex shrink-0 items-center justify-between border-b border-neutral-100 px-5 py-4">
-          {user ? (
-            <div className="flex min-w-0 items-center gap-3">
-              <Avatar user={user} sizeClass="h-11 w-11 text-sm" colorClass={roleStyle.avatar} />
-
-              <div className="min-w-0">
-                <p className="text-charcoal truncate text-sm font-semibold">{user.name || user.email.split('@')[0]}</p>
-                <p className="truncate text-xs text-neutral-400">{user.email}</p>
-                <span className={`mt-1 inline-block rounded px-1.5 py-0.5 text-[10px] font-semibold ${roleStyle.badge}`}>{roleLabel}</span>
+      <div
+        aria-hidden={!menuOpen}
+        className={`grid transition-[grid-template-rows,opacity,visibility] duration-300 ease-in-out md:hidden ${
+          menuOpen
+            ? "visible grid-rows-[1fr] border-t border-white/5 opacity-100"
+            : "invisible grid-rows-[0fr] opacity-0"
+        }`}
+      >
+        <div className="overflow-hidden">
+          <div className="max-h-[calc(100dvh-3.25rem)] overflow-y-auto overscroll-contain bg-[#0e0a09] px-4 py-5 sm:px-5">
+            {user && (
+              <div
+                className={`mb-5 flex items-center gap-3 transition-all duration-300 ease-out ${menuOpen ? "translate-y-0 opacity-100" : "-translate-y-2 opacity-0"}`}
+                style={{ transitionDelay: menuOpen ? "80ms" : "0ms" }}
+              >
+                <Avatar user={user} size="h-9 w-9 text-xs" />
+                <div className="min-w-0">
+                  <p className="truncate text-[13px] font-bold">
+                    {user.name || firstName(user)}
+                  </p>
+                  <p className="truncate text-[11px] text-[#9a8d84]">
+                    {user.email}
+                  </p>
+                  <div className="mt-1">
+                    <RoleBadge user={user} />
+                  </div>
+                </div>
               </div>
-            </div>
-          ) : (
-            <div>
-              <p className="text-charcoal text-sm font-semibold">Welcome</p>
-              <p className="text-xs text-neutral-400">Sign in for the full experience</p>
-            </div>
-          )}
+            )}
 
-          <button type="button" onClick={closeAll} aria-label="Close menu" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-900">
-            <X size={18} />
-          </button>
-        </div>
+            {workspace && (
+              <MobileSection title="Workspace" index={0} open={menuOpen}>
+                <Link
+                  href={workspace.href}
+                  onClick={closeAll}
+                  className={`${mobileCls} text-[#c9beb7]`}
+                >
+                  {workspace.label.toUpperCase()}
+                </Link>
+              </MobileSection>
+            )}
 
-        <div className="flex-1 overflow-y-auto overscroll-contain px-3 pb-4">
-          {(isSupplier || isStaff || isAdmin) && (
-            <>
-              <DrawerSectionLabel>Workspace</DrawerSectionLabel>
-
-              <div className="flex flex-col gap-0.5">
-                {isSupplier && (
-                  <Link href="/supplier/dashboard" onClick={closeAll} className={drawerWorkspaceLinkClass}>
-                    <Package size={16} className="text-neutral-400" />
-                    Dashboard
-                  </Link>
-                )}
-
-                {isStaff && (
-                  <Link href="/staff/dashboard" onClick={closeAll} className={drawerWorkspaceLinkClass}>
-                    <Package size={16} className="text-neutral-400" />
-                    Staff Dashboard
-                  </Link>
-                )}
-
-                {isAdmin && (
-                  <Link href="/admin" onClick={closeAll} className={drawerWorkspaceLinkClass}>
-                    <LayoutGrid size={16} className="text-neutral-400" />
-                    Admin
-                  </Link>
-                )}
-              </div>
-            </>
-          )}
-
-          {!isInternalRole && (
-            <>
-              <DrawerSectionLabel>Shop</DrawerSectionLabel>
-
-              <div className="flex flex-col gap-0.5">
-                {NAV_LINKS.map((link) => (
-                  <DrawerLink key={link.label} href={link.href} onClick={closeAll}>
-                    {link.label}
-                  </DrawerLink>
+            {!isInternal && (
+              <MobileSection title="Menu" index={1} open={menuOpen}>
+                {NAV.map((item) => (
+                  <NavItem
+                    key={item.label}
+                    item={item}
+                    className={mobileCls}
+                    activeHref={isActive(item)}
+                    onScroll={scrollTo}
+                    onNavigate={closeAll}
+                  />
                 ))}
-              </div>
-            </>
-          )}
+              </MobileSection>
+            )}
 
-          {user && !isInternalRole && (
-            <>
-              <DrawerSectionLabel>Account</DrawerSectionLabel>
-
-              <div className="flex flex-col gap-0.5">
-                {ACCOUNT_LINKS.map((link) => (
-                  <DrawerLink key={link.href} href={link.href} onClick={closeAll}>
-                    {link.label}
-                  </DrawerLink>
+            {user && !isInternal && (
+              <MobileSection title="Account" index={2} open={menuOpen}>
+                {ACCOUNT_LINKS.map((l) => (
+                  <Link
+                    key={l.href}
+                    href={l.href}
+                    onClick={closeAll}
+                    className={`${mobileCls} text-[#c9beb7]`}
+                  >
+                    {l.label}
+                  </Link>
                 ))}
-              </div>
-            </>
-          )}
-        </div>
+              </MobileSection>
+            )}
 
-        <div className="shrink-0 border-t border-neutral-100 px-5 py-4">
-          {!user ? (
-            <div className="flex gap-3">
-              <Link href="/auth/login" onClick={closeAll} className="text-charcoal flex-1 rounded-md border border-neutral-200 px-4 py-2.5 text-center text-sm font-medium transition hover:bg-neutral-50">
-                Sign In
-              </Link>
-
-              <Link href="/auth/signup" onClick={closeAll} className="bg-brand flex-1 rounded-md px-4 py-2.5 text-center text-sm font-semibold text-white transition hover:opacity-90">
-                Sign Up
-              </Link>
-            </div>
-          ) : (
-            <button type="button" onClick={handleLogout} className="flex w-full items-center justify-center gap-2 rounded-md border border-red-100 bg-red-50 py-2.5 text-sm font-semibold text-red-500 transition hover:bg-red-100">
-              <LogOut size={15} />
-              Logout
-            </button>
-          )}
+            {isHydrated && (
+              <MobileSection title="" index={3} open={menuOpen}>
+                {user ? (
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="flex w-full items-center justify-center gap-2 border border-red-500/30 bg-red-500/10 py-2.5 text-xs font-black tracking-wider text-red-400 transition hover:bg-red-500/20"
+                  >
+                    <LogOut size={14} /> LOGOUT
+                  </button>
+                ) : (
+                  <div className="flex gap-2.5">
+                    <Link
+                      href="/auth/login"
+                      onClick={closeAll}
+                      className="flex-1 border border-white/50 py-2.5 text-center text-xs font-black tracking-wider transition hover:bg-white hover:text-black"
+                    >
+                      LOG IN
+                    </Link>
+                    <Link
+                      href="/auth/signup"
+                      onClick={closeAll}
+                      className="flex-1 bg-brand py-2.5 text-center text-xs font-black tracking-wider transition hover:bg-[#aa1f1b]"
+                    >
+                      SIGN UP
+                    </Link>
+                  </div>
+                )}
+              </MobileSection>
+            )}
+          </div>
         </div>
-      </aside>
+      </div>
     </header>
   );
 }

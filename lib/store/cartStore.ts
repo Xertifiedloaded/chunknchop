@@ -1,6 +1,6 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 
-import type { CartItem } from '@/lib/types';
+import type { CartItem } from "@/lib/types";
 
 interface CartState {
   items: CartItem[];
@@ -30,7 +30,12 @@ export const useCartStore = create<CartState>((set, get) => ({
 
   addItem: (item) =>
     set((state) => {
-      const existingItem = state.items.find((existing) => existing.productId === item.productId && existing.selectedTier === item.selectedTier && existing.selectedPreparation === item.selectedPreparation);
+      const existingItem = state.items.find(
+        (existing) =>
+          existing.productId === item.productId &&
+          existing.selectedTier === item.selectedTier &&
+          existing.selectedPreparation === item.selectedPreparation,
+      );
 
       if (existingItem) {
         return {
@@ -40,7 +45,7 @@ export const useCartStore = create<CartState>((set, get) => ({
                   ...existing,
                   quantity: existing.quantity + item.quantity,
                 }
-              : existing
+              : existing,
           ),
         };
       }
@@ -63,7 +68,7 @@ export const useCartStore = create<CartState>((set, get) => ({
               ...item,
               quantity,
             }
-          : item
+          : item,
       ),
     })),
 
@@ -89,7 +94,10 @@ export const useCartStore = create<CartState>((set, get) => ({
 
   getTotalPrice: () => {
     return get().items.reduce((total, item) => {
-      const tierPrice = item.selectedTier ? item.product.tiers.find((tier) => tier.name === item.selectedTier)?.price : undefined;
+      const tierPrice = item.selectedTier
+        ? item.product.tiers.find((tier) => tier.name === item.selectedTier)
+            ?.price
+        : undefined;
 
       const price = tierPrice ?? item.product.basePrice;
 

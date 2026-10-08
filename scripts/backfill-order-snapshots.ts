@@ -1,4 +1,4 @@
-import { prisma } from '../lib/db';
+import { prisma } from "../lib/db";
 
 async function backfill() {
   const items = await prisma.orderItem.findMany({
@@ -6,7 +6,11 @@ async function backfill() {
       productId: { not: null },
       OR: [{ productName: null }, { productCategoryId: null }],
     },
-    include: { product: { select: { name: true, images: true, sku: true, categoryId: true } } },
+    include: {
+      product: {
+        select: { name: true, images: true, sku: true, categoryId: true },
+      },
+    },
   });
 
   for (const item of items) {

@@ -1,13 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
-import { getUserFromRequest } from '@/lib/request';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { getUserFromRequest } from "@/lib/request";
 
 export async function GET(req: NextRequest) {
   try {
     const user = getUserFromRequest(req);
 
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const cartItems = await prisma.cartItem.findMany({
@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
         },
       },
       orderBy: {
-        id: 'desc',
+        id: "desc",
       },
     });
 
@@ -41,15 +41,15 @@ export async function GET(req: NextRequest) {
       cartItems,
     });
   } catch (error) {
-    console.error('[cart GET] Failed:', error);
+    console.error("[cart GET] Failed:", error);
 
     return NextResponse.json(
       {
-        error: 'Failed to fetch cart',
+        error: "Failed to fetch cart",
       },
       {
         status: 500,
-      }
+      },
     );
   }
 }
@@ -59,19 +59,28 @@ export async function POST(req: NextRequest) {
     const user = getUserFromRequest(req);
 
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await req.json();
 
-    const { productId, quantity, selectedTier, selectedPreparation, selectedVariants } = body;
+    const {
+      productId,
+      quantity,
+      selectedTier,
+      selectedPreparation,
+      selectedVariants,
+    } = body;
 
     if (!productId) {
-      return NextResponse.json({ error: 'Product ID is required' }, { status: 400 });
+      return NextResponse.json(
+        { error: "Product ID is required" },
+        { status: 400 },
+      );
     }
 
     if (!quantity || quantity < 1) {
-      return NextResponse.json({ error: 'Invalid quantity' }, { status: 400 });
+      return NextResponse.json({ error: "Invalid quantity" }, { status: 400 });
     }
 
     const product = await prisma.product.findUnique({
@@ -81,7 +90,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (!product) {
-      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+      return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
 
     if (quantity > product.stock) {
@@ -89,7 +98,7 @@ export async function POST(req: NextRequest) {
         {
           error: `Only ${product.stock} items available`,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -139,13 +148,13 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(cartItem, { status: 200 });
   } catch (error) {
-    console.error('[cart] add/update error:', error);
+    console.error("[cart] add/update error:", error);
 
     return NextResponse.json(
       {
-        error: 'Failed to update cart',
+        error: "Failed to update cart",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

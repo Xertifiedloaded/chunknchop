@@ -1,10 +1,14 @@
-'use client';
+"use client";
 
-import { useEffect, useRef } from 'react';
-import Pusher from 'pusher-js';
-import { useAuthStore } from '@/lib/store/authStore';
+import { useEffect, useRef } from "react";
+import Pusher from "pusher-js";
+import { useAuthStore } from "@/lib/store/authStore";
 
-export function usePusher(channel: string, event: string, callback: (data: any) => void) {
+export function usePusher(
+  channel: string,
+  event: string,
+  callback: (data: any) => void,
+) {
   const user = useAuthStore((s) => s.user);
   const pusherRef = useRef<Pusher | null>(null);
 
@@ -15,7 +19,7 @@ export function usePusher(channel: string, event: string, callback: (data: any) 
     if (!pusherRef.current) {
       pusherRef.current = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
         cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
-        authEndpoint: '/api/notifications/pusher-auth',
+        authEndpoint: "/api/notifications/pusher-auth",
         // Rely on cookies for server-side auth
       });
     }

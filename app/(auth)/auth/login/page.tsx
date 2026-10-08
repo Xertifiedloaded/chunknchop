@@ -1,33 +1,33 @@
-'use client';
+"use client";
 
-import { Suspense, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
-import type { AuthField } from '@/lib/types';
-import Image from 'next/image';
-import google from '@/assets/google.png';
-import { Loader2, LockOpen, Mail } from 'lucide-react';
-import AuthInput from '@/components/auth/AuthInput';
-import { useAuthStore } from '@/lib/store/authStore';
-import { Button } from '@/components/ui/button';
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
+import type { AuthField } from "@/lib/types";
+import Image from "next/image";
+import google from "@/assets/google.png";
+import { Loader2, LockOpen, Mail } from "lucide-react";
+import AuthInput from "@/components/auth/AuthInput";
+import { useAuthStore } from "@/lib/store/authStore";
+import { Button } from "@/components/ui/button";
 const FIELDS: AuthField[] = [
   {
-    name: 'email',
-    label: 'Email Address',
-    type: 'email',
+    name: "email",
+    label: "Email Address",
+    type: "email",
     icon: Mail,
-    placeholder: 'you@example.com',
-    autoComplete: 'email',
+    placeholder: "you@example.com",
+    autoComplete: "email",
   },
   {
-    name: 'password',
-    label: 'Password',
-    type: 'password',
+    name: "password",
+    label: "Password",
+    type: "password",
     icon: LockOpen,
-    placeholder: 'Enter your password',
-    autoComplete: 'current-password',
-    linkLabel: 'Forgot password?',
-    linkHref: '/auth/forgot-password',
+    placeholder: "Enter your password",
+    autoComplete: "current-password",
+    linkLabel: "Forgot password?",
+    linkHref: "/auth/forgot-password",
   },
 ];
 
@@ -55,11 +55,11 @@ function LoginForm() {
   const { setUser } = useAuthStore();
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
+    email: "",
+    password: "",
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -71,7 +71,7 @@ function LoginForm() {
     }));
 
     if (error) {
-      setError('');
+      setError("");
     }
   };
 
@@ -79,22 +79,22 @@ function LoginForm() {
     e.preventDefault();
 
     setLoading(true);
-    setError('');
+    setError("");
 
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
-        credentials: 'include', // ensure refresh cookie is accepted by the browser
+        credentials: "include", // ensure refresh cookie is accepted by the browser
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data?.error || 'Unable to sign in. Please try again.');
+        setError(data?.error || "Unable to sign in. Please try again.");
         return;
       }
 
@@ -104,12 +104,12 @@ function LoginForm() {
 
       // Do NOT persist access token to localStorage or sessionStorage. Keep in-memory only.
 
-      const redirect = searchParams.get('redirect') || '/';
+      const redirect = searchParams.get("redirect") || "/";
 
       router.push(redirect);
     } catch (err) {
-      console.error('Login error:', err);
-      setError('Something went wrong. Please try again.');
+      console.error("Login error:", err);
+      setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -118,18 +118,30 @@ function LoginForm() {
   return (
     <>
       <div className="mb-8 text-center">
-        <h2 className="font-sora text-2xl font-bold sm:text-2xl">Welcome Back</h2>
-        <p className="text-ink font-worksans mt-2 text-xs">Sign in to your ChunkNChop account</p>
+        <h2 className="font-sora text-2xl font-bold sm:text-2xl">
+          Welcome Back
+        </h2>
+        <p className="text-ink font-worksans mt-2 text-xs">
+          Sign in to your ChunkNChop account
+        </p>
       </div>
       {error && (
-        <div role="alert" className="border-destructive/20 bg-destructive/10 text-destructive mb-5 rounded-lg border px-4 py-3 text-xs">
+        <div
+          role="alert"
+          className="border-destructive/20 bg-destructive/10 text-destructive mb-5 rounded-lg border px-4 py-3 text-xs"
+        >
           {error}
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-5">
         {FIELDS.map((field) => (
-          <AuthInput key={field.name} {...field} value={formData[field.name as keyof typeof formData]} onChange={handleInputChange} />
+          <AuthInput
+            key={field.name}
+            {...field}
+            value={formData[field.name as keyof typeof formData]}
+            onChange={handleInputChange}
+          />
         ))}
         <Button type="submit" disabled={loading} className="h-11 w-full">
           {loading ? (
@@ -138,22 +150,34 @@ function LoginForm() {
               Signing in...
             </>
           ) : (
-            'Sign In'
+            "Sign In"
           )}
         </Button>
       </form>
 
       <fieldset className="border-sand my-7 border-0 border-t">
-        <legend className="text-ink mx-auto px-3 text-xs font-medium tracking-wide uppercase">Or</legend>
+        <legend className="text-ink mx-auto px-3 text-xs font-medium tracking-wide uppercase">
+          Or
+        </legend>
       </fieldset>
 
-      <Button type="button" variant="outline" className="text-charcoal hover:text-charcoal animate-out h-11 w-full border-[#E5E7EB] bg-white text-sm font-bold transition-all hover:bg-gray-50">
-        <Image src={google} alt="Google" width={18} height={18} className="mr-2" />
+      <Button
+        type="button"
+        variant="outline"
+        className="text-charcoal hover:text-charcoal animate-out h-11 w-full border-[#E5E7EB] bg-white text-sm font-bold transition-all hover:bg-gray-50"
+      >
+        <Image
+          src={google}
+          alt="Google"
+          width={18}
+          height={18}
+          className="mr-2"
+        />
         Continue with Google
       </Button>
       <div className="mt-6 text-center">
         <p className="text-charcoal font-sora text-xs">
-          New to ChunkNChop?{' '}
+          New to ChunkNChop?{" "}
           <Link className="text-brand font-bold" href="/auth/signup">
             Create Account
           </Link>

@@ -55,4 +55,4 @@ export interface DeliveryDate {
   month: string;
 }
 
-export type DeliveryMethod = 'home' | 'pickup';
+export type DeliveryMethod = "home" | "pickup";

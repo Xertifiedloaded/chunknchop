@@ -198,7 +198,7 @@ function DeliveryCharges() {
       status,
       enabled: status !== "paused",
       charge: "",
-    }))
+    })),
   );
 
   const [freeDelivery, setFreeDelivery] = useState(true);
@@ -206,14 +206,14 @@ function DeliveryCharges() {
   const toggleZone = (index: number) => {
     setZones((current) =>
       current.map((zone, i) =>
-        i === index ? { ...zone, enabled: !zone.enabled } : zone
-      )
+        i === index ? { ...zone, enabled: !zone.enabled } : zone,
+      ),
     );
   };
 
   const updateCharge = (index: number, charge: string) => {
     setZones((current) =>
-      current.map((zone, i) => (i === index ? { ...zone, charge } : zone))
+      current.map((zone, i) => (i === index ? { ...zone, charge } : zone)),
     );
   };
 
@@ -241,8 +241,8 @@ function DeliveryCharges() {
                   zone.status === "active"
                     ? "bg-[#e9f9ef] text-[#23a95b]"
                     : zone.status === "limited"
-                    ? "bg-[#fff5dc] text-[#dc9900]"
-                    : "bg-[#eeeae7] text-[#817a75]"
+                      ? "bg-[#fff5dc] text-[#dc9900]"
+                      : "bg-[#eeeae7] text-[#817a75]"
                 }`}
               >
                 {zone.status}
@@ -255,8 +255,8 @@ function DeliveryCharges() {
                   zone.status === "active"
                     ? "bg-[#e9f9ef] text-[#23a95b]"
                     : zone.status === "limited"
-                    ? "bg-[#fff5dc] text-[#dc9900]"
-                    : "bg-[#eeeae7] text-[#817a75]"
+                      ? "bg-[#fff5dc] text-[#dc9900]"
+                      : "bg-[#eeeae7] text-[#817a75]"
                 }`}
               >
                 {zone.status}
@@ -487,9 +487,7 @@ export default function SettingsPage() {
 
         <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[205px_minmax(0,1fr)]">
           <aside className="rounded-[17px] border border-[#ebe8e5] bg-white p-1.5 shadow-[0_5px_20px_rgba(31,27,24,0.07)] lg:sticky lg:top-4">
-            <div
-              className="flex snap-x snap-mandatory gap-1 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] before:w-0.5 before:shrink-0 before:content-[''] after:w-0.5 after:shrink-0 after:content-[''] lg:flex-col lg:overflow-visible lg:pb-0 lg:before:hidden lg:after:hidden [&::-webkit-scrollbar]:hidden"
-            >
+            <div className="flex snap-x snap-mandatory gap-1 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] before:w-0.5 before:shrink-0 before:content-[''] after:w-0.5 after:shrink-0 after:content-[''] lg:flex-col lg:overflow-visible lg:pb-0 lg:before:hidden lg:after:hidden [&::-webkit-scrollbar]:hidden">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
                 const active = activeTab === tab.id;

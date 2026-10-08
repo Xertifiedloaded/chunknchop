@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import Image from 'next/image';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Check, CheckCircle, KeyRound, ShieldCheck, Users } from 'lucide-react';
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Check, CheckCircle, KeyRound, ShieldCheck, Users } from "lucide-react";
 
-import bg from '@/assets/hero.png';
-import logo from '../../../assets/header-logo.svg';
+import bg from "@/assets/hero.png";
+import logo from "../../../assets/header-logo.svg";
 
-type AuthMode = 'signup' | 'login' | 'forgot-password' | 'otp';
+type AuthMode = "signup" | "login" | "forgot-password" | "otp";
 
 type AuthContent = {
   badgeIcon: React.ReactNode;
@@ -20,68 +20,77 @@ type AuthContent = {
 
 function getAuthMode(pathname: string | null): AuthMode {
   switch (true) {
-    case pathname?.includes('/signup'):
-      return 'signup';
-    case pathname?.includes('/forgot-password'):
-      return 'forgot-password';
-    case pathname?.includes('/otp'):
-      return 'otp';
+    case pathname?.includes("/signup"):
+      return "signup";
+    case pathname?.includes("/forgot-password"):
+      return "forgot-password";
+    case pathname?.includes("/otp"):
+      return "otp";
     default:
-      return 'login';
+      return "login";
   }
 }
 
 function getAuthContent(mode: AuthMode): AuthContent {
   switch (mode) {
-    case 'signup':
+    case "signup":
       return {
         badgeIcon: <Users className="text-brand" size={14} />,
-        badgeLabel: 'Join Our Community',
+        badgeLabel: "Join Our Community",
         heading: (
           <>
-            <span className="text-brand">Everything</span> you need, all in one place.
+            <span className="text-brand">Everything</span> you need, all in one
+            place.
           </>
         ),
-        description: 'Create your ChunkNChop account and enjoy a simple, convenient shopping experience.',
-        features: ['Shop quality products with ease', 'Track and manage your orders', 'Get access to your personalized account'],
+        description:
+          "Create your ChunkNChop account and enjoy a simple, convenient shopping experience.",
+        features: [
+          "Shop quality products with ease",
+          "Track and manage your orders",
+          "Get access to your personalized account",
+        ],
       };
 
-    case 'login':
+    case "login":
       return {
         badgeIcon: <CheckCircle className="text-brand" size={14} />,
-        badgeLabel: 'Fresh • Premium • Delivered',
+        badgeLabel: "Fresh • Premium • Delivered",
         heading: (
           <>
             Welcome back to <span className="text-brand">better</span> shopping.
           </>
         ),
-        description: 'Sign in to manage your orders, save your favourite products, and enjoy a seamless ChunkNChop shopping experience.',
+        description:
+          "Sign in to manage your orders, save your favourite products, and enjoy a seamless ChunkNChop shopping experience.",
         features: null,
       };
 
-    case 'forgot-password':
+    case "forgot-password":
       return {
         badgeIcon: <KeyRound className="text-brand" size={14} />,
-        badgeLabel: 'Account Recovery',
+        badgeLabel: "Account Recovery",
         heading: (
           <>
             Let&apos;s get you <span className="text-brand">back in</span>.
           </>
         ),
-        description: 'It happens to the best of us. Enter your email and we\u2019ll send you a code to reset your password.',
+        description:
+          "It happens to the best of us. Enter your email and we\u2019ll send you a code to reset your password.",
         features: null,
       };
 
-    case 'otp':
+    case "otp":
       return {
         badgeIcon: <ShieldCheck className="text-brand" size={14} />,
-        badgeLabel: 'Verify It\u2019s You',
+        badgeLabel: "Verify It\u2019s You",
         heading: (
           <>
             Just one <span className="text-brand">quick check</span>.
           </>
         ),
-        description: 'Enter the code we sent you to confirm it\u2019s really you and keep your account secure.',
+        description:
+          "Enter the code we sent you to confirm it\u2019s really you and keep your account secure.",
         features: null,
       };
   }
@@ -126,15 +135,21 @@ function AuthHeroPanel({ content }: { content: AuthContent }) {
           <div className="max-w-xl">
             <AuthBadge icon={content.badgeIcon} label={content.badgeLabel} />
 
-            <h1 className="font-sora text-4xl font-bold text-white xl:text-5xl">{content.heading}</h1>
+            <h1 className="font-sora text-4xl font-bold text-white xl:text-5xl">
+              {content.heading}
+            </h1>
 
-            <p className="text-sand font-worksans mt-4 max-w-lg text-sm">{content.description}</p>
+            <p className="text-sand font-worksans mt-4 max-w-lg text-sm">
+              {content.description}
+            </p>
 
             {content.features && <FeatureList features={content.features} />}
           </div>
         </div>
 
-        <p className="text-sm text-white/60">© {new Date().getFullYear()} ChunkNChop. All rights reserved.</p>
+        <p className="text-sm text-white/60">
+          © {new Date().getFullYear()} ChunkNChop. All rights reserved.
+        </p>
       </div>
     </div>
   );
@@ -146,18 +161,29 @@ function AuthFormPanel({ children }: { children: React.ReactNode }) {
       <div className="w-full max-w-md">
         <div className="rounded-3xl border border-[#F3F4F6] bg-white p-6 text-black shadow-xl sm:p-8">
           <Link href="/" className="mb-4 flex items-center justify-center">
-            <Image src={logo} alt="ChunkNChop" priority className="h-auto w-24 sm:w-24" />
+            <Image
+              src={logo}
+              alt="ChunkNChop"
+              priority
+              className="h-auto w-24 sm:w-24"
+            />
           </Link>
           <div>{children}</div>
         </div>
 
-        <p className="text-muted-foreground sr-only mt-6 text-center text-xs lg:hidden">© {new Date().getFullYear()} ChunkNChop. All rights reserved.</p>
+        <p className="text-muted-foreground sr-only mt-6 text-center text-xs lg:hidden">
+          © {new Date().getFullYear()} ChunkNChop. All rights reserved.
+        </p>
       </div>
     </div>
   );
 }
 
-export default function AuthLayout({ children }: { children: React.ReactNode }) {
+export default function AuthLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const pathname = usePathname();
   const mode = getAuthMode(pathname);
   const content = getAuthContent(mode);

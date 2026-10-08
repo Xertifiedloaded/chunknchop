@@ -1,13 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
-import { getUserFromRequest } from '@/lib/request';
-import stripe from '@/lib/stripe';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { getUserFromRequest } from "@/lib/request";
+import stripe from "@/lib/stripe";
 
 export async function GET(request: NextRequest) {
   try {
     const user = getUserFromRequest(request);
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const subscriptions = await prisma.subscription.findMany({
@@ -19,13 +19,16 @@ export async function GET(request: NextRequest) {
           },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
 
     return NextResponse.json(subscriptions);
   } catch (error) {
-    console.error('Error fetching subscriptions:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error("Error fetching subscriptions:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }
 
@@ -33,17 +36,20 @@ export async function POST(request: NextRequest) {
   try {
     const user = getUserFromRequest(request);
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { productTierId, frequency } = await request.json();
 
     if (!productTierId || !frequency) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 },
+      );
     }
 
-    if (!['WEEKLY', 'BIWEEKLY', 'MONTHLY'].includes(frequency)) {
-      return NextResponse.json({ error: 'Invalid frequency' }, { status: 400 });
+    if (!["WEEKLY", "BIWEEKLY", "MONTHLY"].includes(frequency)) {
+      return NextResponse.json({ error: "Invalid frequency" }, { status: 400 });
     }
 
     const productTier = await prisma.productTier.findUnique({
@@ -54,7 +60,10 @@ export async function POST(request: NextRequest) {
     });
 
     if (!productTier) {
-      return NextResponse.json({ error: 'Product tier not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: "Product tier not found" },
+        { status: 404 },
+      );
     }
 
     const subscription = await prisma.subscription.create({
@@ -62,7 +71,7 @@ export async function POST(request: NextRequest) {
         customerId: user.id,
         productTierId,
         frequency,
-        status: 'ACTIVE',
+        status: "ACTIVE",
         nextDeliveryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       },
       include: {
@@ -76,7 +85,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(subscription, { status: 201 });
   } catch (error) {
-    console.error('Error creating subscription:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error("Error creating subscription:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }

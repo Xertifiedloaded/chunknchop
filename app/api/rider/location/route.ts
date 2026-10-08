@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
-import { pusher } from '@/lib/pusher';
-import { z } from 'zod';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { pusher } from "@/lib/pusher";
+import { z } from "zod";
 
 const schema = z.object({
   riderId: z.string().min(1),
@@ -19,7 +19,8 @@ export async function POST(req: NextRequest) {
     const { riderId, latitude, longitude, bearing, speed } = schema.parse(body);
 
     const rider = await prisma.rider.findUnique({ where: { id: riderId } });
-    if (!rider) return NextResponse.json({ error: 'Rider not found' }, { status: 404 });
+    if (!rider)
+      return NextResponse.json({ error: "Rider not found" }, { status: 404 });
 
     const payload = {
       riderId,
@@ -31,15 +32,25 @@ export async function POST(req: NextRequest) {
     };
 
     // Broadcast updated rider location to rider-specific and admin channels
-    await pusher.trigger(`private-rider-${riderId}`, 'location-update', payload);
-    await pusher.trigger('private-admin-riders', 'rider-location', payload);
+    await pusher.trigger(
+      `private-rider-${riderId}`,
+      "location-update",
+      payload,
+    );
+    await pusher.trigger("private-admin-riders", "rider-location", payload);
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Rider location error:', error);
+    console.error("Rider location error:", error);
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: 'Invalid input', details: error.errors }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invalid input", details: error.errors },
+        { status: 400 },
+      );
     }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }

@@ -1,15 +1,24 @@
-'use client';
+"use client";
 
-import { fetchWithAuth } from '@/lib/fetchClient';
+import { fetchWithAuth } from "@/lib/fetchClient";
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { ArrowLeft, CheckCircle2, Loader2, MapPin, Package, ShoppingBag, Truck, Wallet } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import {
+  ArrowLeft,
+  CheckCircle2,
+  Loader2,
+  MapPin,
+  Package,
+  ShoppingBag,
+  Truck,
+  Wallet,
+} from "lucide-react";
+import toast from "react-hot-toast";
 
-import { useAuthStore } from '@/lib/store/authStore';
-import { Button } from '@/components/ui/button';
+import { useAuthStore } from "@/lib/store/authStore";
+import { Button } from "@/components/ui/button";
 
 interface OrderItem {
   productId: string;
@@ -51,13 +60,13 @@ interface Order {
   items: OrderItem[];
 }
 
-type OrderTab = 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
-type SortFilter = 'latest' | 'oldest';
+type OrderTab = "ACTIVE" | "COMPLETED" | "CANCELLED";
+type SortFilter = "latest" | "oldest";
 
 function formatCurrency(amount: number) {
-  return new Intl.NumberFormat('en-NG', {
-    style: 'currency',
-    currency: 'NGN',
+  return new Intl.NumberFormat("en-NG", {
+    style: "currency",
+    currency: "NGN",
     maximumFractionDigits: 0,
   }).format(amount);
 }
@@ -71,66 +80,81 @@ function formatDate(value: string | null | undefined) {
     return null;
   }
 
-  return date.toLocaleDateString('en-US', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
+  return date.toLocaleDateString("en-US", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
   });
 }
 
 const STATUS_STYLES: Record<string, string> = {
-  PENDING: 'bg-gray-100 text-gray-600',
-  PROCESSING: 'bg-orange-100 text-orange-600',
-  CONFIRMED: 'bg-orange-100 text-orange-600',
-  PREPARING: 'bg-orange-100 text-orange-600',
-  PACKAGED: 'bg-blue-100 text-blue-600',
-  SHIPPED: 'bg-blue-100 text-blue-600',
-  OUT_FOR_DELIVERY: 'bg-indigo-100 text-indigo-600',
-  DELIVERED: 'bg-green-100 text-green-600',
-  CANCELLED: 'bg-red-100 text-red-600',
+  PENDING: "bg-gray-100 text-gray-600",
+  PROCESSING: "bg-orange-100 text-orange-600",
+  CONFIRMED: "bg-orange-100 text-orange-600",
+  PREPARING: "bg-orange-100 text-orange-600",
+  PACKAGED: "bg-blue-100 text-blue-600",
+  SHIPPED: "bg-blue-100 text-blue-600",
+  OUT_FOR_DELIVERY: "bg-indigo-100 text-indigo-600",
+  DELIVERED: "bg-green-100 text-green-600",
+  CANCELLED: "bg-red-100 text-red-600",
 };
 
 const PAYMENT_METHOD_LABELS: Record<string, string> = {
-  CARD: 'Card',
-  BANK_TRANSFER: 'Bank Transfer',
-  CASH_ON_DELIVERY: 'Cash on Delivery',
-  PAYSTACK: 'Paystack',
+  CARD: "Card",
+  BANK_TRANSFER: "Bank Transfer",
+  CASH_ON_DELIVERY: "Cash on Delivery",
+  PAYSTACK: "Paystack",
 };
 
 function normalizeStatus(status: string | null | undefined) {
-  return (status ?? '').trim().toUpperCase();
+  return (status ?? "").trim().toUpperCase();
 }
 
 function StatusBadge({ status }: { status: string }) {
   const normalizedStatus = normalizeStatus(status);
 
-  const style = STATUS_STYLES[normalizedStatus] ?? 'bg-gray-100 text-gray-600';
+  const style = STATUS_STYLES[normalizedStatus] ?? "bg-gray-100 text-gray-600";
 
-  const label = normalizedStatus.replaceAll('_', ' ').toLowerCase();
+  const label = normalizedStatus.replaceAll("_", " ").toLowerCase();
 
-  return <span className={`shrink-0 rounded px-2 py-1 text-xs font-medium capitalize ${style}`}>{label || 'Unknown'}</span>;
+  return (
+    <span
+      className={`shrink-0 rounded px-2 py-1 text-xs font-medium capitalize ${style}`}
+    >
+      {label || "Unknown"}
+    </span>
+  );
 }
 
 function formatPaymentMethod(method: string | null) {
   if (!method) {
-    return 'Not selected yet';
+    return "Not selected yet";
   }
 
   const normalizedMethod = normalizeStatus(method);
 
-  return PAYMENT_METHOD_LABELS[normalizedMethod] ?? normalizedMethod.replaceAll('_', ' ').toLowerCase();
+  return (
+    PAYMENT_METHOD_LABELS[normalizedMethod] ??
+    normalizedMethod.replaceAll("_", " ").toLowerCase()
+  );
 }
 
 function formatShippingAddress(order: Order) {
-  const parts = [order.shippingAddress, order.shippingCity, order.shippingState, order.shippingZip, order.shippingCountry].filter(Boolean);
+  const parts = [
+    order.shippingAddress,
+    order.shippingCity,
+    order.shippingState,
+    order.shippingZip,
+    order.shippingCountry,
+  ].filter(Boolean);
 
-  return parts.length > 0 ? parts.join(', ') : 'No shipping address on file';
+  return parts.length > 0 ? parts.join(", ") : "No shipping address on file";
 }
 
 function isActiveOrder(order: Order) {
   const status = normalizeStatus(order.status);
 
-  return status !== 'DELIVERED' && status !== 'CANCELLED';
+  return status !== "DELIVERED" && status !== "CANCELLED";
 }
 
 export default function OrdersPage() {
@@ -141,11 +165,11 @@ export default function OrdersPage() {
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
-  const [activeTab, setActiveTab] = useState<OrderTab>('ACTIVE');
+  const [activeTab, setActiveTab] = useState<OrderTab>("ACTIVE");
 
-  const [sortFilter, setSortFilter] = useState<SortFilter>('latest');
+  const [sortFilter, setSortFilter] = useState<SortFilter>("latest");
 
   const fetchOrders = useCallback(async () => {
     if (!isHydrated || !user) {
@@ -155,33 +179,33 @@ export default function OrdersPage() {
 
     try {
       setLoading(true);
-      setError('');
+      setError("");
 
-      const response = await fetchWithAuth('/api/customer/orders', {
-        method: 'GET',
+      const response = await fetchWithAuth("/api/customer/orders", {
+        method: "GET",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        cache: 'no-store',
+        cache: "no-store",
       });
 
       const data = await response.json().catch(() => null);
 
       if (response.status === 401) {
-        toast.error('Your session has expired. Please sign in again.');
+        toast.error("Your session has expired. Please sign in again.");
 
-        router.push('/auth/login?redirect=/orders');
+        router.push("/auth/login?redirect=/orders");
         return;
       }
 
       if (!response.ok) {
-        throw new Error(data?.error || 'Failed to load your orders');
+        throw new Error(data?.error || "Failed to load your orders");
       }
 
       const fetchedOrders = Array.isArray(data?.orders) ? data.orders : [];
 
       console.log(
-        'CUSTOMER ORDERS:',
+        "CUSTOMER ORDERS:",
         fetchedOrders.map((order: Order) => ({
           id: order.id,
           orderNumber: order.orderNumber,
@@ -189,18 +213,19 @@ export default function OrdersPage() {
           paymentStatus: order.paymentStatus,
           total: order.total,
           items: order.items?.length ?? 0,
-        }))
+        })),
       );
 
       setOrders(fetchedOrders);
     } catch (err) {
-      console.error('Error fetching orders:', err);
+      console.error("Error fetching orders:", err);
 
-      const message = err instanceof Error ? err.message : 'Failed to load your orders';
+      const message =
+        err instanceof Error ? err.message : "Failed to load your orders";
 
       setError(message);
 
-      toast.error('Unable to load your orders');
+      toast.error("Unable to load your orders");
     } finally {
       setLoading(false);
     }
@@ -209,7 +234,7 @@ export default function OrdersPage() {
   useEffect(() => {
     if (!isHydrated) return;
     if (!user) {
-      router.push('/auth/login?redirect=/orders');
+      router.push("/auth/login?redirect=/orders");
       return;
     }
 
@@ -219,13 +244,21 @@ export default function OrdersPage() {
   const stats = useMemo(() => {
     const totalOrders = orders.length;
 
-    const activeDeliveries = orders.filter((order) => isActiveOrder(order)).length;
+    const activeDeliveries = orders.filter((order) =>
+      isActiveOrder(order),
+    ).length;
 
-    const delivered = orders.filter((order) => normalizeStatus(order.status) === 'DELIVERED').length;
+    const delivered = orders.filter(
+      (order) => normalizeStatus(order.status) === "DELIVERED",
+    ).length;
 
-    const cancelled = orders.filter((order) => normalizeStatus(order.status) === 'CANCELLED').length;
+    const cancelled = orders.filter(
+      (order) => normalizeStatus(order.status) === "CANCELLED",
+    ).length;
 
-    const lifetimeSpent = orders.filter((order) => normalizeStatus(order.paymentStatus) === 'PAID').reduce((sum, order) => sum + Number(order.total || 0), 0);
+    const lifetimeSpent = orders
+      .filter((order) => normalizeStatus(order.paymentStatus) === "PAID")
+      .reduce((sum, order) => sum + Number(order.total || 0), 0);
 
     return {
       totalOrders,
@@ -240,16 +273,16 @@ export default function OrdersPage() {
     let result = orders.filter((order) => {
       const status = normalizeStatus(order.status);
 
-      if (activeTab === 'ACTIVE') {
+      if (activeTab === "ACTIVE") {
         return isActiveOrder(order);
       }
 
-      if (activeTab === 'COMPLETED') {
-        return status === 'DELIVERED';
+      if (activeTab === "COMPLETED") {
+        return status === "DELIVERED";
       }
 
-      if (activeTab === 'CANCELLED') {
-        return status === 'CANCELLED';
+      if (activeTab === "CANCELLED") {
+        return status === "CANCELLED";
       }
 
       return true;
@@ -259,7 +292,7 @@ export default function OrdersPage() {
       const dateA = new Date(a.createdAt).getTime();
       const dateB = new Date(b.createdAt).getTime();
 
-      if (sortFilter === 'oldest') {
+      if (sortFilter === "oldest") {
         return dateA - dateB;
       }
 
@@ -278,21 +311,29 @@ export default function OrdersPage() {
       <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
         {/* Header */}
         <div className="mb-6 sm:mb-8">
-          <Link href="/" className="text-ink hover:text-ink mb-4 inline-flex items-center gap-2 text-sm font-medium transition-colors sm:mb-6">
+          <Link
+            href="/"
+            className="text-ink hover:text-ink mb-4 inline-flex items-center gap-2 text-sm font-medium transition-colors sm:mb-6"
+          >
             <ArrowLeft className="text-brand h-4 w-4" />
             Back to Store
           </Link>
 
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h1 className="font-sora text-charcoal text-2xl font-bold tracking-tight sm:text-3xl">My Orders</h1>
+              <h1 className="font-sora text-charcoal text-2xl font-bold tracking-tight sm:text-3xl">
+                My Orders
+              </h1>
 
-              <p className="font-worksans text-ink mt-1 text-sm">Track deliveries, revisit past orders and reorder your favourite cuts in one tap.</p>
+              <p className="font-worksans text-ink mt-1 text-sm">
+                Track deliveries, revisit past orders and reorder your favourite
+                cuts in one tap.
+              </p>
             </div>
 
             {!loading && orders.length > 0 && (
               <span className="text-ink text-sm">
-                {orders.length} {orders.length === 1 ? 'order' : 'orders'}
+                {orders.length} {orders.length === 1 ? "order" : "orders"}
               </span>
             )}
           </div>
@@ -308,9 +349,13 @@ export default function OrdersPage() {
                   <Package className="text-brand h-4 w-4" />
                 </div>
 
-                <p className="font-sora text-charcoal mt-2 text-2xl font-bold">{stats.totalOrders}</p>
+                <p className="font-sora text-charcoal mt-2 text-2xl font-bold">
+                  {stats.totalOrders}
+                </p>
 
-                <p className="font-worksans text-ink text-xs tracking-wide">Total Orders</p>
+                <p className="font-worksans text-ink text-xs tracking-wide">
+                  Total Orders
+                </p>
               </div>
 
               {/* Active */}
@@ -319,9 +364,13 @@ export default function OrdersPage() {
                   <Truck className="text-brand h-4 w-4" />
                 </div>
 
-                <p className="font-sora text-charcoal mt-2 text-2xl font-bold">{stats.activeDeliveries}</p>
+                <p className="font-sora text-charcoal mt-2 text-2xl font-bold">
+                  {stats.activeDeliveries}
+                </p>
 
-                <p className="font-worksans text-ink text-xs tracking-wide">Active Deliveries</p>
+                <p className="font-worksans text-ink text-xs tracking-wide">
+                  Active Deliveries
+                </p>
               </div>
 
               {/* Delivered */}
@@ -330,9 +379,13 @@ export default function OrdersPage() {
                   <CheckCircle2 className="text-brand h-4 w-4" />
                 </div>
 
-                <p className="font-sora text-charcoal mt-2 text-2xl font-bold">{stats.delivered}</p>
+                <p className="font-sora text-charcoal mt-2 text-2xl font-bold">
+                  {stats.delivered}
+                </p>
 
-                <p className="font-worksans text-ink text-xs tracking-wide">Delivered</p>
+                <p className="font-worksans text-ink text-xs tracking-wide">
+                  Delivered
+                </p>
               </div>
 
               {/* Lifetime */}
@@ -341,32 +394,66 @@ export default function OrdersPage() {
                   <Wallet className="text-brand h-4 w-4" />
                 </div>
 
-                <p className="font-sora text-brand mt-2 text-2xl font-bold">{formatCurrency(stats.lifetimeSpent)}</p>
+                <p className="font-sora text-brand mt-2 text-2xl font-bold">
+                  {formatCurrency(stats.lifetimeSpent)}
+                </p>
 
-                <p className="font-worksans text-ink text-xs tracking-wide">Lifetime Spent</p>
+                <p className="font-worksans text-ink text-xs tracking-wide">
+                  Lifetime Spent
+                </p>
               </div>
             </div>
 
             {/* Tabs / Sort */}
             <div className="mb-4 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex flex-wrap items-center gap-2">
-                <button type="button" onClick={() => setActiveTab('ACTIVE')} className={`font-worksans inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors ${activeTab === 'ACTIVE' ? 'bg-brand text-white' : 'text-ink border border-gray-200 bg-white hover:bg-gray-50'}`}>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("ACTIVE")}
+                  className={`font-worksans inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors ${activeTab === "ACTIVE" ? "bg-brand text-white" : "text-ink border border-gray-200 bg-white hover:bg-gray-50"}`}
+                >
                   Active
-                  <span className={`rounded-full px-1.5 py-0.5 text-[10px] ${activeTab === 'ACTIVE' ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'}`}>{stats.activeDeliveries}</span>
+                  <span
+                    className={`rounded-full px-1.5 py-0.5 text-[10px] ${activeTab === "ACTIVE" ? "bg-white/20 text-white" : "bg-gray-100 text-gray-500"}`}
+                  >
+                    {stats.activeDeliveries}
+                  </span>
                 </button>
 
-                <button type="button" onClick={() => setActiveTab('COMPLETED')} className={`font-worksans inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors ${activeTab === 'COMPLETED' ? 'bg-brand text-white' : 'text-ink border border-gray-200 bg-white hover:bg-gray-50'}`}>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("COMPLETED")}
+                  className={`font-worksans inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors ${activeTab === "COMPLETED" ? "bg-brand text-white" : "text-ink border border-gray-200 bg-white hover:bg-gray-50"}`}
+                >
                   Completed
-                  <span className={`rounded-full px-1.5 py-0.5 text-[10px] ${activeTab === 'COMPLETED' ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'}`}>{stats.delivered}</span>
+                  <span
+                    className={`rounded-full px-1.5 py-0.5 text-[10px] ${activeTab === "COMPLETED" ? "bg-white/20 text-white" : "bg-gray-100 text-gray-500"}`}
+                  >
+                    {stats.delivered}
+                  </span>
                 </button>
 
-                <button type="button" onClick={() => setActiveTab('CANCELLED')} className={`font-worksans inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors ${activeTab === 'CANCELLED' ? 'bg-brand text-white' : 'text-ink border border-gray-200 bg-white hover:bg-gray-50'}`}>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("CANCELLED")}
+                  className={`font-worksans inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors ${activeTab === "CANCELLED" ? "bg-brand text-white" : "text-ink border border-gray-200 bg-white hover:bg-gray-50"}`}
+                >
                   Cancelled
-                  <span className={`rounded-full px-1.5 py-0.5 text-[10px] ${activeTab === 'CANCELLED' ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'}`}>{stats.cancelled}</span>
+                  <span
+                    className={`rounded-full px-1.5 py-0.5 text-[10px] ${activeTab === "CANCELLED" ? "bg-white/20 text-white" : "bg-gray-100 text-gray-500"}`}
+                  >
+                    {stats.cancelled}
+                  </span>
                 </button>
               </div>
 
-              <select value={sortFilter} onChange={(event) => setSortFilter(event.target.value as SortFilter)} className="font-worksans text-ink w-full rounded-full border border-gray-200 bg-white px-3.5 py-1.5 text-xs font-medium sm:w-auto">
+              <select
+                value={sortFilter}
+                onChange={(event) =>
+                  setSortFilter(event.target.value as SortFilter)
+                }
+                className="font-worksans text-ink w-full rounded-full border border-gray-200 bg-white px-3.5 py-1.5 text-xs font-medium sm:w-auto"
+              >
                 <option value="latest">Latest</option>
                 <option value="oldest">Oldest</option>
               </select>
@@ -392,11 +479,18 @@ export default function OrdersPage() {
               <Package className="h-7 w-7 text-red-500" />
             </div>
 
-            <h2 className="text-ink text-lg font-semibold">Unable to load orders</h2>
+            <h2 className="text-ink text-lg font-semibold">
+              Unable to load orders
+            </h2>
 
-            <p className="text-ink mx-auto mt-2 max-w-md text-sm">We couldn&apos;t retrieve your orders right now. Please try again.</p>
+            <p className="text-ink mx-auto mt-2 max-w-md text-sm">
+              We couldn&apos;t retrieve your orders right now. Please try again.
+            </p>
 
-            <Button onClick={fetchOrders} className="bg-brand mt-5 hover:bg-orange-600">
+            <Button
+              onClick={fetchOrders}
+              className="bg-brand mt-5 hover:bg-orange-600"
+            >
               Try Again
             </Button>
           </div>
@@ -411,26 +505,38 @@ export default function OrdersPage() {
 
             <h2 className="text-ink text-xl font-semibold">No orders yet</h2>
 
-            <p className="text-ink mx-auto mt-2 max-w-md text-sm leading-6">You haven&apos;t placed any orders yet. Browse our products and place your first order today.</p>
+            <p className="text-ink mx-auto mt-2 max-w-md text-sm leading-6">
+              You haven&apos;t placed any orders yet. Browse our products and
+              place your first order today.
+            </p>
 
             <Link href="/" className="mt-6 inline-block">
-              <Button className="bg-brand hover:bg-orange-600">Start Shopping</Button>
+              <Button className="bg-brand hover:bg-orange-600">
+                Start Shopping
+              </Button>
             </Link>
           </div>
         )}
 
         {/* No orders in current tab */}
-        {!loading && !error && orders.length > 0 && filteredOrders.length === 0 && (
-          <div className="rounded-2xl border border-gray-200 bg-white px-6 py-12 text-center shadow-sm sm:px-10 sm:py-16">
-            <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-orange-50">
-              <Package className="text-brand h-8 w-8" />
+        {!loading &&
+          !error &&
+          orders.length > 0 &&
+          filteredOrders.length === 0 && (
+            <div className="rounded-2xl border border-gray-200 bg-white px-6 py-12 text-center shadow-sm sm:px-10 sm:py-16">
+              <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-orange-50">
+                <Package className="text-brand h-8 w-8" />
+              </div>
+
+              <h2 className="text-ink text-xl font-semibold">
+                No orders in this view
+              </h2>
+
+              <p className="text-ink mx-auto mt-2 max-w-md text-sm leading-6">
+                Try a different tab to see more of your orders.
+              </p>
             </div>
-
-            <h2 className="text-ink text-xl font-semibold">No orders in this view</h2>
-
-            <p className="text-ink mx-auto mt-2 max-w-md text-sm leading-6">Try a different tab to see more of your orders.</p>
-          </div>
-        )}
+          )}
 
         {/* Orders */}
         {!loading && !error && filteredOrders.length > 0 && (
@@ -449,7 +555,10 @@ export default function OrdersPage() {
               const paymentStatus = normalizeStatus(order.paymentStatus);
 
               return (
-                <div key={order.id} className="overflow-hidden rounded-2xl border border-gray-200 bg-white">
+                <div
+                  key={order.id}
+                  className="overflow-hidden rounded-2xl border border-gray-200 bg-white"
+                >
                   {/* Main order */}
                   <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-start sm:justify-between sm:p-6">
                     {/* Product / information */}
@@ -458,7 +567,11 @@ export default function OrdersPage() {
                       <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-gray-100 sm:h-20 sm:w-20">
                         {firstImage ? (
                           // eslint-disable-next-line @next/next/no-img-element
-                          <img src={firstImage} alt={firstItem?.product?.name ?? 'Product'} className="h-full w-full object-cover" />
+                          <img
+                            src={firstImage}
+                            alt={firstItem?.product?.name ?? "Product"}
+                            className="h-full w-full object-cover"
+                          />
                         ) : (
                           <div className="flex h-full w-full items-center justify-center">
                             <Package className="text-ink h-7 w-7 sm:h-8 sm:w-8" />
@@ -469,48 +582,80 @@ export default function OrdersPage() {
                       {/* Details */}
                       <div className="min-w-0 flex-1">
                         <div className="mb-2 flex flex-wrap items-center gap-2">
-                          <h3 className="text-charcoal truncate text-sm font-semibold uppercase">{order.orderNumber || order.id}</h3>
+                          <h3 className="text-charcoal truncate text-sm font-semibold uppercase">
+                            {order.orderNumber || order.id}
+                          </h3>
 
                           <StatusBadge status={order.status} />
 
-                          {paymentStatus !== 'PAID' && orderStatus !== 'CANCELLED' && <span className="shrink-0 rounded bg-yellow-100 px-2 py-1 text-xs font-medium text-yellow-700">Payment {paymentStatus.toLowerCase().replaceAll('_', ' ')}</span>}
+                          {paymentStatus !== "PAID" &&
+                            orderStatus !== "CANCELLED" && (
+                              <span className="shrink-0 rounded bg-yellow-100 px-2 py-1 text-xs font-medium text-yellow-700">
+                                Payment{" "}
+                                {paymentStatus
+                                  .toLowerCase()
+                                  .replaceAll("_", " ")}
+                              </span>
+                            )}
                         </div>
 
                         {/* Products */}
                         <p className="font-sora text-charcoal line-clamp-2 text-sm sm:line-clamp-1">
                           {order.items
                             ?.slice(0, 2)
-                            .map((item) => item.product?.name ?? 'Product')
-                            .join(', ')}
+                            .map((item) => item.product?.name ?? "Product")
+                            .join(", ")}
 
-                          {order.items?.length > 2 && <span className="text-ink"> +{order.items.length - 2} more</span>}
+                          {order.items?.length > 2 && (
+                            <span className="text-ink">
+                              {" "}
+                              +{order.items.length - 2} more
+                            </span>
+                          )}
                         </p>
 
                         {/* Meta */}
                         <div className="font-worksans text-ink mt-3 flex flex-wrap gap-x-6 gap-y-1 text-xs">
-                          <span>📅 {formatDate(order.createdAt) ?? 'Date unavailable'}</span>
+                          <span>
+                            📅{" "}
+                            {formatDate(order.createdAt) ?? "Date unavailable"}
+                          </span>
 
                           <span>📦 {order.items?.length ?? 0} items</span>
 
-                          <span>💳 {formatPaymentMethod(order.paymentMethod)}</span>
+                          <span>
+                            💳 {formatPaymentMethod(order.paymentMethod)}
+                          </span>
                         </div>
 
                         {/* Address */}
                         <div className="text-ink mt-2 flex items-start gap-1.5 text-xs">
                           <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />
 
-                          <span className="line-clamp-2">{formatShippingAddress(order)}</span>
+                          <span className="line-clamp-2">
+                            {formatShippingAddress(order)}
+                          </span>
                         </div>
 
                         {/* Delivery */}
                         <div className="text-ink mt-1 flex items-start gap-1.5 text-xs">
                           <Truck className="mt-0.5 h-3.5 w-3.5 shrink-0" />
 
-                          {deliveredLabel ? <span>Delivered on {deliveredLabel}</span> : estimatedLabel ? <span>Estimated delivery: {estimatedLabel}</span> : <span>Delivery date not available yet</span>}
+                          {deliveredLabel ? (
+                            <span>Delivered on {deliveredLabel}</span>
+                          ) : estimatedLabel ? (
+                            <span>Estimated delivery: {estimatedLabel}</span>
+                          ) : (
+                            <span>Delivery date not available yet</span>
+                          )}
                         </div>
 
                         {/* Tracking */}
-                        {order.trackingNumber && <div className="text-brand mt-2 text-xs font-medium">Tracking: {order.trackingNumber}</div>}
+                        {order.trackingNumber && (
+                          <div className="text-brand mt-2 text-xs font-medium">
+                            Tracking: {order.trackingNumber}
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -518,17 +663,30 @@ export default function OrdersPage() {
                     <div className="font-sora flex items-center justify-between sm:block sm:text-right">
                       <p className="text-ink text-xs tracking-wide">Total</p>
 
-                      <p className="text-brand text-xl font-bold sm:text-2xl">{formatCurrency(Number(order.total || 0))}</p>
+                      <p className="text-brand text-xl font-bold sm:text-2xl">
+                        {formatCurrency(Number(order.total || 0))}
+                      </p>
                     </div>
                   </div>
 
                   {/* Actions */}
                   <div className="font-worksans flex flex-wrap gap-2 border-t bg-gray-50 px-4 py-3 sm:gap-3 sm:px-6 sm:py-4">
-                    <Button className="bg-white text-xs text-black shadow" variant="outline" size="sm" onClick={() => router.push(`/orders/${order.id}`)}>
+                    <Button
+                      className="bg-white text-xs text-black shadow"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => router.push(`/orders/${order.id}`)}
+                    >
                       View Details
                     </Button>
 
-                    <Button size="sm" className="bg-brand text-xs text-white hover:bg-orange-600" onClick={() => router.push(`/orders/${order.id}#tracking`)}>
+                    <Button
+                      size="sm"
+                      className="bg-brand text-xs text-white hover:bg-orange-600"
+                      onClick={() =>
+                        router.push(`/orders/${order.id}#tracking`)
+                      }
+                    >
                       <Truck className="mr-1.5 h-3.5 w-3.5" />
                       Track Order
                     </Button>
@@ -538,7 +696,9 @@ export default function OrdersPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        toast.success('Invoice download will be available soon.');
+                        toast.success(
+                          "Invoice download will be available soon.",
+                        );
                       }}
                     >
                       Download Invoice
@@ -549,7 +709,9 @@ export default function OrdersPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        toast.success('Reorder feature will be available soon.');
+                        toast.success(
+                          "Reorder feature will be available soon.",
+                        );
                       }}
                     >
                       Reorder

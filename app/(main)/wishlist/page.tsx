@@ -1,18 +1,18 @@
-'use client';
+"use client";
 
-import { fetchWithAuth } from '@/lib/fetchClient';
+import { fetchWithAuth } from "@/lib/fetchClient";
 
-import { useState } from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
-import useSWR from 'swr';
-import { Button } from '@/components/ui/button';
-import toast from 'react-hot-toast';
-import WishlistHeader from '@/components/sections/wishlist/WishlistHeader';
-import WishlistProductCard from '@/components/sections/wishlist/WishlistCard';
-import SimilarProducts from '@/components/sections/common/SimilarProducts';
-import { useAuthStore } from '@/lib/store/authStore';
-import { useCartStore } from '@/lib/store/cartStore';
+import { useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import useSWR from "swr";
+import { Button } from "@/components/ui/button";
+import toast from "react-hot-toast";
+import WishlistHeader from "@/components/sections/wishlist/WishlistHeader";
+import WishlistProductCard from "@/components/sections/wishlist/WishlistCard";
+import SimilarProducts from "@/components/sections/common/SimilarProducts";
+import { useAuthStore } from "@/lib/store/authStore";
+import { useCartStore } from "@/lib/store/cartStore";
 
 interface WishlistItem {
   productId: string;
@@ -31,7 +31,7 @@ const fetcher = async ([url]: [string, string]) => {
   const res = await fetchWithAuth(url);
 
   if (!res.ok) {
-    throw new Error('Failed to fetch wishlist');
+    throw new Error("Failed to fetch wishlist");
   }
 
   return res.json();
@@ -45,15 +45,22 @@ export default function WishlistPage() {
   const isHydrated = useAuthStore((s) => s.isHydrated);
   const { setItems: setCartItems } = useCartStore();
 
-  const { data: wishlist = [], mutate, error } = useSWR<WishlistItem[]>(isHydrated && user ? '/api/customer/wishlist' : null, fetcher);
+  const {
+    data: wishlist = [],
+    mutate,
+    error,
+  } = useSWR<WishlistItem[]>(
+    isHydrated && user ? "/api/customer/wishlist" : null,
+    fetcher,
+  );
 
   const refreshCart = async () => {
-    if (!isHydrated || !user || user.role === 'SUPPLIER') return;
+    if (!isHydrated || !user || user.role === "SUPPLIER") return;
 
     try {
-      const res = await fetchWithAuth('/api/customer/cart', {
-        method: 'GET',
-        cache: 'no-store',
+      const res = await fetchWithAuth("/api/customer/cart", {
+        method: "GET",
+        cache: "no-store",
       });
 
       if (!res.ok) return;
@@ -70,16 +77,16 @@ export default function WishlistPage() {
             tiers: item.product.tiers || [],
             variants: item.product.variants || [],
           },
-        }))
+        })),
       );
     } catch (error) {
-      console.error('failed to refresh cart:', error);
+      console.error("failed to refresh cart:", error);
     }
   };
 
   const handleRemove = async (productId: string) => {
     if (!isHydrated || !user) {
-      toast.error('Please sign in.');
+      toast.error("Please sign in.");
       return;
     }
 
@@ -87,18 +94,18 @@ export default function WishlistPage() {
 
     try {
       const res = await fetchWithAuth(`/api/customer/wishlist/${productId}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
 
       if (!res.ok) {
         throw new Error();
       }
 
-      toast.success('Removed from wishlist');
+      toast.success("Removed from wishlist");
 
       mutate();
     } catch {
-      toast.error('Failed to remove item');
+      toast.error("Failed to remove item");
     } finally {
       setIsRemoving(null);
     }
@@ -106,20 +113,20 @@ export default function WishlistPage() {
 
   const handleAddToCart = async (productId: string) => {
     if (!isHydrated || !user) {
-      toast.error('Please sign in to add items to your cart.');
+      toast.error("Please sign in to add items to your cart.");
       return;
     }
 
-    if (user.role === 'SUPPLIER') {
-      toast.error('Suppliers cannot add products to cart.');
+    if (user.role === "SUPPLIER") {
+      toast.error("Suppliers cannot add products to cart.");
       return;
     }
 
     try {
-      const res = await fetchWithAuth('/api/customer/cart', {
-        method: 'POST',
+      const res = await fetchWithAuth("/api/customer/cart", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           productId,
@@ -133,31 +140,31 @@ export default function WishlistPage() {
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        throw new Error(data?.error || 'Failed to add to cart');
+        throw new Error(data?.error || "Failed to add to cart");
       }
 
       await refreshCart();
-      toast.success('Added to cart');
+      toast.success("Added to cart");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to add to cart');
+      toast.error(err instanceof Error ? err.message : "Failed to add to cart");
     }
   };
 
   const handleMoveAll = async () => {
     if (!isHydrated || !user) {
-      toast.error('Please sign in to move items to your cart.');
+      toast.error("Please sign in to move items to your cart.");
       return;
     }
 
-    if (user.role === 'SUPPLIER') {
-      toast.error('Suppliers cannot add products to cart.');
+    if (user.role === "SUPPLIER") {
+      toast.error("Suppliers cannot add products to cart.");
       return;
     }
 
     const available = wishlist.filter((item) => item.product.inStock);
 
     if (available.length === 0) {
-      toast.error('No in-stock items to move.');
+      toast.error("No in-stock items to move.");
       return;
     }
 
@@ -166,10 +173,10 @@ export default function WishlistPage() {
     try {
       const results = await Promise.allSettled(
         available.map((item) =>
-          fetchWithAuth('/api/customer/cart', {
-            method: 'POST',
+          fetchWithAuth("/api/customer/cart", {
+            method: "POST",
             headers: {
-              'Content-Type': 'application/json',
+              "Content-Type": "application/json",
             },
             body: JSON.stringify({
               productId: item.productId,
@@ -181,22 +188,26 @@ export default function WishlistPage() {
           }).then((res) => {
             if (!res.ok) throw new Error(item.productId);
             return res;
-          })
-        )
+          }),
+        ),
       );
 
-      const succeeded = results.filter((r) => r.status === 'fulfilled').length;
+      const succeeded = results.filter((r) => r.status === "fulfilled").length;
       const failed = results.length - succeeded;
 
       await refreshCart();
 
       if (succeeded > 0) {
-        toast.success(failed > 0 ? `Moved ${succeeded} item${succeeded === 1 ? '' : 's'} to cart, ${failed} failed` : 'All available items moved to cart');
+        toast.success(
+          failed > 0
+            ? `Moved ${succeeded} item${succeeded === 1 ? "" : "s"} to cart, ${failed} failed`
+            : "All available items moved to cart",
+        );
       } else {
-        toast.error('Failed to move items');
+        toast.error("Failed to move items");
       }
     } catch {
-      toast.error('Failed to move items');
+      toast.error("Failed to move items");
     } finally {
       setIsMovingAll(false);
     }
@@ -213,27 +224,48 @@ export default function WishlistPage() {
   return (
     <div className="min-h-screen bg-[#faf8f6] py-10">
       <div className="mx-auto max-w-7xl px-4">
-        <WishlistHeader count={wishlist.length} onMoveAll={handleMoveAll} isMovingAll={isMovingAll} />
+        <WishlistHeader
+          count={wishlist.length}
+          onMoveAll={handleMoveAll}
+          isMovingAll={isMovingAll}
+        />
 
         {wishlist.length === 0 ? (
           <div className="rounded-3xl border border-dashed bg-white py-20 text-center">
             <h3 className="text-xl font-semibold">Your wishlist is empty</h3>
 
-            <p className="mt-2 text-gray-500">Save products you love to find them later.</p>
+            <p className="mt-2 text-gray-500">
+              Save products you love to find them later.
+            </p>
 
             <Link href="/">
-              <Button className="bg-brand mt-6 rounded-xl hover:bg-orange-600">Continue Shopping</Button>
+              <Button className="bg-brand mt-6 rounded-xl hover:bg-orange-600">
+                Continue Shopping
+              </Button>
             </Link>
           </div>
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {wishlist.map((item) => (
-              <WishlistProductCard key={item.productId} productId={item.productId} product={item.product} isRemoving={isRemoving === item.productId} onRemove={handleRemove} onAddToCart={handleAddToCart} />
+              <WishlistProductCard
+                key={item.productId}
+                productId={item.productId}
+                product={item.product}
+                isRemoving={isRemoving === item.productId}
+                onRemove={handleRemove}
+                onAddToCart={handleAddToCart}
+              />
             ))}
           </div>
         )}
 
-        {wishlist.length > 0 && <SimilarProducts eyebrow="You might also love" heading="Similar cuts, hand-picked" items={wishlist.slice(0, 4).map((item) => item.product)} />}
+        {wishlist.length > 0 && (
+          <SimilarProducts
+            eyebrow="You might also love"
+            heading="Similar cuts, hand-picked"
+            items={wishlist.slice(0, 4).map((item) => item.product)}
+          />
+        )}
       </div>
     </div>
   );

@@ -11,11 +11,7 @@ import {
   Zap,
 } from "lucide-react";
 
-type CampaignStatus =
-  | "active"
-  | "scheduled"
-  | "expired"
-  | "paused";
+type CampaignStatus = "active" | "scheduled" | "expired" | "paused";
 
 type Campaign = {
   code: string;
@@ -176,13 +172,7 @@ function StatusBadge({ status }: { status: CampaignStatus }) {
   );
 }
 
-function UsageBar({
-  usage,
-  limit,
-}: {
-  usage: number;
-  limit: number;
-}) {
+function UsageBar({ usage, limit }: { usage: number; limit: number }) {
   if (!limit) {
     return (
       <span className="text-[11px] text-[#827b74]">
@@ -233,9 +223,7 @@ function KpiCard({
       )}
 
       <div className="flex items-start justify-between">
-        <p className="text-[10px] font-medium text-[#837c75]">
-          {title}
-        </p>
+        <p className="text-[10px] font-medium text-[#837c75]">{title}</p>
 
         <div
           className={`flex h-8 w-8 items-center justify-center rounded-[9px] ${iconClass}`}
@@ -261,9 +249,7 @@ function KpiCard({
           </span>
         )}
 
-        <span className="text-[10px] text-[#958e87]">
-          {subtitle}
-        </span>
+        <span className="text-[10px] text-[#958e87]">{subtitle}</span>
       </div>
     </div>
   );
@@ -275,17 +261,13 @@ function PerformanceChart() {
 
   const points = chartData
     .map((item, index) => {
-      const x =
-        20 + (index / (chartData.length - 1)) * (width - 40);
+      const x = 20 + (index / (chartData.length - 1)) * (width - 40);
 
       const min = 15;
       const max = 80;
 
       const y =
-        height -
-        20 -
-        ((item.value - min) / (max - min)) *
-          (height - 40);
+        height - 20 - ((item.value - min) / (max - min)) * (height - 40);
 
       return `${x},${y}`;
     })
@@ -317,15 +299,10 @@ export default function PromotionsPage() {
   const filteredCampaigns = useMemo(() => {
     return campaigns.filter((campaign) => {
       const matchesSearch =
-        campaign.code
-          .toLowerCase()
-          .includes(search.toLowerCase()) ||
-        campaign.campaign
-          .toLowerCase()
-          .includes(search.toLowerCase());
+        campaign.code.toLowerCase().includes(search.toLowerCase()) ||
+        campaign.campaign.toLowerCase().includes(search.toLowerCase());
 
-      const matchesFilter =
-        filter === "All types" || campaign.type === filter;
+      const matchesFilter = filter === "All types" || campaign.type === filter;
 
       return matchesSearch && matchesFilter;
     });
@@ -346,8 +323,8 @@ export default function PromotionsPage() {
             </h1>
 
             <p className="mt-1 text-[12px] text-[#8d867f]">
-              Coupons, flash sales, banners, referrals and loyalty
-              rewards driving repeat orders.
+              Coupons, flash sales, banners, referrals and loyalty rewards
+              driving repeat orders.
             </p>
           </div>
 
@@ -413,9 +390,7 @@ export default function PromotionsPage() {
 
         {/* Performance */}
         <section className="mt-5 rounded-[16px] border border-[#e7e4e1] bg-white px-5 py-4 shadow-[0_5px_18px_rgba(40,35,30,0.06)]">
-          <h2 className="text-[13px] font-semibold">
-            Campaign Performance
-          </h2>
+          <h2 className="text-[13px] font-semibold">Campaign Performance</h2>
 
           <p className="text-[10px] text-[#918a83]">
             Weekly redemptions and attributed revenue
@@ -510,10 +485,7 @@ export default function PromotionsPage() {
                     </td>
 
                     <td className="px-4 py-3">
-                      <UsageBar
-                        usage={campaign.usage}
-                        limit={campaign.limit}
-                      />
+                      <UsageBar usage={campaign.usage} limit={campaign.limit} />
                     </td>
 
                     <td className="px-4 py-3 whitespace-nowrap text-[11px] font-semibold text-[#393530]">
@@ -587,13 +559,9 @@ function ShortcutCard({
 }) {
   return (
     <div className="rounded-[16px] border border-[#e7e4e1] bg-white px-4 py-4 shadow-[0_5px_18px_rgba(40,35,30,0.06)]">
-      <h3 className="text-[13px] font-semibold text-[#38342f]">
-        {title}
-      </h3>
+      <h3 className="text-[13px] font-semibold text-[#38342f]">{title}</h3>
 
-      <p className="mt-1 text-[11px] text-[#746d66]">
-        {description}
-      </p>
+      <p className="mt-1 text-[11px] text-[#746d66]">{description}</p>
 
       <button
         type="button"

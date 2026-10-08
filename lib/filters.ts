@@ -1,1 +1,1 @@
-export * from '@/lib/types/filters';
+export * from "@/lib/types/filters";

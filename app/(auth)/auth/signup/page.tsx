@@ -1,49 +1,49 @@
-'use client';
+"use client";
 
-import { Suspense, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { Loader2, Lock, Mail, StoreIcon, User2 } from 'lucide-react';
+import { Suspense, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Loader2, Lock, Mail, StoreIcon, User2 } from "lucide-react";
 
-import { useAuthStore } from '@/lib/store/authStore';
-import { Button } from '@/components/ui/button';
-import AuthInput from '@/components/auth/AuthInput';
-import type { AuthField } from '@/lib/types';
-import Image from 'next/image';
-import google from '@/assets/google.png';
+import { useAuthStore } from "@/lib/store/authStore";
+import { Button } from "@/components/ui/button";
+import AuthInput from "@/components/auth/AuthInput";
+import type { AuthField } from "@/lib/types";
+import Image from "next/image";
+import google from "@/assets/google.png";
 const FIELDS: AuthField[] = [
   {
-    name: 'name',
-    label: 'Full Name',
-    type: 'text',
+    name: "name",
+    label: "Full Name",
+    type: "text",
     icon: User2,
-    placeholder: 'John Doe',
-    autoComplete: 'name',
+    placeholder: "John Doe",
+    autoComplete: "name",
   },
   {
-    name: 'email',
-    label: 'Email Address',
-    type: 'email',
+    name: "email",
+    label: "Email Address",
+    type: "email",
     icon: Mail,
-    placeholder: 'you@example.com',
-    autoComplete: 'email',
+    placeholder: "you@example.com",
+    autoComplete: "email",
   },
   {
-    name: 'password',
-    label: 'Password',
-    type: 'password',
+    name: "password",
+    label: "Password",
+    type: "password",
     icon: Lock,
-    placeholder: 'Create a password',
-    autoComplete: 'new-password',
-    hint: 'Use at least 6 characters.',
+    placeholder: "Create a password",
+    autoComplete: "new-password",
+    hint: "Use at least 6 characters.",
   },
   {
-    name: 'passwordConfirm',
-    label: 'Confirm Password',
-    type: 'password',
+    name: "passwordConfirm",
+    label: "Confirm Password",
+    type: "password",
     icon: Lock,
-    placeholder: 'Confirm your password',
-    autoComplete: 'new-password',
+    placeholder: "Confirm your password",
+    autoComplete: "new-password",
   },
 ];
 
@@ -72,16 +72,18 @@ function SignupForm() {
   const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    passwordConfirm: '',
-    role: 'CUSTOMER',
+    name: "",
+    email: "",
+    password: "",
+    passwordConfirm: "",
+    role: "CUSTOMER",
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
     const { name, value } = e.target;
 
     setFormData((prev) => ({
@@ -92,14 +94,14 @@ function SignupForm() {
     if (errors[name]) {
       setErrors((prev) => ({
         ...prev,
-        [name]: '',
+        [name]: "",
       }));
     }
 
     if (errors.form) {
       setErrors((prev) => ({
         ...prev,
-        form: '',
+        form: "",
       }));
     }
   };
@@ -108,25 +110,25 @@ function SignupForm() {
     const newErrors: Record<string, string> = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = 'Full name is required';
+      newErrors.name = "Full name is required";
     }
 
     if (!formData.email.trim()) {
-      newErrors.email = 'Email address is required';
+      newErrors.email = "Email address is required";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
+      newErrors.email = "Please enter a valid email address";
     }
 
     if (!formData.password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = "Password is required";
     } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+      newErrors.password = "Password must be at least 6 characters";
     }
 
     if (!formData.passwordConfirm) {
-      newErrors.passwordConfirm = 'Please confirm your password';
+      newErrors.passwordConfirm = "Please confirm your password";
     } else if (formData.password !== formData.passwordConfirm) {
-      newErrors.passwordConfirm = 'Passwords do not match';
+      newErrors.passwordConfirm = "Passwords do not match";
     }
 
     setErrors(newErrors);
@@ -145,10 +147,10 @@ function SignupForm() {
     setErrors({});
 
     try {
-      const response = await fetch('/api/auth/signup', {
-        method: 'POST',
+      const response = await fetch("/api/auth/signup", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           name: formData.name.trim(),
@@ -156,14 +158,15 @@ function SignupForm() {
           password: formData.password,
           role: formData.role,
         }),
-        credentials: 'include', // ensure refresh cookie is accepted by the browser
+        credentials: "include", // ensure refresh cookie is accepted by the browser
       });
 
       const data = await response.json();
 
       if (!response.ok) {
         setErrors({
-          form: data?.error || 'Unable to create your account. Please try again.',
+          form:
+            data?.error || "Unable to create your account. Please try again.",
         });
 
         return;
@@ -173,16 +176,16 @@ function SignupForm() {
 
       setUser(user);
 
-      if (formData.role === 'SUPPLIER') {
-        router.push('/supplier/dashboard');
+      if (formData.role === "SUPPLIER") {
+        router.push("/supplier/dashboard");
       } else {
-        router.push('/');
+        router.push("/");
       }
     } catch (err) {
-      console.error('Signup error:', err);
+      console.error("Signup error:", err);
 
       setErrors({
-        form: 'Something went wrong. Please check your connection and try again.',
+        form: "Something went wrong. Please check your connection and try again.",
       });
     } finally {
       setLoading(false);
@@ -192,12 +195,19 @@ function SignupForm() {
   return (
     <>
       <div className="mb-7 text-center">
-        <h2 className="font-sora text-2xl font-bold sm:text-2xl">Create Your Account</h2>
+        <h2 className="font-sora text-2xl font-bold sm:text-2xl">
+          Create Your Account
+        </h2>
 
-        <p className="text-muted-foreground mt-2 text-xs">Join ChunkNChop and start shopping today</p>
+        <p className="text-muted-foreground mt-2 text-xs">
+          Join ChunkNChop and start shopping today
+        </p>
       </div>
       {errors.form && (
-        <div role="alert" className="border-destructive/20 bg-destructive/10 text-destructive mb-5 rounded-lg border px-4 py-3 text-sm">
+        <div
+          role="alert"
+          className="border-destructive/20 bg-destructive/10 text-destructive mb-5 rounded-lg border px-4 py-3 text-sm"
+        >
           {errors.form}
         </div>
       )}
@@ -207,22 +217,50 @@ function SignupForm() {
           <label className="text-xs font-medium">Account Type</label>
 
           <div className="grid grid-cols-2 gap-2">
-            <label className={`flex h-10 cursor-pointer items-center justify-center gap-1.5 rounded-md border px-2 transition ${formData.role === 'CUSTOMER' ? 'border-primary bg-primary/5 text-primary' : 'border-border text-muted-foreground hover:bg-muted/40'}`}>
-              <input type="radio" name="role" value="CUSTOMER" checked={formData.role === 'CUSTOMER'} onChange={handleInputChange} className="sr-only" />
+            <label
+              className={`flex h-10 cursor-pointer items-center justify-center gap-1.5 rounded-md border px-2 transition ${formData.role === "CUSTOMER" ? "border-primary bg-primary/5 text-primary" : "border-border text-muted-foreground hover:bg-muted/40"}`}
+            >
+              <input
+                type="radio"
+                name="role"
+                value="CUSTOMER"
+                checked={formData.role === "CUSTOMER"}
+                onChange={handleInputChange}
+                className="sr-only"
+              />
 
               <User2 className="h-3 w-3 shrink-0" />
-              <span className="truncate text-[11px] leading-none font-medium">Customer</span>
+              <span className="truncate text-[11px] leading-none font-medium">
+                Customer
+              </span>
             </label>
-            <label className={`flex h-10 cursor-pointer items-center justify-center gap-1.5 rounded-md border px-2 transition ${formData.role === 'SUPPLIER' ? 'border-primary bg-primary/5 text-primary' : 'border-border text-muted-foreground hover:bg-muted/40'}`}>
-              <input type="radio" name="role" value="SUPPLIER" checked={formData.role === 'SUPPLIER'} onChange={handleInputChange} className="sr-only" />
+            <label
+              className={`flex h-10 cursor-pointer items-center justify-center gap-1.5 rounded-md border px-2 transition ${formData.role === "SUPPLIER" ? "border-primary bg-primary/5 text-primary" : "border-border text-muted-foreground hover:bg-muted/40"}`}
+            >
+              <input
+                type="radio"
+                name="role"
+                value="SUPPLIER"
+                checked={formData.role === "SUPPLIER"}
+                onChange={handleInputChange}
+                className="sr-only"
+              />
 
               <StoreIcon className="h-3 w-3 shrink-0" />
-              <span className="truncate text-[11px] leading-none font-medium">Supplier</span>
+              <span className="truncate text-[11px] leading-none font-medium">
+                Supplier
+              </span>
             </label>
           </div>
         </div>
         {FIELDS.map((field) => (
-          <AuthInput key={field.name} {...field} value={formData[field.name as keyof typeof formData]} error={errors[field.name]} onChange={handleInputChange} />
+          <AuthInput
+            key={field.name}
+            {...field}
+            value={formData[field.name as keyof typeof formData]}
+            error={errors[field.name]}
+            onChange={handleInputChange}
+          />
         ))}
 
         <Button type="submit" disabled={loading} className="h-11 w-full">
@@ -232,21 +270,33 @@ function SignupForm() {
               Creating Account...
             </>
           ) : (
-            'Create Account'
+            "Create Account"
           )}
         </Button>
         <fieldset className="border-sand border-0 border-t">
-          <legend className="text-ink mx-auto px-3 text-xs font-medium tracking-wide uppercase">Or</legend>
+          <legend className="text-ink mx-auto px-3 text-xs font-medium tracking-wide uppercase">
+            Or
+          </legend>
         </fieldset>
-        <Button type="button" variant="outline" className="text-charcoal hover:text-charcoal animate-out h-11 w-full border-[#E5E7EB] bg-white text-sm font-bold transition-all hover:bg-gray-50">
-          <Image src={google} alt="Google" width={18} height={18} className="mr-2" />
+        <Button
+          type="button"
+          variant="outline"
+          className="text-charcoal hover:text-charcoal animate-out h-11 w-full border-[#E5E7EB] bg-white text-sm font-bold transition-all hover:bg-gray-50"
+        >
+          <Image
+            src={google}
+            alt="Google"
+            width={18}
+            height={18}
+            className="mr-2"
+          />
           Continue with Google
         </Button>
       </form>
 
       <div className="mt-6 text-center">
         <p className="text-charcoal font-sora text-xs">
-          Already have an account?{' '}
+          Already have an account?{" "}
           <Link className="text-brand font-bold" href="/auth/login">
             Sign In
           </Link>

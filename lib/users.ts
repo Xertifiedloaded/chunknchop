@@ -1,6 +1,6 @@
 import prisma from "./db";
 
-prisma
+prisma;
 
 export interface SessionUserRecord {
   id: string;
@@ -8,7 +8,9 @@ export interface SessionUserRecord {
   role: string;
 }
 
-export async function findUserById(id: string): Promise<SessionUserRecord | null> {
+export async function findUserById(
+  id: string,
+): Promise<SessionUserRecord | null> {
   return prisma.user.findUnique({
     where: { id },
     select: { id: true, email: true, role: true },

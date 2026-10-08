@@ -1,12 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
-import { getUserFromRequest } from '@/lib/request';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { getUserFromRequest } from "@/lib/request";
 
 export async function GET(request: NextRequest) {
   try {
     const user = getUserFromRequest(request);
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Total orders
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     const activeSubscriptions = await prisma.subscription.count({
       where: {
         customerId: user.id,
-        status: 'ACTIVE',
+        status: "ACTIVE",
       },
     });
 
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
         status: true,
         createdAt: true,
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       take: 5,
     });
 
@@ -52,7 +52,10 @@ export async function GET(request: NextRequest) {
       })),
     });
   } catch (error) {
-    console.error('Dashboard error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error("Dashboard error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }

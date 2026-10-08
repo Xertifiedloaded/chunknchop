@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { hydrateSession } from '@/lib/store/authStore';
+import { useEffect } from "react";
+import { hydrateSession } from "@/lib/store/authStore";
 
 export default function ClientAuthInit() {
   useEffect(() => {

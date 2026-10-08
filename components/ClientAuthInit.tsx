@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
 
-import { isProtectedPage } from '@/lib/auth-routes';
-import { hydrateSession, useAuthStore } from '@/lib/store/authStore';
-import { useCartStore } from '@/lib/store/cartStore';
+import { isProtectedPage } from "@/lib/auth-routes";
+import { hydrateSession, useAuthStore } from "@/lib/store/authStore";
+import { useCartStore } from "@/lib/store/cartStore";
 
 export default function ClientAuthInit() {
   const router = useRouter();
@@ -17,11 +17,11 @@ export default function ClientAuthInit() {
     hydrateSession();
 
     function revalidate() {
-      if (document.visibilityState === 'visible') hydrateSession();
+      if (document.visibilityState === "visible") hydrateSession();
     }
 
-    document.addEventListener('visibilitychange', revalidate);
-    return () => document.removeEventListener('visibilitychange', revalidate);
+    document.addEventListener("visibilitychange", revalidate);
+    return () => document.removeEventListener("visibilitychange", revalidate);
   }, []);
 
   useEffect(() => {

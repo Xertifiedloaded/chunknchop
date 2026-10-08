@@ -1,13 +1,13 @@
-import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
-import { getUserFromRequest } from '@/lib/request';
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { getUserFromRequest } from "@/lib/request";
 
 export async function GET(request: Request) {
   try {
     const authUser = await getUserFromRequest(request);
 
     if (!authUser?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const addresses = await prisma.address.findMany({
@@ -16,10 +16,10 @@ export async function GET(request: Request) {
       },
       orderBy: [
         {
-          isDefault: 'desc',
+          isDefault: "desc",
         },
         {
-          createdAt: 'desc',
+          createdAt: "desc",
         },
       ],
     });
@@ -39,9 +39,12 @@ export async function GET(request: Request) {
       })),
     });
   } catch (error) {
-    console.error('GET /api/customer/addresses:', error);
+    console.error("GET /api/customer/addresses:", error);
 
-    return NextResponse.json({ error: 'Failed to load addresses' }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to load addresses" },
+      { status: 500 },
+    );
   }
 }
 
@@ -50,19 +53,38 @@ export async function POST(request: Request) {
     const authUser = await getUserFromRequest(request);
 
     if (!authUser?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await request.json();
 
-    const { label, fullName, address, city, state, zipCode, phone, country = 'Nigeria', isDefault = false } = body;
+    const {
+      label,
+      fullName,
+      address,
+      city,
+      state,
+      zipCode,
+      phone,
+      country = "Nigeria",
+      isDefault = false,
+    } = body;
 
-    if (!label?.trim() || !fullName?.trim() || !address?.trim() || !city?.trim() || !state?.trim() || !zipCode?.trim() || !phone?.trim()) {
+    if (
+      !label?.trim() ||
+      !fullName?.trim() ||
+      !address?.trim() ||
+      !city?.trim() ||
+      !state?.trim() ||
+      !zipCode?.trim() ||
+      !phone?.trim()
+    ) {
       return NextResponse.json(
         {
-          error: 'Label, full name, address, city, state, ZIP code and phone are required',
+          error:
+            "Label, full name, address, city, state, ZIP code and phone are required",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -129,11 +151,14 @@ export async function POST(request: Request) {
           isDefault: createdAddress.isDefault,
         },
       },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
-    console.error('POST /api/customer/addresses:', error);
+    console.error("POST /api/customer/addresses:", error);
 
-    return NextResponse.json({ error: 'Failed to create address' }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to create address" },
+      { status: 500 },
+    );
   }
 }

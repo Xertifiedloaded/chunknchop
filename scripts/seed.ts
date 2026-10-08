@@ -1,13 +1,13 @@
-import 'dotenv/config';
-import { PrismaClient, UserRole } from '@prisma/client';
-import bcrypt from 'bcryptjs';
+import "dotenv/config";
+import { PrismaClient, UserRole } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
 async function main() {
-  const email = 'makindeolaitan01@gmail.com';
-  const password = 'admin1234';
-  const name = 'Administrator';
+  const email = "makindeolaitan01@gmail.com";
+  const password = "admin1234";
+  const name = "Administrator";
 
   const hashedPassword = await bcrypt.hash(password, 12);
 
@@ -26,7 +26,7 @@ async function main() {
     },
   });
 
-  console.log('Admin created successfully:');
+  console.log("Admin created successfully:");
   console.log({
     id: admin.id,
     email: admin.email,
@@ -37,7 +37,7 @@ async function main() {
 
 main()
   .catch((error) => {
-    console.error('Seed failed:', error);
+    console.error("Seed failed:", error);
     process.exit(1);
   })
   .finally(async () => {

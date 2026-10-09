@@ -29,13 +29,7 @@ const humanize = (segment: string) =>
     .replace(/[-_]+/g, " ")
     .replace(/\b\w/g, (c) => c.toUpperCase());
 
-export default function Breadcrumbs({
-  crumbs,
-  className = "",
-}: {
-  crumbs?: Crumb[];
-  className?: string;
-}) {
+export default function Breadcrumbs({ crumbs, className = "" }: { crumbs?: Crumb[]; className?: string }) {
   const pathname = usePathname();
 
   const items = useMemo<Crumb[]>(() => {
@@ -49,49 +43,32 @@ export default function Breadcrumbs({
     }));
   }, [crumbs, pathname]);
 
-
-  const trail: Crumb[] = [
-    { label: "Home", href: "/" },
-    ...items.filter(
-      (crumb) => !(crumb.label.toLowerCase() === "home" && crumb.href === "/"),
-    ),
-  ];
+  const trail: Crumb[] = [{ label: "Home", href: "/" }, ...items.filter((crumb) => !(crumb.label.toLowerCase() === "home" && crumb.href === "/"))];
 
   if (trail.length === 0) return null;
 
   return (
     <nav aria-label="Breadcrumb" className={className}>
-      <ol className="flex flex-wrap items-center justify-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.14em]">
+      <ol className="flex flex-wrap items-center justify-center gap-1.5 text-[11px] font-bold tracking-[0.14em] uppercase">
         {trail.map((crumb, i) => {
           const isLast = i === trail.length - 1;
 
           return (
-            <Fragment
-              key={`${crumb.label}-${crumb.href ?? "current"}-${i}`}
-            >
+            <Fragment key={`${crumb.label}-${crumb.href ?? "current"}-${i}`}>
               <li>
                 {isLast || !crumb.href ? (
-                  <span
-                    aria-current={isLast ? "page" : undefined}
-                    className="text-white"
-                  >
+                  <span aria-current={isLast ? "page" : undefined} className="text-white">
                     {crumb.label}
                   </span>
                 ) : (
-                  <Link
-                    href={crumb.href}
-                    className="text-white/60 transition hover:text-white"
-                  >
+                  <Link href={crumb.href} className="text-white/60 transition hover:text-white">
                     {crumb.label}
                   </Link>
                 )}
               </li>
 
               {!isLast && (
-                <li
-                  aria-hidden="true"
-                  className="flex items-center text-white/30"
-                >
+                <li aria-hidden="true" className="flex items-center text-white/30">
                   <ChevronRight size={12} />
                 </li>
               )}

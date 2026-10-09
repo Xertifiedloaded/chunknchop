@@ -1,33 +1,22 @@
 "use client";
 
-import { fetchWithAuth } from "@/lib/fetchClient";
+import { fetchWithAuth } from "@/lib/http/fetchClient";
 
 import { useEffect, useState } from "react";
 import useSWR from "swr";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 
-import {
-  ArrowLeft,
-  Star,
-  Truck,
-  PackageCheck,
-  ShieldCheck,
-  Heart,
-  Share2,
-  Minus,
-  Plus,
-  ShoppingBag,
-} from "lucide-react";
+import { ArrowLeft, Star, Truck, PackageCheck, ShieldCheck, Heart, Share2, Minus, Plus, ShoppingBag } from "lucide-react";
 
 import toast from "react-hot-toast";
 
-import { formatNaira } from "@/lib/format";
-import { useAuthStore } from "@/lib/store/authStore";
-import { useCartStore } from "@/lib/store/cartStore";
+import { formatNaira } from "@/lib/utils/format";
+import { useAuthStore } from "@/store/authStore";
+import { useCartStore } from "@/store/cartStore";
 
-import ReviewsSection from "@/components/sections/shops/Rating";
-import LoadingState from "@/components/sections/common/LoadingState";
+import ReviewsSection from "@/features/catalog/components/Rating";
+import LoadingState from "@/components/feedback/LoadingState";
 
 interface ProductTier {
   id: string;
@@ -101,9 +90,7 @@ const fetcher = async (url: string): Promise<Product> => {
   if (!res.ok) {
     const errorBody = await res.json().catch(() => null);
 
-    throw new Error(
-      errorBody?.error || `Failed to fetch product (status ${res.status})`,
-    );
+    throw new Error(errorBody?.error || `Failed to fetch product (status ${res.status})`);
   }
 
   return res.json();
@@ -123,15 +110,11 @@ export default function ProductDetailPage() {
     data: product,
     error,
     isLoading,
-  } = useSWR<Product>(
-    productId ? `/api/products/${productId}` : null,
-    fetcher,
-    {
-      revalidateOnFocus: false,
-      revalidateOnReconnect: true,
-      keepPreviousData: false,
-    },
-  );
+  } = useSWR<Product>(productId ? `/api/products/${productId}` : null, fetcher, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: true,
+    keepPreviousData: false,
+  });
 
   const [quantity, setQuantity] = useState(1);
 
@@ -161,9 +144,7 @@ export default function ProductDetailPage() {
 
   const isOutOfStock = !product || product.stock <= 0;
 
-  const selectedTierData = selectedTier
-    ? product?.tiers?.find((tier) => tier.id === selectedTier)
-    : undefined;
+  const selectedTierData = selectedTier ? product?.tiers?.find((tier) => tier.id === selectedTier) : undefined;
 
   const currentPrice = selectedTierData?.price ?? product?.basePrice ?? 0;
 
@@ -251,9 +232,7 @@ export default function ProductDetailPage() {
     } catch (error) {
       console.error("[cart] failed to add item:", error);
 
-      toast.error(
-        error instanceof Error ? error.message : "Failed to add item to cart",
-      );
+      toast.error(error instanceof Error ? error.message : "Failed to add item to cart");
     } finally {
       setIsAddingToCart(false);
     }
@@ -303,11 +282,7 @@ export default function ProductDetailPage() {
     } catch (error) {
       console.error("[cart] buy now failed:", error);
 
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Failed to continue to checkout",
-      );
+      toast.error(error instanceof Error ? error.message : "Failed to continue to checkout");
     } finally {
       setIsBuyingNow(false);
     }
@@ -321,19 +296,11 @@ export default function ProductDetailPage() {
     return (
       <main className="flex min-h-[60vh] items-center justify-center px-6">
         <div className="flex max-w-md flex-col items-center text-center">
-          <h1 className="text-charcoal text-2xl font-bold">
-            Product not found
-          </h1>
+          <h1 className="text-2xl font-bold text-charcoal">Product not found</h1>
 
-          <p className="text-ink mt-2 text-center text-sm">
-            The product you are looking for does not exist or is no longer
-            available.
-          </p>
+          <p className="mt-2 text-center text-sm text-ink">The product you are looking for does not exist or is no longer available.</p>
 
-          <Link
-            href="/shop"
-            className="bg-brand mt-5 inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#B96A2F]"
-          >
+          <Link href="/shop" className="mt-5 inline-flex items-center gap-2 rounded-xl bg-brand px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#B96A2F]">
             <ArrowLeft size={16} />
             Back to Shop
           </Link>
@@ -345,14 +312,14 @@ export default function ProductDetailPage() {
   return (
     <main className="min-h-screen bg-[#F7F4EF]">
       <div className="mx-auto max-w-7xl px-6 py-6 lg:px-10">
-        <div className="text-ink mb-8 flex items-center gap-2 overflow-hidden text-xs">
-          <Link href="/" className="hover:text-brand shrink-0">
+        <div className="mb-8 flex items-center gap-2 overflow-hidden text-xs text-ink">
+          <Link href="/" className="shrink-0 hover:text-brand">
             Home
           </Link>
 
           <span className="text-[#C4B8A8]">›</span>
 
-          <Link href="/shop" className="hover:text-brand shrink-0">
+          <Link href="/shop" className="shrink-0 hover:text-brand">
             Shop
           </Link>
 
@@ -369,31 +336,18 @@ export default function ProductDetailPage() {
           <div>
             <div className="relative aspect-4/5 overflow-hidden rounded-2xl bg-[#F7F4EF]">
               {product.images?.[mainImageIndex] ? (
-                <img
-                  loading="eager"
-                  src={product.images[mainImageIndex]}
-                  alt={product.name}
-                  className="h-full w-full object-cover"
-                />
+                <img loading="eager" src={product.images[mainImageIndex]} alt={product.name} className="h-full w-full object-cover" />
               ) : (
-                <div className="text-ink flex h-full w-full items-center justify-center text-sm">
-                  No image available
-                </div>
+                <div className="flex h-full w-full items-center justify-center text-sm text-ink">No image available</div>
               )}
 
               <div className="absolute top-2 left-2 flex flex-wrap items-start gap-1">
-                <span className="rounded-2xl bg-[#231B16] p-2 text-[8px] leading-tight font-medium tracking-normal text-white">
-                  {product.category.toUpperCase()}
-                </span>
+                <span className="rounded-2xl bg-[#231B16] p-2 text-[8px] leading-tight font-medium tracking-normal text-white">{product.category.toUpperCase()}</span>
 
                 {isOutOfStock ? (
-                  <span className="rounded-full bg-[#7A2E1E] p-2 text-[8px] leading-tight font-medium tracking-normal text-white">
-                    OUT OF STOCK
-                  </span>
+                  <span className="rounded-full bg-[#7A2E1E] p-2 text-[8px] leading-tight font-medium tracking-normal text-white">OUT OF STOCK</span>
                 ) : savings > 0 ? (
-                  <span className="rounded-full bg-[#7A2E1E] p-2 text-[8px] leading-tight font-medium tracking-normal text-white">
-                    SAVE {formatNaira(savings)}
-                  </span>
+                  <span className="rounded-full bg-[#7A2E1E] p-2 text-[8px] leading-tight font-medium tracking-normal text-white">SAVE {formatNaira(savings)}</span>
                 ) : null}
               </div>
             </div>
@@ -407,12 +361,7 @@ export default function ProductDetailPage() {
                     onClick={() => setMainImageIndex(index)}
                     className={`h-16 w-16 shrink-0 overflow-hidden rounded-xl border-2 transition-all sm:h-20 sm:w-20 ${mainImageIndex === index ? "border-brand" : "border-transparent opacity-70 hover:opacity-100"}`}
                   >
-                    <img
-                      loading="lazy"
-                      src={src}
-                      alt={`${product.name} ${index + 1}`}
-                      className="h-full w-full object-cover"
-                    />
+                    <img loading="lazy" src={src} alt={`${product.name} ${index + 1}`} className="h-full w-full object-cover" />
                   </button>
                 ))}
               </div>
@@ -421,48 +370,29 @@ export default function ProductDetailPage() {
 
           <div className="flex min-w-0 flex-col">
             <div className="flex flex-wrap items-center gap-2 text-xs font-semibold tracking-wide">
-              <span className="text-brand">
-                {product.category.toUpperCase()}
-              </span>
+              <span className="text-brand">{product.category.toUpperCase()}</span>
 
               <span className="text-[#C4B8A8]">•</span>
 
-              <span className="text-ink truncate">
-                SKU {product.sku || product.id}
-              </span>
+              <span className="truncate text-ink">SKU {product.sku || product.id}</span>
             </div>
 
-            <h1 className="text-charcoal mt-3 text-3xl leading-tight font-bold capitalize sm:text-4xl">
-              {product.name}
-            </h1>
+            <h1 className="mt-3 text-3xl leading-tight font-bold text-charcoal capitalize sm:text-4xl">{product.name}</h1>
 
             <div className="mt-3 flex flex-wrap items-center gap-2 sm:gap-3">
-              <div className="text-brand flex items-center gap-1">
+              <div className="flex items-center gap-1 text-brand">
                 {Array.from({
                   length: 5,
                 }).map((_, index) => (
-                  <Star
-                    key={index}
-                    size={15}
-                    fill={
-                      index < Math.floor(product.rating)
-                        ? "currentColor"
-                        : "none"
-                    }
-                    strokeWidth={index < Math.floor(product.rating) ? 0 : 1.5}
-                  />
+                  <Star key={index} size={15} fill={index < Math.floor(product.rating) ? "currentColor" : "none"} strokeWidth={index < Math.floor(product.rating) ? 0 : 1.5} />
                 ))}
               </div>
 
-              <span className="text-xs font-semibold">
-                {product.rating.toFixed(1)}
-              </span>
+              <span className="text-xs font-semibold">{product.rating.toFixed(1)}</span>
 
-              <span className="text-ink text-xs">
-                • {product.reviewCount} reviews
-              </span>
+              <span className="text-xs text-ink">• {product.reviewCount} reviews</span>
 
-              <span className="bg-sand text-brand flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-medium">
+              <span className="flex items-center gap-1 rounded-full bg-sand px-2 py-1 text-[10px] font-medium text-brand">
                 <ShieldCheck size={12} />
                 Every Cut Certified
               </span>
@@ -470,58 +400,38 @@ export default function ProductDetailPage() {
 
             <div className="mt-6 grid grid-cols-1 gap-3 text-xs sm:grid-cols-2">
               <div className="flex items-center gap-2 rounded-xl bg-white p-3 shadow-sm sm:gap-3 sm:p-4">
-                <div className="bg-sand text-brand flex h-8 w-8 shrink-0 items-center justify-center rounded-full sm:h-9 sm:w-9">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sand text-brand sm:h-9 sm:w-9">
                   <Truck size={15} />
                 </div>
 
                 <div className="min-w-0">
-                  <p className="text-ink font-semibold tracking-wide">
-                    DELIVERY ETA
-                  </p>
+                  <p className="font-semibold tracking-wide text-ink">DELIVERY ETA</p>
 
-                  <p className="text-charcoal truncate font-semibold">
-                    Tomorrow, before 12 PM
-                  </p>
+                  <p className="truncate font-semibold text-charcoal">Tomorrow, before 12 PM</p>
                 </div>
               </div>
 
               <div className="flex items-center gap-2 rounded-xl bg-white p-3 shadow-sm sm:gap-3 sm:p-4">
-                <div className="bg-sand text-brand flex h-8 w-8 shrink-0 items-center justify-center rounded-full sm:h-9 sm:w-9">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sand text-brand sm:h-9 sm:w-9">
                   <PackageCheck size={15} />
                 </div>
 
                 <div className="min-w-0">
-                  <p className="text-ink font-semibold tracking-wide">
-                    AVAILABILITY
-                  </p>
+                  <p className="font-semibold tracking-wide text-ink">AVAILABILITY</p>
 
-                  <p className="text-charcoal truncate font-semibold">
-                    {isOutOfStock
-                      ? "Out of stock"
-                      : product.stock > 10
-                        ? "In stock"
-                        : `Only ${product.stock} left`}
-                  </p>
+                  <p className="truncate font-semibold text-charcoal">{isOutOfStock ? "Out of stock" : product.stock > 10 ? "In stock" : `Only ${product.stock} left`}</p>
                 </div>
               </div>
             </div>
 
-            <div className="text-charcoal font-sora mt-7 flex flex-wrap items-center gap-3">
-              <span className="text-3xl font-bold sm:text-5xl">
-                {formatNaira(currentPrice)}
-              </span>
+            <div className="mt-7 flex flex-wrap items-center gap-3 font-sora text-charcoal">
+              <span className="text-3xl font-bold sm:text-5xl">{formatNaira(currentPrice)}</span>
 
               {product.basePrice !== currentPrice && (
                 <>
-                  <span className="text-base text-[#B0A292] line-through sm:text-lg">
-                    {formatNaira(product.basePrice)}
-                  </span>
+                  <span className="text-base text-[#B0A292] line-through sm:text-lg">{formatNaira(product.basePrice)}</span>
 
-                  {savings > 0 && (
-                    <span className="rounded-md bg-[#3A2A20] px-2.5 py-1 text-xs font-semibold text-white">
-                      Save {formatNaira(savings)}
-                    </span>
-                  )}
+                  {savings > 0 && <span className="rounded-md bg-[#3A2A20] px-2.5 py-1 text-xs font-semibold text-white">Save {formatNaira(savings)}</span>}
                 </>
               )}
             </div>
@@ -531,9 +441,7 @@ export default function ProductDetailPage() {
                 <div className="mb-2.5 flex items-center justify-between gap-3">
                   <p className="text-sm font-semibold">Select Tier</p>
 
-                  <p className="text-ink text-[9px] font-medium tracking-wide sm:text-[11px]">
-                    CHOOSE AN OPTION
-                  </p>
+                  <p className="text-[9px] font-medium tracking-wide text-ink sm:text-[11px]">CHOOSE AN OPTION</p>
                 </div>
 
                 <div className="flex flex-wrap gap-2.5">
@@ -542,7 +450,7 @@ export default function ProductDetailPage() {
                       key={tier.id}
                       type="button"
                       onClick={() => setSelectedTier(tier.id)}
-                      className={`rounded-full border px-4 py-2 text-xs font-medium transition-colors sm:text-sm ${selectedTier === tier.id ? "border-brand bg-sand text-brand" : "hover:border-brand border-[#E5DDD2] text-[#231B16]"}`}
+                      className={`rounded-full border px-4 py-2 text-xs font-medium transition-colors sm:text-sm ${selectedTier === tier.id ? "border-brand bg-sand text-brand" : "border-[#E5DDD2] text-[#231B16] hover:border-brand"}`}
                     >
                       {selectedTier === tier.id ? "✓ " : ""}
                       {tier.name} · {formatNaira(tier.price)}
@@ -553,7 +461,7 @@ export default function ProductDetailPage() {
                 {selectedTierData && selectedTierData.features?.length > 0 && (
                   <ul className="mt-3 space-y-1">
                     {selectedTierData.features.map((feature, index) => (
-                      <li key={index} className="text-ink text-xs">
+                      <li key={index} className="text-xs text-ink">
                         • {feature}
                       </li>
                     ))}
@@ -566,13 +474,9 @@ export default function ProductDetailPage() {
               {product.preparations?.length > 0 && (
                 <div>
                   <div className="mb-3 flex items-center justify-between gap-3">
-                    <p className="text-xs font-semibold text-[#231B16]">
-                      Preparation
-                    </p>
+                    <p className="text-xs font-semibold text-[#231B16]">Preparation</p>
 
-                    <p className="text-[9px] font-semibold tracking-wide text-[#9A9188] uppercase">
-                      Butchered to order
-                    </p>
+                    <p className="text-[9px] font-semibold tracking-wide text-[#9A9188] uppercase">Butchered to order</p>
                   </div>
 
                   <div className="flex flex-wrap gap-2">
@@ -581,7 +485,7 @@ export default function ProductDetailPage() {
                         key={preparation}
                         type="button"
                         onClick={() => setSelectedPreparation(preparation)}
-                        className={`rounded-full border px-4 py-2 text-xs font-medium capitalize transition-colors ${selectedPreparation === preparation ? "border-brand text-brand bg-[#FFF7F0]" : "hover:border-brand hover:text-brand border-[#E5DDD2] bg-white text-[#231B16]"}`}
+                        className={`rounded-full border px-4 py-2 text-xs font-medium capitalize transition-colors ${selectedPreparation === preparation ? "border-brand bg-[#FFF7F0] text-brand" : "border-[#E5DDD2] bg-white text-[#231B16] hover:border-brand hover:text-brand"}`}
                       >
                         {selectedPreparation === preparation ? "✓ " : ""}
                         {preparation}
@@ -593,16 +497,11 @@ export default function ProductDetailPage() {
 
               {product.tags?.length > 0 && (
                 <div>
-                  <p className="mb-3 text-xs font-semibold text-[#231B16]">
-                    Tags
-                  </p>
+                  <p className="mb-3 text-xs font-semibold text-[#231B16]">Tags</p>
 
                   <div className="flex flex-wrap gap-2">
                     {product.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="rounded-full border border-[#E5DDD2] bg-white px-4 py-2 text-xs font-medium text-[#231B16] capitalize"
-                      >
+                      <span key={tag} className="rounded-full border border-[#E5DDD2] bg-white px-4 py-2 text-xs font-medium text-[#231B16] capitalize">
                         {tag}
                       </span>
                     ))}
@@ -635,14 +534,12 @@ export default function ProductDetailPage() {
 
                     setQuantity(Math.min(maxQuantity, Math.max(1, value)));
                   }}
-                  className="text-charcoal w-10 bg-transparent text-center text-sm font-semibold outline-none disabled:opacity-50"
+                  className="w-10 bg-transparent text-center text-sm font-semibold text-charcoal outline-none disabled:opacity-50"
                 />
 
                 <button
                   type="button"
-                  onClick={() =>
-                    setQuantity((q) => Math.min(product.stock, q + 1))
-                  }
+                  onClick={() => setQuantity((q) => Math.min(product.stock, q + 1))}
                   disabled={isOutOfStock || quantity >= product.stock}
                   className="flex h-9 w-9 items-center justify-center rounded-full text-[#231B16] transition-colors hover:bg-[#F7F4EF] disabled:cursor-not-allowed disabled:opacity-50"
                 >
@@ -650,7 +547,7 @@ export default function ProductDetailPage() {
                 </button>
               </div>
 
-              <p className="text-ink text-sm">
+              <p className="text-sm text-ink">
                 {quantity} {quantity === 1 ? "item" : "items"}
               </p>
             </div>
@@ -659,7 +556,7 @@ export default function ProductDetailPage() {
               {!user ? (
                 <Link
                   href={`/auth/login?redirect=${encodeURIComponent(`/shop/${product.id}`)}`}
-                  className="bg-brand flex w-full items-center justify-center gap-2 rounded-xl py-3 text-xs font-semibold text-white transition-colors hover:bg-[#B96A2F]"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand py-3 text-xs font-semibold text-white transition-colors hover:bg-[#B96A2F]"
                 >
                   Login to Continue
                 </Link>
@@ -669,20 +566,18 @@ export default function ProductDetailPage() {
                     type="button"
                     onClick={handleAddToCart}
                     disabled={isOutOfStock || isAddingToCart || isBuyingNow}
-                    className="bg-brand flex w-full items-center justify-center gap-2 rounded-xl py-3 text-xs font-semibold text-white transition-colors hover:bg-[#B96A2F] disabled:cursor-not-allowed disabled:opacity-50 sm:flex-[8]"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand py-3 text-xs font-semibold text-white transition-colors hover:bg-[#B96A2F] disabled:cursor-not-allowed disabled:opacity-50 sm:flex-[8]"
                   >
                     <ShoppingBag size={17} />
 
-                    {isAddingToCart
-                      ? "Adding..."
-                      : `Add to Cart · ${formatNaira(total)}`}
+                    {isAddingToCart ? "Adding..." : `Add to Cart · ${formatNaira(total)}`}
                   </button>
 
                   <button
                     type="button"
                     onClick={handleBuyNow}
                     disabled={isOutOfStock || isAddingToCart || isBuyingNow}
-                    className="bg-charcoal flex w-full items-center justify-center gap-2 rounded-xl py-3 text-xs font-semibold text-white transition-colors hover:bg-[#B96A2F] disabled:cursor-not-allowed disabled:opacity-50 sm:flex-2"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-charcoal py-3 text-xs font-semibold text-white transition-colors hover:bg-[#B96A2F] disabled:cursor-not-allowed disabled:opacity-50 sm:flex-2"
                   >
                     {isBuyingNow ? "Processing..." : "Buy Now"}
                   </button>
@@ -690,16 +585,13 @@ export default function ProductDetailPage() {
               )}
             </div>
 
-            <div className="text-charcoal mt-3 flex gap-3">
+            <div className="mt-3 flex gap-3 text-charcoal">
               <button
                 type="button"
                 onClick={() => setWishlisted((w) => !w)}
-                className="hover:border-brand flex flex-1 items-center justify-center gap-2 rounded-xl border border-[#E5DDD2] bg-white py-3 text-xs font-medium transition-colors"
+                className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-[#E5DDD2] bg-white py-3 text-xs font-medium transition-colors hover:border-brand"
               >
-                <Heart
-                  size={16}
-                  className={wishlisted ? "fill-brand text-brand" : ""}
-                />
+                <Heart size={16} className={wishlisted ? "fill-brand text-brand" : ""} />
                 Wishlist
               </button>
 
@@ -714,7 +606,7 @@ export default function ProductDetailPage() {
                     toast.error("Unable to copy product link");
                   }
                 }}
-                className="hover:border-brand flex flex-1 items-center justify-center gap-2 rounded-xl border border-[#E5DDD2] bg-white py-3 text-xs font-medium transition-colors"
+                className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-[#E5DDD2] bg-white py-3 text-xs font-medium transition-colors hover:border-brand"
               >
                 <Share2 size={16} />
                 Share
@@ -724,21 +616,13 @@ export default function ProductDetailPage() {
         </div>
 
         <div className="mx-auto mt-6 rounded-lg bg-white p-4 shadow">
-          <div className="border-ink/30 mb-10 rounded-lg border px-3 py-6">
-            <h3 className="text-charcoal font-worksans font-bold">
-              Description
-            </h3>
+          <div className="mb-10 rounded-lg border border-ink/30 px-3 py-6">
+            <h3 className="font-worksans font-bold text-charcoal">Description</h3>
 
-            <p className="text-ink mt-2 text-xs leading-relaxed">
-              {product.description}
-            </p>
+            <p className="mt-2 text-xs leading-relaxed text-ink">{product.description}</p>
           </div>
 
-          <ReviewsSection
-            productId={product.id}
-            initialRating={product.rating}
-            initialReviewCount={product.reviewCount}
-          />
+          <ReviewsSection productId={product.id} initialRating={product.rating} initialReviewCount={product.reviewCount} />
         </div>
       </div>
     </main>

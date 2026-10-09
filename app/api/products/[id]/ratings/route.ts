@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getUserFromRequest } from "@/lib/request";
+import { getUserFromRequest } from "@/lib/http/request";
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
 
@@ -26,17 +23,11 @@ export async function GET(
     return NextResponse.json(ratings);
   } catch (error) {
     console.error("Error fetching ratings:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const user = getUserFromRequest(request);
     if (!user) {
@@ -47,10 +38,7 @@ export async function POST(
     const { score, title, comment } = await request.json();
 
     if (!score || score < 1 || score > 5) {
-      return NextResponse.json(
-        { error: "Score must be between 1 and 5" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Score must be between 1 and 5" }, { status: 400 });
     }
 
     const existingRating = await prisma.rating.findUnique({
@@ -84,16 +72,12 @@ export async function POST(
       });
     }
 
-    // Update product rating average
     const allRatings = await prisma.rating.findMany({
       where: { productId: id },
       select: { score: true },
     });
 
-    const averageRating =
-      allRatings.length > 0
-        ? allRatings.reduce((acc, r) => acc + r.score, 0) / allRatings.length
-        : 5.0;
+    const averageRating = allRatings.length > 0 ? allRatings.reduce((acc, r) => acc + r.score, 0) / allRatings.length : 5.0;
 
     await prisma.product.update({
       where: { id },
@@ -106,9 +90,6 @@ export async function POST(
     return NextResponse.json(rating);
   } catch (error) {
     console.error("Error posting rating:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

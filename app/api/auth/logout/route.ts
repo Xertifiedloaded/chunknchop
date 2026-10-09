@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { clearAuthCookies } from "@/lib/auth-cookies";
-import { revokeRefreshToken } from "@/lib/refresh-tokens";
+import { clearAuthCookies } from "@/lib/auth/cookies";
+import { revokeRefreshToken } from "@/lib/auth/tokens";
 
 export const runtime = "nodejs";
 

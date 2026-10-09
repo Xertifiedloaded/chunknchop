@@ -1,6 +1,6 @@
 "use client";
 
-import { fetchWithAuth } from "@/lib/fetchClient";
+import { fetchWithAuth } from "@/lib/http/fetchClient";
 
 import { useState } from "react";
 import Image from "next/image";
@@ -10,9 +10,9 @@ import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast";
 import WishlistHeader from "@/components/sections/wishlist/WishlistHeader";
 import WishlistProductCard from "@/components/sections/wishlist/WishlistCard";
-import SimilarProducts from "@/components/sections/common/SimilarProducts";
-import { useAuthStore } from "@/lib/store/authStore";
-import { useCartStore } from "@/lib/store/cartStore";
+import SimilarProducts from "@/components/SimilarProducts";
+import { useAuthStore } from "@/store/authStore";
+import { useCartStore } from "@/store/cartStore";
 
 interface WishlistItem {
   productId: string;
@@ -45,14 +45,7 @@ export default function WishlistPage() {
   const isHydrated = useAuthStore((s) => s.isHydrated);
   const { setItems: setCartItems } = useCartStore();
 
-  const {
-    data: wishlist = [],
-    mutate,
-    error,
-  } = useSWR<WishlistItem[]>(
-    isHydrated && user ? "/api/customer/wishlist" : null,
-    fetcher,
-  );
+  const { data: wishlist = [], mutate, error } = useSWR<WishlistItem[]>(isHydrated && user ? "/api/customer/wishlist" : null, fetcher);
 
   const refreshCart = async () => {
     if (!isHydrated || !user || user.role === "SUPPLIER") return;
@@ -198,11 +191,7 @@ export default function WishlistPage() {
       await refreshCart();
 
       if (succeeded > 0) {
-        toast.success(
-          failed > 0
-            ? `Moved ${succeeded} item${succeeded === 1 ? "" : "s"} to cart, ${failed} failed`
-            : "All available items moved to cart",
-        );
+        toast.success(failed > 0 ? `Moved ${succeeded} item${succeeded === 1 ? "" : "s"} to cart, ${failed} failed` : "All available items moved to cart");
       } else {
         toast.error("Failed to move items");
       }
@@ -224,24 +213,16 @@ export default function WishlistPage() {
   return (
     <div className="min-h-screen bg-[#faf8f6] py-10">
       <div className="mx-auto max-w-7xl px-4">
-        <WishlistHeader
-          count={wishlist.length}
-          onMoveAll={handleMoveAll}
-          isMovingAll={isMovingAll}
-        />
+        <WishlistHeader count={wishlist.length} onMoveAll={handleMoveAll} isMovingAll={isMovingAll} />
 
         {wishlist.length === 0 ? (
           <div className="rounded-3xl border border-dashed bg-white py-20 text-center">
             <h3 className="text-xl font-semibold">Your wishlist is empty</h3>
 
-            <p className="mt-2 text-gray-500">
-              Save products you love to find them later.
-            </p>
+            <p className="mt-2 text-gray-500">Save products you love to find them later.</p>
 
             <Link href="/">
-              <Button className="bg-brand mt-6 rounded-xl hover:bg-orange-600">
-                Continue Shopping
-              </Button>
+              <Button className="mt-6 rounded-xl bg-brand hover:bg-orange-600">Continue Shopping</Button>
             </Link>
           </div>
         ) : (
@@ -259,13 +240,7 @@ export default function WishlistPage() {
           </div>
         )}
 
-        {wishlist.length > 0 && (
-          <SimilarProducts
-            eyebrow="You might also love"
-            heading="Similar cuts, hand-picked"
-            items={wishlist.slice(0, 4).map((item) => item.product)}
-          />
-        )}
+        {wishlist.length > 0 && <SimilarProducts eyebrow="You might also love" heading="Similar cuts, hand-picked" items={wishlist.slice(0, 4).map((item) => item.product)} />}
       </div>
     </div>
   );

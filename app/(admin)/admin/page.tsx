@@ -1,12 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type PointerEvent, type ReactNode } from "react";
+import Link from "next/link";
+import { Inter } from "next/font/google";
 import {
-  ArrowUpRight,
   ArrowRight,
+  ArrowUpRight,
   CalendarDays,
+  ChefHat,
   ChevronDown,
+  CircleCheck,
+  Clock3,
   Download,
+  Inbox,
   Package,
   Plus,
   RefreshCw,
@@ -16,13 +22,9 @@ import {
   Tag,
   Truck,
   Wallet,
-  Clock3,
-  CircleCheck,
-  ChefHat,
-  Inbox,
 } from "lucide-react";
-import { useAuthStore } from "@/lib/store/authStore";
-import { fetchWithAuth } from "@/lib/fetchClient";
+import { useAuthStore } from "@/store/authStore";
+import { fetchWithAuth } from "@/lib/http/fetchClient";
 import type { Order } from "@/components/admin/types";
 
 interface DashboardStats {
@@ -33,33 +35,45 @@ interface DashboardStats {
   recentOrders: Order[];
 }
 
-const naira = (value: number) =>
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+});
+
+const nairaFormatter = (fractionDigits: number) =>
   new Intl.NumberFormat("en-NG", {
     style: "currency",
     currency: "NGN",
-    maximumFractionDigits: value % 1 === 0 ? 0 : 2,
-  }).format(value);
+    maximumFractionDigits: fractionDigits,
+  });
 
-const relativeTime = (dateStr: string) => {
-  const diffMs = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(diffMs / 60000);
+const NAIRA_WHOLE = nairaFormatter(0);
+const NAIRA_DECIMAL = nairaFormatter(2);
+
+const naira = (value: number) => (value % 1 === 0 ? NAIRA_WHOLE : NAIRA_DECIMAL).format(value);
+
+const relativeTime = (value: string | Date) => {
+  const date = new Date(value);
+  const mins = Math.floor((Date.now() - date.getTime()) / 60000);
   if (mins < 1) return "just now";
   if (mins < 60) return `${mins} min ago`;
   const hrs = Math.floor(mins / 60);
   if (hrs < 24) return `${hrs} hr ago`;
-  return new Date(dateStr).toLocaleDateString();
+  return date.toLocaleDateString();
 };
 
-const AVATAR_COLORS = [
-  "bg-[#f26422]",
-  "bg-[#20b87a]",
-  "bg-[#ef4444]",
-  "bg-[#742b43]",
-  "bg-[#f5a623]",
-  "bg-[#ef7045]",
-];
+const getGreeting = () => {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  return "Good evening";
+};
 
-const statusCopy: Record<string, string> = {
+const CARD = "rounded-xl border border-[#e8e8e6] bg-white shadow-[0_2px_8px_rgba(0,0,0,0.035)]";
+
+const AVATAR_COLORS = ["bg-[#f26422]", "bg-[#20b87a]", "bg-[#ef4444]", "bg-[#742b43]", "bg-[#f5a623]", "bg-[#ef7045]"];
+
+const STATUS_COPY: Record<string, string> = {
   PENDING: "placed an order",
   PROCESSING: "order is being processed",
   PAID: "completed payment",
@@ -69,286 +83,249 @@ const statusCopy: Record<string, string> = {
   REFUNDED: "requested a refund",
 };
 
-function getGreeting() {
-  const hour = new Date().getHours();
-  if (hour < 12) return "Good morning";
-  if (hour < 17) return "Good afternoon";
-  return "Good evening";
-}
+const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const WEEKLY_SERIES: ChartSeries[] = [
+  {
+    name: "This week",
+    color: "#f26422",
+    area: true,
+    data: [182000, 241000, 198000, 312000, 276000, 389000, 342000],
+  },
+  {
+    name: "Last week",
+    color: "#b8b8b8",
+    dashed: true,
+    data: [165000, 205000, 214000, 258000, 249000, 301000, 296000],
+  },
+];
+
+const HOUR_LABELS = ["8am", "10am", "12pm", "2pm", "4pm", "6pm", "8pm"];
+const HOURLY_SERIES: ChartSeries[] = [
+  {
+    name: "Delivered",
+    color: "#f15b2a",
+    area: true,
+    data: [14, 22, 35, 28, 31, 42, 26],
+  },
+  { name: "Late", color: "#e99b00", data: [1, 2, 4, 3, 3, 5, 2] },
+];
+
+const compact = new Intl.NumberFormat("en", {
+  notation: "compact",
+  maximumFractionDigits: 1,
+});
+
+const STATUS_CARDS = [
+  { label: "Pending", value: "18", icon: Clock3, color: "text-[#f59a23]" },
+  { label: "Preparing", value: "12", icon: ChefHat, color: "text-[#ee542f]" },
+  { label: "Out for Delivery", value: "27", icon: Truck, color: "text-[#138bd0]" },
+  { label: "Delivered", value: "137", icon: CircleCheck, color: "text-[#0ca66a]" },
+];
+
+const QUICK_ACTIONS = [
+  { label: "Add Product", icon: Plus },
+  { label: "Create Coupon", icon: Tag },
+  { label: "View Orders", icon: ShoppingCart },
+  { label: "Add Inventory", icon: Package },
+  { label: "Send Promotion", icon: Send },
+];
+
+const CATEGORIES = [
+  { name: "Beef", share: 32, color: "#7d3038" },
+  { name: "Chicken", share: 26, color: "#f26422" },
+  { name: "Seafood", share: 16, color: "#b5b2a8" },
+  { name: "Goat", share: 11, color: "#8f8b82" },
+  { name: "Sausages", share: 9, color: "#d7a067" },
+  { name: "Other", share: 6, color: "#d8d8d8" },
+];
+
+const CATEGORY_GRADIENT = (() => {
+  let start = 0;
+  const stops = CATEGORIES.map(({ share, color }) => {
+    const end = start + share * 3.6;
+    const stop = `${color} ${start}deg ${end}deg`;
+    start = end;
+    return stop;
+  });
+  return `conic-gradient(${stops.join(", ")})`;
+})();
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [greeting, setGreeting] = useState<string | null>(null);
-  const [todayLabel, setTodayLabel] = useState<string | null>(null);
-
-  useEffect(() => {
-    setGreeting(getGreeting());
-    setTodayLabel(
-      new Date().toLocaleDateString("en-NG", {
-        weekday: "long",
-        day: "numeric",
-        month: "long",
-      }),
-    );
-  }, []);
-
-  useEffect(() => {
-    fetchWithAuth("/api/admin/stats")
-      .then(async (r) => {
-        const data = await r.json();
-        if (!r.ok)
-          throw new Error(data.error || "Could not load dashboard stats.");
-        return data;
-      })
-      .then(setStats)
-      .catch((e) =>
-        setError(
-          e instanceof Error ? e.message : "Could not load dashboard stats.",
-        ),
-      )
-      .finally(() => setLoading(false));
-  }, []);
-
-  const totalOrders = stats?.totalOrders ?? 0;
-  const totalRevenue = stats?.totalRevenue ?? 0;
-  const totalCustomers = stats?.totalCustomers ?? 0;
-  const totalProducts = stats?.totalProducts ?? 0;
-  const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
-  const recentOrders = stats?.recentOrders ?? [];
+  const [clock, setClock] = useState<{ greeting: string; today: string } | null>(null);
 
   const user = useAuthStore((state) => state.user);
   const firstName = user?.name?.trim().split(/\s+/)[0] || null;
 
+  useEffect(() => {
+    setClock({
+      greeting: getGreeting(),
+      today: new Date().toLocaleDateString("en-NG", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+      }),
+    });
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const res = await fetchWithAuth("/api/admin/stats");
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Could not load dashboard stats.");
+        if (!cancelled) setStats(data);
+      } catch (e) {
+        if (!cancelled) setError(e instanceof Error ? e.message : "Could not load dashboard stats.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const { totalOrders, totalRevenue, totalCustomers, totalProducts, recentOrders } = useMemo(
+    () => ({
+      totalOrders: stats?.totalOrders ?? 0,
+      totalRevenue: stats?.totalRevenue ?? 0,
+      totalCustomers: stats?.totalCustomers ?? 0,
+      totalProducts: stats?.totalProducts ?? 0,
+      recentOrders: stats?.recentOrders ?? [],
+    }),
+    [stats],
+  );
+
+  const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+  const display = (value: string) => (loading ? "—" : value);
+
   return (
-    <main className="min-h-screen bg-[#f7f7f6] px-3 py-4 text-[#202020] sm:px-5 lg:px-7">
-      <div className="mx-auto max-w-375">
-        <header className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div>
-            <h1 className="text-[18px] font-semibold tracking-[-0.02em] text-[#242424] sm:text-[20px]">
-              {" "}
-              {greeting ?? "Welcome"}
+    <main className={`${inter.className} min-h-screen bg-[#f7f7f6] px-3 py-4 text-[#202020] sm:px-5 lg:px-6`}>
+      <div className="mx-auto w-full max-w-[1500px]">
+        <header className="mb-6 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div className="min-w-0">
+            <h1 className="text-lg font-semibold tracking-tight text-[#1a1a1a] sm:text-xl">
+              {clock?.greeting ?? "Welcome"}
               {firstName ? `, ${firstName}` : ""}
             </h1>
-            <p className="mt-1 text-[9px] leading-4 text-[#8d8d8d] sm:text-[10px]">
-              {todayLabel ?? "\u00A0"} · Here&apos;s how ChunkNChop is
-              performing across processing, fulfilment and sales today.
-            </p>
+            <p className="mt-1 text-xs leading-5 text-[#8d8d8d]">{clock?.today ?? "\u00A0"} · Here&apos;s how ChunkNChop is performing across processing, fulfilment and sales today.</p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <button className="flex h-9 items-center gap-2 rounded-lg border border-[#dedede] bg-white px-3 text-[10px] font-medium text-[#555] shadow-sm">
-              <CalendarDays size={12} />
+            <button type="button" className="flex h-9 items-center gap-2 rounded-lg border border-[#dedede] bg-white px-3 text-xs font-medium text-[#555] shadow-sm">
+              <CalendarDays size={14} />
               Today
-              <ChevronDown size={11} />
+              <ChevronDown size={12} />
             </button>
-
-            <button className="flex h-9 items-center gap-2 rounded-lg border border-[#dedede] bg-white px-3 text-[10px] font-medium text-[#555] shadow-sm">
-              <Download size={12} />
+            <button type="button" className="flex h-9 items-center gap-2 rounded-lg border border-[#dedede] bg-white px-3 text-xs font-medium text-[#555] shadow-sm">
+              <Download size={14} />
               Export
             </button>
-
-            <button className="flex h-9 items-center gap-2 rounded-lg bg-[#f26422] px-3 text-[10px] font-medium text-white shadow-sm">
-              <Clock3 size={12} />
+            <button type="button" className="flex h-9 items-center gap-2 rounded-lg bg-[#f26422] px-3 text-xs font-medium text-white shadow-sm">
+              <Clock3 size={14} />
               Open Processing
             </button>
           </div>
         </header>
 
         {error && (
-          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3.5 text-[11px] text-red-700">
+          <div role="alert" className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3.5 text-xs text-red-700">
             {error}
           </div>
         )}
 
-        {/* Top Metrics */}
-        <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <MetricCard
-            title="Total Revenue"
-            value={loading ? "—" : naira(totalRevenue)}
-            icon={<Wallet size={13} />}
-            iconClass="bg-[#fff0e9] text-[#f26422]"
-            change="+12.4%"
-            description="vs last month"
-            positive
-          />
-
+        <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <MetricCard title="Total Revenue" value={display(naira(totalRevenue))} icon={<Wallet size={14} />} iconClass="bg-[#fff0e9] text-[#f26422]" change="+12.4%" description="vs last month" />
           <MetricCard
             title="Total Orders"
-            value={loading ? "—" : totalOrders.toLocaleString()}
-            icon={<ShoppingBag size={13} />}
+            value={display(totalOrders.toLocaleString())}
+            icon={<ShoppingBag size={14} />}
             iconClass="bg-[#fff0e9] text-[#a63e21]"
             change="+8.6%"
             description="vs last month"
-            positive
           />
-
           <MetricCard
             title="Average Order Value"
-            value={loading ? "—" : naira(avgOrderValue)}
-            icon={<ArrowUpRight size={13} />}
+            value={display(naira(avgOrderValue))}
+            icon={<ArrowUpRight size={14} />}
             iconClass="bg-[#eafaf3] text-[#0d9b62]"
             change="+5.1%"
             description="Basket size"
-            positive
           />
-
           <MetricCard
             title="Total Customers"
-            value={loading ? "—" : totalCustomers.toLocaleString()}
-            icon={<RefreshCw size={13} />}
+            value={display(totalCustomers.toLocaleString())}
+            icon={<RefreshCw size={14} />}
             iconClass="bg-[#f0efed] text-[#666]"
             change="+6.4%"
             description={`${totalProducts} active products`}
-            positive
           />
         </section>
 
         <section className="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <StatusCard
-            label="Pending"
-            value="18"
-            icon={<Clock3 size={12} />}
-            color="text-[#f59a23]"
-          />
-          <StatusCard
-            label="Preparing"
-            value="12"
-            icon={<ChefHat size={12} />}
-            color="text-[#ee542f]"
-          />
-          <StatusCard
-            label="Out for Delivery"
-            value="27"
-            icon={<Truck size={12} />}
-            color="text-[#138bd0]"
-          />
-          <StatusCard
-            label="Delivered"
-            value="137"
-            icon={<CircleCheck size={12} />}
-            color="text-[#0ca66a]"
-          />
+          {STATUS_CARDS.map(({ label, value, icon: Icon, color }) => (
+            <div key={label} className={`${CARD} px-4 py-3`}>
+              <div className={`flex items-center gap-1.5 text-xs ${color}`}>
+                <Icon size={14} className="shrink-0" />
+                <span className="truncate text-[#555]">{label}</span>
+              </div>
+              <div className={`mt-1 text-lg font-semibold ${color}`}>{value}</div>
+            </div>
+          ))}
         </section>
 
         <section className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
-          <div className="rounded-xl border border-[#e8e8e6] bg-white shadow-[0_2px_8px_rgba(0,0,0,0.035)]">
-            <div className="flex items-start justify-between px-4 pt-4 sm:px-5">
+          <div className={CARD}>
+            <div className="flex flex-col gap-2 px-4 pt-4 sm:flex-row sm:items-start sm:justify-between sm:px-5">
               <div>
-                <h2 className="text-[11px] font-semibold">Weekly Revenue</h2>
-                <p className="mt-0.5 text-[8px] text-[#999]">
-                  Gross revenue this week compared with the same days last week
-                </p>
+                <h2 className="text-sm font-semibold">Weekly Revenue</h2>
+                <p className="mt-0.5 text-xs text-[#777]">Gross revenue this week compared with the same days last week</p>
               </div>
-
-              <div className="flex items-center gap-3 text-[7px] text-[#888]">
-                <span className="flex items-center gap-1">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#f26422]" />
-                  This week
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#b8b8b8]" />
-                  Last week
-                </span>
+              <div className="flex shrink-0 items-center gap-3 text-[11px] text-[#888]">
+                <LegendDot color="bg-[#f26422]" label="This week" />
+                <LegendDot color="bg-[#b8b8b8]" label="Last week" />
               </div>
             </div>
 
-            <div className="relative h-36.25 px-5 pt-5 sm:h-38.75">
-              <div className="absolute inset-x-5 top-6 border-t border-dashed border-[#eeeeee]" />
-              <div className="absolute inset-x-5 top-12 border-t border-dashed border-[#eeeeee]" />
-              <div className="absolute inset-x-5 top-17.5 border-t border-dashed border-[#eeeeee]" />
-              <div className="absolute inset-x-5 top-23 border-t border-dashed border-[#eeeeee]" />
-
-              <div className="absolute right-5 bottom-4 left-5 flex items-end justify-between">
-                {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(
-                  (day, i) => (
-                    <div
-                      key={day}
-                      className="flex w-full flex-col items-center gap-1"
-                    >
-                      <div
-                        className="w-0.5 rounded-full bg-[#f26422]"
-                        style={{
-                          height: `${[30, 46, 39, 62, 53, 74, 67][i]}px`,
-                        }}
-                      />
-                      <span className="text-[7px] text-[#aaa]">{day}</span>
-                    </div>
-                  ),
-                )}
-              </div>
+            <div className="px-3 pt-4 pb-3 sm:px-4">
+              <LineChart labels={DAYS} series={WEEKLY_SERIES} height={200} formatValue={naira} formatAxis={(v) => `₦${compact.format(v)}`} />
             </div>
 
-            <div className="grid grid-cols-3 border-t border-[#eeeeee]">
-              <RevenueStat
-                label="Weekly sales"
-                value={loading ? "—" : naira(totalRevenue)}
-                change="+12.8%"
-              />
-              <RevenueStat
-                label="Orders this week"
-                value={loading ? "—" : totalOrders.toLocaleString()}
-                change="+9.4%"
-                border
-              />
-              <RevenueStat
-                label="Refund rate"
-                value="1.2%"
-                change="-0.4%"
-                border
-              />
+            <div className="grid grid-cols-1 border-t border-[#eeeeee] sm:grid-cols-3">
+              <RevenueStat label="Weekly sales" value={display(naira(totalRevenue))} change="+12.8%" />
+              <RevenueStat label="Orders this week" value={display(totalOrders.toLocaleString())} change="+9.4%" bordered />
+              <RevenueStat label="Refund rate" value="1.2%" change="-0.4%" bordered />
             </div>
           </div>
 
           <QuickActions />
         </section>
 
-        <section className="mt-3 grid gap-3 lg:grid-cols-[minmax(220px,0.9fr)_minmax(0,1.8fr)]">
-          <div className="rounded-[15px] border border-[#e8e5e2] bg-white p-4 shadow-[0_2px_10px_rgba(25,20,15,0.04)]">
-            <h3 className="text-[13px] font-semibold text-[#2f2b28]">
-              Orders by hour
-            </h3>
+        <section className="mt-3 grid gap-3 lg:grid-cols-[minmax(240px,0.9fr)_minmax(0,1.8fr)]">
+          <div className={`${CARD} p-4`}>
+            <h3 className="text-sm font-semibold text-[#2f2b28]">Orders by hour</h3>
+            <p className="mt-0.5 text-xs text-[#99938d]">Delivered vs late, last 7 days</p>
 
-            <p className="mt-0.5 text-[9px] text-[#99938d]">
-              Delivered vs late, last 7 days
-            </p>
+            <div className="mt-3 flex items-center gap-3 text-[11px] text-[#888]">
+              <LegendDot color="bg-[#f15b2a]" label="Delivered" />
+              <LegendDot color="bg-[#e99b00]" label="Late" />
+            </div>
 
-            <div className="relative mt-3 h-[148px]">
-              <div className="absolute right-0 bottom-0 left-0 flex h-full items-end justify-around px-3 pb-5">
-                {[52, 70, 45, 82, 61, 88, 76].map((height, index) => (
-                  <div
-                    key={index}
-                    className="flex h-full w-[7%] items-end justify-center"
-                  >
-                    <div
-                      className="w-full rounded-t-[3px] bg-[#f15b2a]"
-                      style={{ height: `${height}%`, opacity: 0.9 }}
-                    />
-                  </div>
-                ))}
-              </div>
-
-              <div className="absolute right-0 bottom-0 left-0 h-px bg-[#eeeae7]" />
-
-              <div className="absolute bottom-[-2px] left-1/2 flex -translate-x-1/2 translate-y-full items-center gap-3 pt-2 text-[8px]">
-                <span className="flex items-center gap-1 text-[#f15b2a]">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#f15b2a]" />
-                  Delivered
-                </span>
-                <span className="flex items-center gap-1 text-[#e99b00]">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#e99b00]" />
-                  Late
-                </span>
-              </div>
+            <div className="mt-2">
+              <LineChart labels={HOUR_LABELS} series={HOURLY_SERIES} height={170} formatValue={(v) => `${v} orders`} formatAxis={(v) => String(v)} />
             </div>
           </div>
 
           <RecentOrdersPanel orders={recentOrders} loading={loading} />
         </section>
 
-        {/* Bottom */}
-        <section className="mt-3 grid gap-3 lg:grid-cols-[minmax(0,2fr)_minmax(250px,1fr)]">
+        <section className="mt-3 grid gap-3 lg:grid-cols-[minmax(0,2fr)_minmax(260px,1fr)]">
           <RecentActivity orders={recentOrders} loading={loading} />
           <TopCategories />
         </section>
@@ -357,130 +334,263 @@ export default function AdminDashboard() {
   );
 }
 
-function MetricCard({
-  title,
-  value,
-  icon,
-  iconClass,
-  change,
-  description,
-  positive,
-}: {
-  title: string;
-  value: string;
-  icon: React.ReactNode;
-  iconClass: string;
-  change: string;
-  description: string;
-  positive: boolean;
-}) {
-  return (
-    <div className="min-h-18.75 rounded-xl border border-[#e8e8e6] bg-white px-3 py-3 shadow-[0_2px_8px_rgba(0,0,0,0.035)] sm:px-4">
-      <div className="flex items-start justify-between">
-        <span className="text-[8px] text-[#777]">{title}</span>
-        <span
-          className={`flex h-5 w-5 items-center justify-center rounded-md ${iconClass}`}
-        >
-          {icon}
-        </span>
-      </div>
-
-      <div className="mt-1 truncate text-[15px] font-bold tracking-[-0.03em] sm:text-[16px]">
-        {value}
-      </div>
-
-      <div className="mt-0.5 flex items-center gap-1 text-[7px]">
-        <span
-          className={`font-semibold ${positive ? "text-[#0a9a5c]" : "text-[#e33e3e]"}`}
-        >
-          {change}
-        </span>
-        {description && <span className="text-[#a0a0a0]">{description}</span>}
-      </div>
-    </div>
-  );
-}
-
-function StatusCard({
-  label,
-  value,
-  icon,
-  color,
-}: {
-  label: string;
-  value: string;
-  icon: React.ReactNode;
+interface ChartSeries {
+  name: string;
   color: string;
+  data: number[];
+  dashed?: boolean;
+  area?: boolean;
+}
+
+const CHART_PAD = { top: 12, right: 12, bottom: 26, left: 40 };
+const GRID_LINES = 4;
+
+function niceStep(value: number) {
+  if (value <= 0) return 1;
+  const exp = 10 ** Math.floor(Math.log10(value));
+  const f = value / exp;
+  return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * exp;
+}
+
+function smoothPath(pts: [number, number][]) {
+  const n = pts.length;
+  if (n < 2) return "";
+
+  const dx: number[] = [];
+  const m: number[] = [];
+  for (let i = 0; i < n - 1; i++) {
+    dx[i] = pts[i + 1][0] - pts[i][0];
+    m[i] = (pts[i + 1][1] - pts[i][1]) / dx[i];
+  }
+
+  const t: number[] = [m[0]];
+  for (let i = 1; i < n - 1; i++) {
+    t[i] = m[i - 1] * m[i] <= 0 ? 0 : (m[i - 1] + m[i]) / 2;
+  }
+  t[n - 1] = m[n - 2];
+
+  for (let i = 0; i < n - 1; i++) {
+    if (m[i] === 0) {
+      t[i] = 0;
+      t[i + 1] = 0;
+      continue;
+    }
+    const a = t[i] / m[i];
+    const b = t[i + 1] / m[i];
+    const h = a * a + b * b;
+    if (h > 9) {
+      const k = 3 / Math.sqrt(h);
+      t[i] = k * a * m[i];
+      t[i + 1] = k * b * m[i];
+    }
+  }
+
+  let d = `M${pts[0][0]},${pts[0][1]}`;
+  for (let i = 0; i < n - 1; i++) {
+    const [x0, y0] = pts[i];
+    const [x1, y1] = pts[i + 1];
+    const k = dx[i] / 3;
+    d += ` C${x0 + k},${y0 + t[i] * k} ${x1 - k},${y1 - t[i + 1] * k} ${x1},${y1}`;
+  }
+  return d;
+}
+
+function LineChart({
+  labels,
+  series,
+  height,
+  formatValue,
+  formatAxis,
+}: {
+  labels: string[];
+  series: ChartSeries[];
+  height: number;
+  formatValue: (value: number) => string;
+  formatAxis: (value: number) => string;
 }) {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState(0);
+  const [active, setActive] = useState<number | null>(null);
+  const uid = useId().replace(/:/g, "");
+
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    setWidth(el.clientWidth);
+    const observer = new ResizeObserver(([entry]) => setWidth(entry.contentRect.width));
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const { top, right, bottom, left } = CHART_PAD;
+  const innerW = Math.max(width - left - right, 0);
+  const innerH = height - top - bottom;
+  const count = labels.length;
+
+  const step = niceStep(Math.max(...series.flatMap((s) => s.data), 1) / GRID_LINES);
+  const yMax = step * GRID_LINES;
+
+  const x = (i: number) => left + (count > 1 ? (i / (count - 1)) * innerW : 0);
+  const y = (v: number) => top + (1 - v / yMax) * innerH;
+
+  const paths = useMemo(
+    () =>
+      series.map((s) => {
+        const pts = s.data.map((v, i) => [x(i), y(v)] as [number, number]);
+        const line = smoothPath(pts);
+        const area = `${line} L${x(count - 1)},${top + innerH} L${x(0)},${top + innerH} Z`;
+        return { line, area };
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [series, width, height],
+  );
+
+  const handlePointer = (e: PointerEvent<SVGSVGElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const px = e.clientX - rect.left;
+    const ratio = innerW > 0 ? (px - left) / innerW : 0;
+    const idx = Math.round(Math.min(Math.max(ratio, 0), 1) * (count - 1));
+    setActive(idx);
+  };
+
+  const tooltipLeft = active !== null ? Math.min(Math.max(x(active), 70), width - 70) : 0;
+
   return (
-    <div className="rounded-xl border border-[#e8e8e6] bg-white px-3 py-2.5 shadow-[0_2px_8px_rgba(0,0,0,0.03)]">
-      <div className={`flex items-center gap-1 text-[8px] ${color}`}>
-        {icon}
-        <span className="text-[#777]">{label}</span>
-      </div>
-      <div className={`mt-0.5 text-[13px] font-semibold ${color}`}>{value}</div>
+    <div ref={wrapRef} className="relative w-full" style={{ height }}>
+      {width > 0 && (
+        <svg
+          width={width}
+          height={height}
+          className="touch-pan-y select-none"
+          onPointerMove={handlePointer}
+          onPointerDown={handlePointer}
+          onPointerLeave={() => setActive(null)}
+          role="img"
+          aria-label={series.map((s) => s.name).join(" vs ")}
+        >
+          <defs>
+            {series.map((s, i) => (
+              <linearGradient key={s.name} id={`${uid}-${i}`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={s.color} stopOpacity={0.18} />
+                <stop offset="100%" stopColor={s.color} stopOpacity={0} />
+              </linearGradient>
+            ))}
+          </defs>
+
+          {Array.from({ length: GRID_LINES + 1 }, (_, i) => {
+            const value = step * i;
+            return (
+              <g key={i}>
+                <line x1={left} x2={left + innerW} y1={y(value)} y2={y(value)} stroke="#efefed" strokeDasharray={i === 0 ? undefined : "3 4"} />
+                <text x={left - 8} y={y(value)} textAnchor="end" dominantBaseline="middle" fontSize={11} fill="#9a9a9a">
+                  {formatAxis(value)}
+                </text>
+              </g>
+            );
+          })}
+
+          {labels.map((label, i) => (
+            <text key={label} x={x(i)} y={height - 8} textAnchor={i === 0 ? "start" : i === count - 1 ? "end" : "middle"} fontSize={11} fill="#9a9a9a">
+              {label}
+            </text>
+          ))}
+
+          {active !== null && <line x1={x(active)} x2={x(active)} y1={top} y2={top + innerH} stroke="#d6d6d3" strokeDasharray="3 3" />}
+
+          {series.map((s, i) => (
+            <g key={s.name}>
+              {s.area && <path d={paths[i].area} fill={`url(#${uid}-${i})`} />}
+              <path d={paths[i].line} fill="none" stroke={s.color} strokeWidth={2} strokeLinecap="round" strokeDasharray={s.dashed ? "5 4" : undefined} />
+              {active !== null && <circle cx={x(active)} cy={y(s.data[active])} r={4} fill="#fff" stroke={s.color} strokeWidth={2} />}
+            </g>
+          ))}
+        </svg>
+      )}
+
+      {active !== null && width > 0 && (
+        <div
+          className="pointer-events-none absolute z-10 min-w-[8rem] -translate-x-1/2 rounded-lg border border-[#e8e8e6] bg-white px-2.5 py-2 text-[11px] shadow-md"
+          style={{ left: tooltipLeft, top: 0 }}
+        >
+          <p className="mb-1 font-medium text-[#444]">{labels[active]}</p>
+          {series.map((s) => (
+            <p key={s.name} className="flex items-center justify-between gap-3">
+              <span className="flex items-center gap-1.5 text-[#777]">
+                <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: s.color }} />
+                {s.name}
+              </span>
+              <span className="font-semibold text-[#222] tabular-nums">{formatValue(s.data[active])}</span>
+            </p>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
-function RevenueStat({
-  label,
-  value,
-  change,
-  border,
-}: {
-  label: string;
-  value: string;
-  change: string;
-  border?: boolean;
-}) {
+function LegendDot({ color, label }: { color: string; label: string }) {
   return (
-    <div
-      className={`px-3 py-2.5 sm:px-4 ${border ? "border-l border-[#eeeeee]" : ""}`}
-    >
-      <p className="text-[7px] text-[#888]">{label}</p>
-      <div className="mt-1 flex items-center gap-1.5">
-        <span className="text-[9px] font-semibold">{value}</span>
-        <span className="text-[6px] font-semibold text-[#0a9a5c]">
-          {change}
-        </span>
+    <span className="flex items-center gap-1.5">
+      <span className={`h-2 w-2 rounded-full ${color}`} />
+      {label}
+    </span>
+  );
+}
+
+function MetricCard({ title, value, icon, iconClass, change, description }: { title: string; value: string; icon: ReactNode; iconClass: string; change: string; description: string }) {
+  const positive = !change.startsWith("-");
+
+  return (
+    <div className={`${CARD} min-h-20 px-3.5 py-3`}>
+      <div className="flex items-start justify-between gap-2">
+        <span className="text-xs text-[#666]">{title}</span>
+        <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md ${iconClass}`}>{icon}</span>
+      </div>
+
+      <div className="mt-1 truncate text-lg font-semibold tracking-tight tabular-nums sm:text-xl">{value}</div>
+
+      <div className="mt-1 flex flex-wrap items-center gap-x-1.5 text-[11px]">
+        <span className={`font-semibold ${positive ? "text-[#0a9a5c]" : "text-[#e33e3e]"}`}>{change}</span>
+        <span className="text-[#a0a0a0]">{description}</span>
+      </div>
+    </div>
+  );
+}
+
+function RevenueStat({ label, value, change, bordered }: { label: string; value: string; change: string; bordered?: boolean }) {
+  const positive = !change.startsWith("-");
+
+  return (
+    <div className={`px-4 py-3 ${bordered ? "border-t border-[#eeeeee] sm:border-t-0 sm:border-l" : ""}`}>
+      <p className="text-xs text-[#888]">{label}</p>
+      <div className="mt-1 flex flex-wrap items-baseline gap-x-2">
+        <span className="text-sm font-semibold">{value}</span>
+        <span className={`text-[11px] font-semibold ${positive ? "text-[#0a9a5c]" : "text-[#e33e3e]"}`}>{change}</span>
       </div>
     </div>
   );
 }
 
 function QuickActions() {
-  const actions = [
-    { label: "Add Product", icon: <Plus size={11} /> },
-    { label: "Create Coupon", icon: <Tag size={11} /> },
-    { label: "View Orders", icon: <ShoppingCart size={11} /> },
-    { label: "Add Inventory", icon: <Package size={11} /> },
-    { label: "Send Promotion", icon: <Send size={11} /> },
-  ];
-
   return (
-    <div className="rounded-xl border border-[#e8e8e6] bg-white p-4 shadow-[0_2px_8px_rgba(0,0,0,0.035)]">
-      <h2 className="text-[11px] font-semibold">Quick Actions</h2>
-      <p className="mt-0.5 text-[8px] text-[#999]">Common operations tasks</p>
+    <div className={`${CARD} p-4`}>
+      <h2 className="text-sm font-semibold">Quick Actions</h2>
+      <p className="mt-0.5 text-xs text-[#777]">Common operations tasks</p>
 
-      <div className="mt-3 space-y-1.5">
-        {actions.map((action) => (
+      <div className="mt-3 space-y-2">
+        {QUICK_ACTIONS.map(({ label, icon: Icon }) => (
           <button
-            key={action.label}
-            className="group flex h-8 w-full items-center justify-between rounded-lg border border-[#eeeeee] bg-white px-2.5 text-left transition hover:border-[#f5b69a] hover:bg-[#fffaf7]"
+            key={label}
+            type="button"
+            className="group flex h-9 w-full items-center justify-between rounded-lg border border-[#eeeeee] bg-white px-3 text-left transition hover:border-[#f5b69a] hover:bg-[#fffaf7]"
           >
-            <span className="flex items-center gap-2">
+            <span className="flex items-center gap-2.5">
               <span className="flex h-5 w-5 items-center justify-center rounded-md bg-[#fff1ea] text-[#f26422]">
-                {action.icon}
+                <Icon size={12} />
               </span>
-              <span className="text-[8px] font-medium text-[#555]">
-                {action.label}
-              </span>
+              <span className="text-xs font-medium text-[#555]">{label}</span>
             </span>
-            <ArrowRight
-              size={11}
-              className="text-[#aaa] transition group-hover:translate-x-0.5"
-            />
+            <ArrowRight size={12} className="text-[#aaa] transition group-hover:translate-x-0.5" />
           </button>
         ))}
       </div>
@@ -488,182 +598,121 @@ function QuickActions() {
   );
 }
 
-function RecentOrdersPanel({
-  orders,
-  loading,
-}: {
-  orders: Order[];
-  loading: boolean;
-}) {
+function SkeletonRows({ count, height }: { count: number; height: string }) {
   return (
-    <div className="rounded-xl border border-[#e8e8e6] bg-white p-4 shadow-[0_2px_8px_rgba(0,0,0,0.035)]">
-      <div className="flex items-start justify-between">
-        <div>
-          <h2 className="text-[11px] font-semibold">Recent Orders</h2>
-          <p className="mt-0.5 text-[8px] text-[#999]">
-            Latest customer activity across the storefront
-          </p>
+    <div className="mt-3 space-y-2">
+      {Array.from({ length: count }, (_, i) => (
+        <div key={i} className={`${height} w-full animate-pulse rounded bg-[#f2f2f0]`} />
+      ))}
+    </div>
+  );
+}
+
+function RecentOrdersPanel({ orders, loading }: { orders: Order[]; loading: boolean }) {
+  return (
+    <div className={`${CARD} p-4`}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="text-sm font-semibold">Recent Orders</h2>
+          <p className="mt-0.5 text-xs text-[#777]">Latest customer activity across the storefront</p>
         </div>
-        <a
-          href="/admin/orders"
-          className="text-[8px] font-medium text-[#f26422]"
-        >
+        <Link href="/admin/orders" className="shrink-0 text-xs font-medium text-[#f26422]">
           View all →
-        </a>
+        </Link>
       </div>
 
       {loading ? (
-        <div className="mt-3 space-y-2">
-          {[1, 2, 3, 4].map((i) => (
-            <div
-              key={i}
-              className="h-6 w-full animate-pulse rounded bg-[#f2f2f0]"
-            />
-          ))}
-        </div>
+        <SkeletonRows count={4} height="h-8" />
       ) : !orders.length ? (
         <div className="py-8 text-center">
           <Inbox className="mx-auto text-[#ccc]" size={20} />
-          <p className="mt-2 text-[9px] font-medium text-[#555]">
-            No orders yet
-          </p>
+          <p className="mt-2 text-xs font-medium text-[#555]">No orders yet</p>
         </div>
       ) : (
-        <div className="mt-3 space-y-1">
+        <ul className="mt-3 divide-y divide-[#f2f2f0]">
           {orders.map((order, index) => (
-            <div
-              key={order.id}
-              className="grid grid-cols-[22px_minmax(120px,1fr)_minmax(80px,1fr)_65px] items-center gap-2 py-1"
-            >
-              <span className="flex h-5 w-5 items-center justify-center rounded-md bg-[#f5f5f4] text-[7px] font-semibold text-[#888]">
-                {index + 1}
-              </span>
+            <li key={order.id} className="grid grid-cols-[24px_minmax(0,1fr)_auto] items-center gap-3 py-2.5 sm:grid-cols-[24px_minmax(0,1.2fr)_minmax(0,1fr)_auto]">
+              <span className="flex h-6 w-6 items-center justify-center rounded-md bg-[#f5f5f4] text-[11px] font-semibold text-[#888]">{index + 1}</span>
+
               <div className="min-w-0">
-                <p className="truncate text-[8px] font-medium">
-                  {order.customerName}
-                </p>
-                <p className="text-[7px] text-[#aaa]">{order.id}</p>
+                <p className="truncate text-xs font-medium">{order.customerName}</p>
+                <p className="truncate text-[11px] text-[#aaa]">{order.id}</p>
               </div>
-              <div>
-                <p className="text-[7px] text-[#aaa]">{order.status}</p>
-              </div>
+
+              <p className="hidden truncate text-[11px] text-[#888] sm:block">{order.status}</p>
+
               <div className="text-right">
-                <p className="text-[8px] font-semibold">{naira(order.total)}</p>
-                <p className="text-[6px] text-[#aaa]">
-                  {relativeTime(order.createdAt as unknown as string)}
-                </p>
+                <p className="text-xs font-semibold">{naira(order.total)}</p>
+                <p className="text-[11px] text-[#aaa]">{relativeTime(order.createdAt as unknown as string)}</p>
               </div>
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
     </div>
   );
 }
 
-function RecentActivity({
-  orders,
-  loading,
-}: {
-  orders: Order[];
-  loading: boolean;
-}) {
+function RecentActivity({ orders, loading }: { orders: Order[]; loading: boolean }) {
   return (
-    <div className="rounded-xl border border-[#e8e8e6] bg-white p-4 shadow-[0_2px_8px_rgba(0,0,0,0.035)]">
-      <h2 className="text-[11px] font-semibold">Recent Customer Activity</h2>
-      <p className="mt-0.5 text-[8px] text-[#999]">
-        Live feed across storefront and support
-      </p>
+    <div className={`${CARD} p-4`}>
+      <h2 className="text-sm font-semibold">Recent Customer Activity</h2>
+      <p className="mt-0.5 text-xs text-[#777]">Live feed across storefront and support</p>
 
       {loading ? (
-        <div className="mt-3 space-y-2">
-          {[1, 2, 3, 4].map((i) => (
-            <div
-              key={i}
-              className="h-4 w-full animate-pulse rounded bg-[#f2f2f0]"
-            />
-          ))}
-        </div>
+        <SkeletonRows count={4} height="h-8" />
       ) : !orders.length ? (
-        <p className="mt-3 text-[8px] text-[#aaa]">No recent activity.</p>
+        <p className="mt-3 text-xs text-[#aaa]">No recent activity.</p>
       ) : (
-        <div className="mt-3 space-y-2">
+        <ul className="mt-3 space-y-3">
           {orders.slice(0, 6).map((order, i) => (
-            <div key={order.id} className="flex items-center gap-2">
-              <span
-                className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[6px] font-semibold text-white ${AVATAR_COLORS[i % AVATAR_COLORS.length]}`}
-              >
+            <li key={order.id} className="flex items-center gap-3">
+              <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold text-white ${AVATAR_COLORS[i % AVATAR_COLORS.length]}`}>
                 {order.customerName?.charAt(0).toUpperCase() ?? "?"}
               </span>
               <div className="min-w-0">
-                <p className="truncate text-[8px] text-[#444]">
-                  <span className="font-medium">{order.customerName}</span>{" "}
-                  {statusCopy[order.status] ?? "updated an order"}
+                <p className="truncate text-xs text-[#444]">
+                  <span className="font-medium">{order.customerName}</span> {STATUS_COPY[order.status] ?? "updated an order"}
                 </p>
-                <p className="text-[6px] text-[#aaa]">
-                  {order.id} · {naira(order.total)} ·{" "}
-                  {relativeTime(order.createdAt as unknown as string)}
+                <p className="truncate text-[11px] text-[#aaa]">
+                  {order.id} · {naira(order.total)} · {relativeTime(order.createdAt as unknown as string)}
                 </p>
               </div>
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
     </div>
   );
 }
 
 function TopCategories() {
-  const categories = [
-    { name: "Beef", percentage: "32%" },
-    { name: "Chicken", percentage: "26%" },
-    { name: "Seafood", percentage: "16%" },
-    { name: "Goat", percentage: "11%" },
-    { name: "Sausages", percentage: "9%" },
-    { name: "Other", percentage: "6%" },
-  ];
-
   return (
-    <div className="rounded-xl border border-[#e8e8e6] bg-white p-4 shadow-[0_2px_8px_rgba(0,0,0,0.035)]">
-      <h2 className="text-[11px] font-semibold">Top Categories</h2>
-      <p className="mt-0.5 text-[8px] text-[#999]">
-        Revenue share, last 30 days
-      </p>
+    <div className={`${CARD} p-4`}>
+      <h2 className="text-sm font-semibold">Top Categories</h2>
+      <p className="mt-0.5 text-xs text-[#777]">Revenue share, last 30 days</p>
 
-      <div className="mt-4 flex items-center gap-5">
-        <div
-          className="relative h-25 w-25 shrink-0 rounded-full"
-          style={{
-            background:
-              "conic-gradient(#7d3038 0deg 115deg, #f26422 115deg 209deg, #b5b2a8 209deg 267deg, #8f8b82 267deg 307deg, #d7a067 307deg 339deg, #d8d8d8 339deg 360deg)",
-          }}
-        >
-          <div className="absolute inset-5.75 flex items-center justify-center rounded-full bg-white">
-            <div className="text-center">
-              <p className="text-[13px] font-bold">100%</p>
-              <p className="text-[6px] text-[#999]">Revenue</p>
+      <div className="mt-4 flex flex-col items-center gap-5 sm:flex-row">
+        <div className="relative h-24 w-24 shrink-0 rounded-full" style={{ background: CATEGORY_GRADIENT }}>
+          <div className="absolute inset-5 flex items-center justify-center rounded-full bg-white">
+            <div className="text-center leading-tight">
+              <p className="text-sm font-semibold">100%</p>
+              <p className="text-[11px] text-[#777]">Revenue</p>
             </div>
           </div>
         </div>
 
-        <div className="flex-1 space-y-2">
-          {categories.map((category, index) => (
-            <div
-              key={category.name}
-              className="flex items-center justify-between gap-2"
-            >
-              <span className="flex items-center gap-1.5 text-[7px] text-[#555]">
-                <span
-                  className={`h-1.5 w-1.5 rounded-[1px] ${["bg-[#7d3038]", "bg-[#f26422]", "bg-[#b5b2a8]", "bg-[#8f8b82]", "bg-[#d7a067]", "bg-[#d8d8d8]"][index]}`}
-                />
-                {category.name}
+        <ul className="w-full flex-1 space-y-2">
+          {CATEGORIES.map(({ name, share, color }) => (
+            <li key={name} className="flex items-center justify-between gap-2">
+              <span className="flex items-center gap-2 text-xs text-[#555]">
+                <span className="h-2.5 w-2.5 rounded-xs" style={{ backgroundColor: color }} />
+                {name}
               </span>
-              <span className="text-[7px] font-semibold">
-                {category.percentage}
-              </span>
-            </div>
+              <span className="text-xs font-semibold">{share}%</span>
+            </li>
           ))}
-        </div>
+        </ul>
       </div>
     </div>
   );

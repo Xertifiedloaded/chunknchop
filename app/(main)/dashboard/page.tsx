@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import useSWR from "swr";
 import { Button } from "@/components/ui/button";
-import { useAuthStore } from "@/lib/store/authStore";
-import { fetchWithAuth } from "@/lib/fetchClient";
+import { useAuthStore } from "@/store/authStore";
+import { fetchWithAuth } from "@/lib/http/fetchClient";
 
 interface DashboardStats {
   totalOrders: number;
@@ -27,10 +27,7 @@ export default function CustomerDashboard() {
     return res.json();
   };
 
-  const { data: stats, error } = useSWR<DashboardStats>(
-    isHydrated && user ? "/api/customer/dashboard" : null,
-    fetcher,
-  );
+  const { data: stats, error } = useSWR<DashboardStats>(isHydrated && user ? "/api/customer/dashboard" : null, fetcher);
 
   useEffect(() => {
     setIsLoading(false);
@@ -47,68 +44,47 @@ export default function CustomerDashboard() {
   }
 
   return (
-    <div className="bg-background min-h-screen p-4 md:p-8">
+    <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="mx-auto max-w-6xl">
-        {/* Header */}
         <div className="mb-8">
-          <h1 className="text-foreground mb-2 text-3xl font-bold">
-            Your Dashboard
-          </h1>
-          <p className="text-muted-foreground">
-            Welcome back! Here&apos;s your account overview.
-          </p>
+          <h1 className="mb-2 text-3xl font-bold text-foreground">Your Dashboard</h1>
+          <p className="text-muted-foreground">Welcome back! Here&apos;s your account overview.</p>
         </div>
 
-        {/* Stats Grid */}
         <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3">
-          <div className="bg-card border-border rounded-lg border p-6">
+          <div className="rounded-lg border border-border bg-card p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-muted-foreground mb-1 text-sm">
-                  Total Orders
-                </p>
-                <p className="text-foreground text-2xl font-bold">
-                  {isLoading ? "-" : stats?.totalOrders || 0}
-                </p>
+                <p className="mb-1 text-sm text-muted-foreground">Total Orders</p>
+                <p className="text-2xl font-bold text-foreground">{isLoading ? "-" : stats?.totalOrders || 0}</p>
               </div>
-              <div className="text-muted-foreground text-4xl">📦</div>
+              <div className="text-4xl text-muted-foreground">📦</div>
             </div>
           </div>
 
-          <div className="bg-card border-border rounded-lg border p-6">
+          <div className="rounded-lg border border-border bg-card p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-muted-foreground mb-1 text-sm">
-                  Total Spent
-                </p>
-                <p className="text-foreground text-2xl font-bold">
-                  ${isLoading ? "-" : (stats?.totalSpent || 0).toFixed(2)}
-                </p>
+                <p className="mb-1 text-sm text-muted-foreground">Total Spent</p>
+                <p className="text-2xl font-bold text-foreground">${isLoading ? "-" : (stats?.totalSpent || 0).toFixed(2)}</p>
               </div>
-              <div className="text-muted-foreground text-4xl">💳</div>
+              <div className="text-4xl text-muted-foreground">💳</div>
             </div>
           </div>
 
-          <div className="bg-card border-border rounded-lg border p-6">
+          <div className="rounded-lg border border-border bg-card p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-muted-foreground mb-1 text-sm">
-                  Active Subscriptions
-                </p>
-                <p className="text-foreground text-2xl font-bold">
-                  {isLoading ? "-" : stats?.activeSubscriptions || 0}
-                </p>
+                <p className="mb-1 text-sm text-muted-foreground">Active Subscriptions</p>
+                <p className="text-2xl font-bold text-foreground">{isLoading ? "-" : stats?.activeSubscriptions || 0}</p>
               </div>
-              <div className="text-muted-foreground text-4xl">🔄</div>
+              <div className="text-4xl text-muted-foreground">🔄</div>
             </div>
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <div className="bg-card border-border mb-8 rounded-lg border p-6">
-          <h2 className="text-foreground mb-4 text-lg font-semibold">
-            Quick Actions
-          </h2>
+        <div className="mb-8 rounded-lg border border-border bg-card p-6">
+          <h2 className="mb-4 text-lg font-semibold text-foreground">Quick Actions</h2>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
             <Link href="/cart">
               <Button variant="outline" className="w-full">
@@ -133,35 +109,21 @@ export default function CustomerDashboard() {
           </div>
         </div>
 
-        {/* Recent Orders */}
-        <div className="bg-card border-border rounded-lg border p-6">
-          <h2 className="text-foreground mb-4 text-lg font-semibold">
-            Recent Orders
-          </h2>
+        <div className="rounded-lg border border-border bg-card p-6">
+          <h2 className="mb-4 text-lg font-semibold text-foreground">Recent Orders</h2>
           {isLoading ? (
             <p className="text-muted-foreground">Loading...</p>
           ) : stats?.recentOrders && stats.recentOrders.length > 0 ? (
             <div className="space-y-3">
               {stats.recentOrders.map((order: any) => (
-                <div
-                  key={order.id}
-                  className="border-border flex items-center justify-between rounded border p-3"
-                >
+                <div key={order.id} className="flex items-center justify-between rounded border border-border p-3">
                   <div>
-                    <p className="text-foreground font-medium">
-                      Order #{order.orderNumber}
-                    </p>
-                    <p className="text-muted-foreground text-sm">
-                      {new Date(order.createdAt).toLocaleDateString()}
-                    </p>
+                    <p className="font-medium text-foreground">Order #{order.orderNumber}</p>
+                    <p className="text-sm text-muted-foreground">{new Date(order.createdAt).toLocaleDateString()}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-foreground font-semibold">
-                      ${order.totalAmount.toFixed(2)}
-                    </p>
-                    <p className="text-muted-foreground text-xs capitalize">
-                      {order.status}
-                    </p>
+                    <p className="font-semibold text-foreground">${order.totalAmount.toFixed(2)}</p>
+                    <p className="text-xs text-muted-foreground capitalize">{order.status}</p>
                   </div>
                 </div>
               ))}

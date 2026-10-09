@@ -5,10 +5,10 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Loader2, Lock, Mail, StoreIcon, User2 } from "lucide-react";
 
-import { useAuthStore } from "@/lib/store/authStore";
+import { useAuthStore } from "@/store/authStore";
 import { Button } from "@/components/ui/button";
-import AuthInput from "@/components/auth/AuthInput";
-import type { AuthField } from "@/lib/types";
+import AuthInput from "@/features/auth/components/AuthInput";
+import type { AuthField } from "@/types";
 import Image from "next/image";
 import google from "@/assets/google.png";
 const FIELDS: AuthField[] = [
@@ -57,7 +57,7 @@ export default function SignupPage() {
 
 function Loading() {
   return (
-    <div className="text-muted-foreground flex items-center justify-center gap-2 py-10 text-sm">
+    <div className="flex items-center justify-center gap-2 py-10 text-sm text-muted-foreground">
       <Loader2 className="h-5 w-5 animate-spin" />
       Loading...
     </div>
@@ -81,9 +81,7 @@ function SignupForm() {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
-  ) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
 
     setFormData((prev) => ({
@@ -158,15 +156,14 @@ function SignupForm() {
           password: formData.password,
           role: formData.role,
         }),
-        credentials: "include", // ensure refresh cookie is accepted by the browser
+        credentials: "include",
       });
 
       const data = await response.json();
 
       if (!response.ok) {
         setErrors({
-          form:
-            data?.error || "Unable to create your account. Please try again.",
+          form: data?.error || "Unable to create your account. Please try again.",
         });
 
         return;
@@ -195,19 +192,12 @@ function SignupForm() {
   return (
     <>
       <div className="mb-7 text-center">
-        <h2 className="font-sora text-2xl font-bold sm:text-2xl">
-          Create Your Account
-        </h2>
+        <h2 className="font-sora text-2xl font-bold sm:text-2xl">Create Your Account</h2>
 
-        <p className="text-muted-foreground mt-2 text-xs">
-          Join ChunkNChop and start shopping today
-        </p>
+        <p className="mt-2 text-xs text-muted-foreground">Join ChunkNChop and start shopping today</p>
       </div>
       {errors.form && (
-        <div
-          role="alert"
-          className="border-destructive/20 bg-destructive/10 text-destructive mb-5 rounded-lg border px-4 py-3 text-sm"
-        >
+        <div role="alert" className="mb-5 rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">
           {errors.form}
         </div>
       )}
@@ -220,47 +210,23 @@ function SignupForm() {
             <label
               className={`flex h-10 cursor-pointer items-center justify-center gap-1.5 rounded-md border px-2 transition ${formData.role === "CUSTOMER" ? "border-primary bg-primary/5 text-primary" : "border-border text-muted-foreground hover:bg-muted/40"}`}
             >
-              <input
-                type="radio"
-                name="role"
-                value="CUSTOMER"
-                checked={formData.role === "CUSTOMER"}
-                onChange={handleInputChange}
-                className="sr-only"
-              />
+              <input type="radio" name="role" value="CUSTOMER" checked={formData.role === "CUSTOMER"} onChange={handleInputChange} className="sr-only" />
 
               <User2 className="h-3 w-3 shrink-0" />
-              <span className="truncate text-[11px] leading-none font-medium">
-                Customer
-              </span>
+              <span className="truncate text-[11px] leading-none font-medium">Customer</span>
             </label>
             <label
               className={`flex h-10 cursor-pointer items-center justify-center gap-1.5 rounded-md border px-2 transition ${formData.role === "SUPPLIER" ? "border-primary bg-primary/5 text-primary" : "border-border text-muted-foreground hover:bg-muted/40"}`}
             >
-              <input
-                type="radio"
-                name="role"
-                value="SUPPLIER"
-                checked={formData.role === "SUPPLIER"}
-                onChange={handleInputChange}
-                className="sr-only"
-              />
+              <input type="radio" name="role" value="SUPPLIER" checked={formData.role === "SUPPLIER"} onChange={handleInputChange} className="sr-only" />
 
               <StoreIcon className="h-3 w-3 shrink-0" />
-              <span className="truncate text-[11px] leading-none font-medium">
-                Supplier
-              </span>
+              <span className="truncate text-[11px] leading-none font-medium">Supplier</span>
             </label>
           </div>
         </div>
         {FIELDS.map((field) => (
-          <AuthInput
-            key={field.name}
-            {...field}
-            value={formData[field.name as keyof typeof formData]}
-            error={errors[field.name]}
-            onChange={handleInputChange}
-          />
+          <AuthInput key={field.name} {...field} value={formData[field.name as keyof typeof formData]} error={errors[field.name]} onChange={handleInputChange} />
         ))}
 
         <Button type="submit" disabled={loading} className="h-11 w-full">
@@ -273,31 +239,19 @@ function SignupForm() {
             "Create Account"
           )}
         </Button>
-        <fieldset className="border-sand border-0 border-t">
-          <legend className="text-ink mx-auto px-3 text-xs font-medium tracking-wide uppercase">
-            Or
-          </legend>
+        <fieldset className="border-0 border-t border-sand">
+          <legend className="mx-auto px-3 text-xs font-medium tracking-wide text-ink uppercase">Or</legend>
         </fieldset>
-        <Button
-          type="button"
-          variant="outline"
-          className="text-charcoal hover:text-charcoal animate-out h-11 w-full border-[#E5E7EB] bg-white text-sm font-bold transition-all hover:bg-gray-50"
-        >
-          <Image
-            src={google}
-            alt="Google"
-            width={18}
-            height={18}
-            className="mr-2"
-          />
+        <Button type="button" variant="outline" className="h-11 w-full animate-out border-[#E5E7EB] bg-white text-sm font-bold text-charcoal transition-all hover:bg-gray-50 hover:text-charcoal">
+          <Image src={google} alt="Google" width={18} height={18} className="mr-2" />
           Continue with Google
         </Button>
       </form>
 
       <div className="mt-6 text-center">
-        <p className="text-charcoal font-sora text-xs">
+        <p className="font-sora text-xs text-charcoal">
           Already have an account?{" "}
-          <Link className="text-brand font-bold" href="/auth/login">
+          <Link className="font-bold text-brand" href="/auth/login">
             Sign In
           </Link>
         </p>

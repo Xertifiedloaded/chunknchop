@@ -1,20 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Activity,
-  ChevronDown,
-  CircleAlert,
-  Clock3,
-  Gauge,
-  MapPin,
-  Package,
-  Plus,
-  Scissors,
-  Snowflake,
-  Thermometer,
-  UserRound,
-} from "lucide-react";
+import { Activity, ChevronDown, CircleAlert, Clock3, Gauge, MapPin, Package, Plus, Scissors, Snowflake, Thermometer, UserRound } from "lucide-react";
 
 type Order = {
   name: string;
@@ -217,11 +204,7 @@ function PriorityBadge({ priority }: { priority: Order["priority"] }) {
     <span
       className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-semibold capitalize ${priority === "express" ? "bg-[#fff0eb] text-[#ef5b2a]" : priority === "urgent" ? "bg-[#fff0f0] text-[#ef4444]" : "bg-[#ebe9e7] text-[#4b4743]"}`}
     >
-      {priority !== "standard" && (
-        <span
-          className={`h-1.5 w-1.5 rounded-full ${priority === "urgent" ? "bg-[#ef4444]" : "bg-[#ef5b2a]"}`}
-        />
-      )}
+      {priority !== "standard" && <span className={`h-1.5 w-1.5 rounded-full ${priority === "urgent" ? "bg-[#ef4444]" : "bg-[#ef5b2a]"}`} />}
       {priority}
     </span>
   );
@@ -232,18 +215,14 @@ function OrderCard({ order }: { order: Order }) {
     <div className="rounded-[15px] border border-[#ebe8e5] bg-white p-3.5 shadow-[0_7px_18px_rgba(40,32,25,0.08)]">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <h3 className="font-sora text-ink truncate text-sm font-bold">
-            {order.name}
-          </h3>
-          <p className="font-worksans text-ink mt-0.5 text-[11px]">
-            {order.code}
-          </p>
+          <h3 className="truncate font-sora text-sm font-bold text-ink">{order.name}</h3>
+          <p className="mt-0.5 font-worksans text-[11px] text-ink">{order.code}</p>
         </div>
 
         <PriorityBadge priority={order.priority} />
       </div>
 
-      <div className="font-worksans mt-3 space-y-2 text-[12px] text-[#625a53]">
+      <div className="mt-3 space-y-2 font-worksans text-[12px] text-[#625a53]">
         <div className="flex items-start gap-2">
           <Scissors className="mt-0.5 h-4 w-4 shrink-0 text-[#aaa39d]" />
           <div className="min-w-0">
@@ -266,10 +245,7 @@ function OrderCard({ order }: { order: Order }) {
 
       <div className="mt-3">
         <div className="h-1.5 overflow-hidden rounded-full bg-[#e8e6e4]">
-          <div
-            className="h-full rounded-full bg-[#f15b2a] transition-all"
-            style={{ width: `${order.progress}%` }}
-          />
+          <div className="h-full rounded-full bg-[#f15b2a] transition-all" style={{ width: `${order.progress}%` }} />
         </div>
       </div>
 
@@ -290,13 +266,11 @@ function QueueColumn({ queue }: { queue: Queue }) {
     <div className="w-[85vw] max-w-65 shrink-0 snap-start rounded-sm bg-[#f1f1f0] p-1 sm:w-[260px]">
       <div className="flex items-start justify-between px-1.5 pb-3">
         <div>
-          <h2 className="font-sora text-ink text-sm font-bold">{queue.name}</h2>
+          <h2 className="font-sora text-sm font-bold text-ink">{queue.name}</h2>
           <p className="mt-0.5 text-[11px] text-[#938a83]">{queue.subtitle}</p>
         </div>
 
-        <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-white px-1.5 text-[10px] font-bold text-[#514a44] shadow-sm">
-          {queue.orders.length}
-        </span>
+        <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-white px-1.5 text-[10px] font-bold text-[#514a44] shadow-sm">{queue.orders.length}</span>
       </div>
 
       <div className="space-y-3">
@@ -308,17 +282,7 @@ function QueueColumn({ queue }: { queue: Queue }) {
   );
 }
 
-function StatCard({
-  icon,
-  label,
-  value,
-  valueClassName = "",
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  valueClassName?: string;
-}) {
+function StatCard({ icon, label, value, valueClassName = "" }: { icon: React.ReactNode; label: string; value: string; valueClassName?: string }) {
   return (
     <div className="w-full rounded-[16px] border border-[#ebe8e5] bg-white px-4 py-3 shadow-[0_7px_18px_rgba(40,32,25,0.08)]">
       <div className="flex items-center gap-2 text-[11px] font-medium text-[#8c847d]">
@@ -326,22 +290,13 @@ function StatCard({
         {label}
       </div>
 
-      <div
-        className={`mt-1.5 text-sm font-bold tracking-tight ${valueClassName || "text-[#312d29]"}`}
-      >
-        {value}
-      </div>
+      <div className={`mt-1.5 text-sm font-bold tracking-tight ${valueClassName || "text-[#312d29]"}`}>{value}</div>
     </div>
   );
 }
 
 function StationCard({ station }: { station: Station }) {
-  const barColor =
-    station.color === "red"
-      ? "bg-[#ef4444]"
-      : station.color === "orange"
-        ? "bg-[#f59e0b]"
-        : "bg-[#22c55e]";
+  const barColor = station.color === "red" ? "bg-[#ef4444]" : station.color === "orange" ? "bg-[#f59e0b]" : "bg-[#22c55e]";
 
   return (
     <div className="w-full rounded-[15px] border border-[#e8e3df] bg-white p-4">
@@ -350,18 +305,13 @@ function StationCard({ station }: { station: Station }) {
       <p className="mt-0.5 text-[11px] text-[#968d85]">{station.staff}</p>
 
       <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[#e7e5e3]">
-        <div
-          className={`h-full rounded-full ${barColor}`}
-          style={{ width: `${station.load}%` }}
-        />
+        <div className={`h-full rounded-full ${barColor}`} style={{ width: `${station.load}%` }} />
       </div>
 
       <div className="mt-2 flex items-center justify-between text-[11px]">
         <span className="text-[#8f8780]">{station.load}% load</span>
 
-        <span className="font-semibold text-[#0788d8]">
-          {station.temperature}
-        </span>
+        <span className="font-semibold text-[#0788d8]">{station.temperature}</span>
       </div>
     </div>
   );
@@ -371,18 +321,13 @@ export default function ProcessingQueuePage() {
   const [station, setStation] = useState("All stations");
 
   return (
-    <main className="text-ink min-h-screen bg-[#f7f8f9] px-4 py-6 sm:px-6 lg:px-8">
+    <main className="min-h-screen bg-[#f7f8f9] px-4 py-6 text-ink sm:px-6 lg:px-8">
       <div className="mx-auto max-w-375">
         <header className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
           <div>
-            <h1 className="font-sora text-ink text-sm font-bold tracking-[-0.5px] sm:text-[25px]">
-              Processing Queue
-            </h1>
+            <h1 className="font-sora text-sm font-bold tracking-[-0.5px] text-ink sm:text-[25px]">Processing Queue</h1>
 
-            <p className="text-ink font-worksans mt-2 text-sm sm:text-sm">
-              Every order moving through the ChunkNChop butchery floor — from
-              intake to the dispatch bay.
-            </p>
+            <p className="mt-2 font-worksans text-sm text-ink sm:text-sm">Every order moving through the ChunkNChop butchery floor — from intake to the dispatch bay.</p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
@@ -415,39 +360,15 @@ export default function ProcessingQueuePage() {
         </header>
 
         <section className="mt-7 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-          <StatCard
-            icon={<Scissors className="h-4 w-4 text-[#ef5b2a]" />}
-            label="In queue"
-            value="12"
-            valueClassName="text-[#ef4d25]"
-          />
+          <StatCard icon={<Scissors className="h-4 w-4 text-[#ef5b2a]" />} label="In queue" value="12" valueClassName="text-[#ef4d25]" />
 
-          <StatCard
-            icon={<CircleAlert className="h-4 w-4 text-[#ef3333]" />}
-            label="Urgent jobs"
-            value="1"
-            valueClassName="text-[#ef3333]"
-          />
+          <StatCard icon={<CircleAlert className="h-4 w-4 text-[#ef3333]" />} label="Urgent jobs" value="1" valueClassName="text-[#ef3333]" />
 
-          <StatCard
-            icon={<Clock3 className="h-4 w-4 text-[#3d3834]" />}
-            label="Avg cycle time"
-            value="42 min"
-          />
+          <StatCard icon={<Clock3 className="h-4 w-4 text-[#3d3834]" />} label="Avg cycle time" value="42 min" />
 
-          <StatCard
-            icon={<Thermometer className="h-4 w-4 text-[#00a878]" />}
-            label="QA pass rate"
-            value="98.4%"
-            valueClassName="text-[#00a878]"
-          />
+          <StatCard icon={<Thermometer className="h-4 w-4 text-[#00a878]" />} label="QA pass rate" value="98.4%" valueClassName="text-[#00a878]" />
 
-          <StatCard
-            icon={<Snowflake className="h-4 w-4 text-[#0089d5]" />}
-            label="Cold room temp"
-            value="-18.2°C"
-            valueClassName="text-[#0089d5]"
-          />
+          <StatCard icon={<Snowflake className="h-4 w-4 text-[#0089d5]" />} label="Cold room temp" value="-18.2°C" valueClassName="text-[#0089d5]" />
         </section>
 
         <section className="mt-6">
@@ -462,13 +383,9 @@ export default function ProcessingQueuePage() {
 
         <section className="mt-6 rounded-sm border border-[#ebe8e5] bg-white p-5 shadow-[0_10px_25px_rgba(40,32,25,0.07)] sm:p-6">
           <div>
-            <h2 className="text-[16px] font-bold text-[#342f2b]">
-              Station Load
-            </h2>
+            <h2 className="text-[16px] font-bold text-[#342f2b]">Station Load</h2>
 
-            <p className="mt-1 text-[12px] text-[#918880]">
-              Live utilisation and holding temperature by station
-            </p>
+            <p className="mt-1 text-[12px] text-[#918880]">Live utilisation and holding temperature by station</p>
           </div>
 
           <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">

@@ -2,18 +2,11 @@
 
 import { memo, useEffect, useState } from "react";
 import { Heart } from "lucide-react";
-import { useShopActions } from "@/lib/hooks/useShopActions";
+import { useShopActions } from "@/features/catalog/hooks/useShopActions";
 
-const formatPrice = (price: number | string) =>
-  typeof price === "number" ? `₦${price.toLocaleString("en-NG")}` : price;
+const formatPrice = (price: number | string) => (typeof price === "number" ? `₦${price.toLocaleString("en-NG")}` : price);
 
-function BestSellerCard({
-  product,
-  isWishlisted,
-}: {
-  product: any;
-  isWishlisted: boolean;
-}) {
+function BestSellerCard({ product, isWishlisted }: { product: any; isWishlisted: boolean }) {
   const { addToCart, setWishlisted } = useShopActions();
   const [saved, setSaved] = useState(isWishlisted);
   const [isAdding, setIsAdding] = useState(false);
@@ -40,10 +33,7 @@ function BestSellerCard({
 
   return (
     <article className="bg-white">
-      <div
-        className="relative h-48 bg-cover bg-center"
-        style={{ backgroundImage: `url(${product.images?.[0]})` }}
-      >
+      <div className="relative h-48 bg-cover bg-center" style={{ backgroundImage: `url(${product.images?.[0]})` }}>
         <button
           type="button"
           onClick={handleWishlist}
@@ -52,28 +42,17 @@ function BestSellerCard({
           aria-pressed={saved}
           className="absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 shadow transition hover:scale-105 disabled:opacity-60"
         >
-          <Heart
-            size={16}
-            className={saved ? "fill-brand text-brand" : "text-[#665950]"}
-          />
+          <Heart size={16} className={saved ? "fill-brand text-brand" : "text-[#665950]"} />
         </button>
       </div>
 
       <div className="p-3">
-        <span className="text-xs font-black tracking-[1px] text-brand">
-          {product.category}
-        </span>
-        <h3 className="mt-1 font-impact text-[15px] capitalize">
-          {product.name}
-        </h3>
+        <span className="text-xs font-black tracking-[1px] text-brand">{product.category}</span>
+        <h3 className="mt-1 font-impact text-[15px] capitalize">{product.name}</h3>
 
-        <p className="mt-1 line-clamp-2 min-h-8.5 text-xs leading-relaxed text-[#75675e]">
-          {product.description}
-        </p>
+        <p className="mt-1 line-clamp-2 min-h-8.5 text-xs leading-relaxed text-[#75675e]">{product.description}</p>
 
-        <strong className="mt-2 block font-impact text-[16px]">
-          {formatPrice(product.basePrice)}
-        </strong>
+        <strong className="mt-2 block font-impact text-[16px]">{formatPrice(product.basePrice)}</strong>
 
         <button
           type="button"

@@ -1,30 +1,11 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { fetchWithAuth } from "@/lib/fetchClient";
-import ProductModal from "@/components/sections/shops/ProductModal";
-import {
-  ArrowDownToLine,
-  ArrowUpFromLine,
-  Copy,
-  Ellipsis,
-  Filter,
-  Grid2X2,
-  List,
-  Loader2,
-  PackageX,
-  Pencil,
-  Plus,
-  Search,
-  Trash2,
-} from "lucide-react";
+import { Inter } from "next/font/google";
+import { ArrowDownToLine, ArrowUpFromLine, Copy, Ellipsis, Filter, Grid2X2, List, Loader2, PackageX, Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { fetchWithAuth } from "@/lib/http/fetchClient";
+import ProductModal from "@/features/catalog/components/ProductModal";
 
 interface Product {
   id: string;
@@ -39,6 +20,17 @@ interface Product {
   isBestSeller: boolean;
 }
 
+type AvailabilityType = "success" | "warning" | "danger";
+type ViewMode = "list" | "grid";
+type ModalState = { mode: "create" | "edit"; productId?: string } | null;
+
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+});
+
+const LOW_STOCK_THRESHOLD = 20;
+
 const MEAT_EMOJI: Record<string, string> = {
   BEEF: "🥩",
   CHICKEN: "🍗",
@@ -50,122 +42,168 @@ const MEAT_EMOJI: Record<string, string> = {
   BBQ: "🥩",
 };
 
-function emojiFor(meatType: string) {
-  return MEAT_EMOJI[meatType?.toUpperCase()] ?? "🍖";
-}
+const BADGE_STYLES: Record<AvailabilityType, { pill: string; dot: string }> = {
+  success: { pill: "bg-[#e9faf2] text-[#09965c]", dot: "bg-[#12b76a]" },
+  warning: { pill: "bg-[#fff7df] text-[#d98400]", dot: "bg-[#f59e0b]" },
+  danger: { pill: "bg-[#ffeded] text-[#ed3b3b]", dot: "bg-[#ef4444]" },
+};
 
-function formatNaira(amount: number) {
-  return `₦${amount.toLocaleString("en-NG")}`;
-}
+const TABLE_HEADERS = ["Product", "SKU", "Category", "Price", "Stock", "Availability", "Rating", ""];
 
-function skuFor(product: Product) {
-  return `CNC-${product.meatType?.slice(0, 3).toUpperCase() ?? "GEN"}-${product.id.replace(/-/g, "").slice(-4).toUpperCase()}`;
-}
+const OUTLINE_BUTTON =
+  "flex h-9 items-center justify-center gap-1.5 rounded-lg border border-[#dedbd7] bg-white px-3 text-xs font-medium whitespace-nowrap text-[#343434] transition hover:bg-[#fafafa]";
 
-type AvailabilityType = "success" | "warning" | "danger";
+const FIELD = "h-9 rounded-lg border border-[#dedbd7] bg-white text-xs text-[#333] outline-none focus:border-[#c8c5c1]";
+
+const emojiFor = (meatType: string) => MEAT_EMOJI[meatType?.toUpperCase()] ?? "🍖";
+
+const formatNaira = (amount: number) => `₦${amount.toLocaleString("en-NG")}`;
+
+const skuFor = (product: Product) => `CNC-${product.meatType?.slice(0, 3).toUpperCase() ?? "GEN"}-${product.id.replace(/-/g, "").slice(-4).toUpperCase()}`;
 
 function availabilityFor(product: Product): {
   label: string;
   type: AvailabilityType;
 } {
-  if (!product.inStock || product.stock <= 0) {
-    return {
-      label: "Out of stock",
-      type: "danger",
-    };
-  }
-
-  if (product.stock <= 20) {
-    return {
-      label: "Low stock",
-      type: "warning",
-    };
-  }
-
-  return {
-    label: "In stock",
-    type: "success",
-  };
+  if (!product.inStock || product.stock <= 0) return { label: "Out of stock", type: "danger" };
+  if (product.stock <= LOW_STOCK_THRESHOLD) return { label: "Low stock", type: "warning" };
+  return { label: "In stock", type: "success" };
 }
 
 function ProductImage({ emoji, index }: { emoji: string; index: number }) {
-  return (
-    <div
-      className={`flex h-[28px] w-[28px] shrink-0 items-center justify-center overflow-hidden rounded-[11px] bg-[#f0f0ee] text-[16px] ${index % 2 === 0 ? "-rotate-2" : "rotate-2"}`}
-    >
-      {emoji}
-    </div>
-  );
+  return <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#f0f0ee] text-lg ${index % 2 === 0 ? "-rotate-2" : "rotate-2"}`}>{emoji}</div>;
 }
 
-function AvailabilityBadge({
-  type,
-  children,
-}: {
-  type: AvailabilityType;
-  children: ReactNode;
-}) {
-  const styles: Record<AvailabilityType, string> = {
-    success: "bg-[#e9faf2] text-[#09965c]",
-    warning: "bg-[#fff7df] text-[#d98400]",
-    danger: "bg-[#ffeded] text-[#ed3b3b]",
-  };
-
-  const dots: Record<AvailabilityType, string> = {
-    success: "bg-[#12b76a]",
-    warning: "bg-[#f59e0b]",
-    danger: "bg-[#ef4444]",
-  };
+function AvailabilityBadge({ type, children }: { type: AvailabilityType; children: ReactNode }) {
+  const { pill, dot } = BADGE_STYLES[type];
 
   return (
-    <span
-      className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-[3px] text-[8px] leading-none font-medium whitespace-nowrap ${styles[type]}`}
-    >
-      <span className={`h-1 w-1 shrink-0 rounded-full ${dots[type]}`} />
+    <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2 py-1 text-[11px] leading-none font-medium whitespace-nowrap ${pill}`}>
+      <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${dot}`} />
       {children}
     </span>
   );
 }
 
-function RatingBadge({
-  rating,
-  reviewCount,
-}: {
-  rating: number;
-  reviewCount: number;
-}) {
+function RatingBadge({ rating, reviewCount }: { rating: number; reviewCount: number }) {
   return (
-    <span className="inline-flex shrink-0 items-center gap-1 text-[8px] leading-none whitespace-nowrap text-[#46433f]">
-      <span className="text-[11px] leading-none text-[#f59e0b]">★</span>
-
+    <span className="inline-flex shrink-0 items-center gap-1 text-xs leading-none whitespace-nowrap text-[#46433f]">
+      <span className="text-sm leading-none text-[#f59e0b]">★</span>
       {rating.toFixed(1)}
-
       <span className="text-[#b7b3ae]">({reviewCount})</span>
     </span>
   );
 }
 
-function ActionButton({
-  children,
-  onClick,
-  disabled,
-  label,
-}: {
-  children: ReactNode;
-  onClick?: () => void;
-  disabled?: boolean;
-  label?: string;
-}) {
+function ActionButton({ children, onClick, disabled, label }: { children: ReactNode; onClick?: () => void; disabled?: boolean; label: string }) {
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
       aria-label={label}
-      className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-[#8c8984] transition hover:bg-[#f4f3f1] hover:text-[#333] disabled:cursor-not-allowed disabled:opacity-50"
+      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-[#8c8984] transition hover:bg-[#f4f3f1] hover:text-[#333] disabled:cursor-not-allowed disabled:opacity-50"
     >
       {children}
     </button>
+  );
+}
+
+function ProductName({ product }: { product: Product }) {
+  return (
+    <div className="flex min-w-0 items-center gap-1.5">
+      <span className="truncate text-sm font-semibold text-[#292929]">{product.name}</span>
+      {product.isBestSeller && <span className="shrink-0 text-xs leading-none text-[#f59e0b]">★</span>}
+      {product.isNewArrival && <span className="shrink-0 rounded-full bg-[#e9faf2] px-1.5 py-0.5 text-[11px] leading-none font-medium text-[#09965c]">New</span>}
+    </div>
+  );
+}
+
+function RowActions({ product, deleting, onEdit, onDelete }: { product: Product; deleting: boolean; onEdit: () => void; onDelete: () => void }) {
+  return (
+    <div className="flex items-center justify-end gap-0.5">
+      <ActionButton label={`Edit ${product.name}`} onClick={onEdit}>
+        <Pencil size={14} strokeWidth={1.7} />
+      </ActionButton>
+      <ActionButton label={`Duplicate ${product.name}`}>
+        <Copy size={14} strokeWidth={1.7} />
+      </ActionButton>
+      <ActionButton label="More options">
+        <Ellipsis size={15} strokeWidth={1.7} />
+      </ActionButton>
+      <ActionButton label={`Delete ${product.name}`} disabled={deleting} onClick={onDelete}>
+        {deleting ? <Loader2 size={14} strokeWidth={1.7} className="animate-spin" /> : <Trash2 size={14} strokeWidth={1.7} />}
+      </ActionButton>
+    </div>
+  );
+}
+
+function EmptyState({ hasProducts, onCreate }: { hasProducts: boolean; onCreate: () => void }) {
+  return (
+    <div className="flex flex-col items-center gap-2 px-4 py-12 text-center">
+      <PackageX size={28} strokeWidth={1.5} className="text-[#c8c5c1]" />
+      <p className="text-sm font-medium text-[#46433f]">{hasProducts ? "No products match your filters" : "No products yet"}</p>
+      <p className="text-xs text-[#99958f]">{hasProducts ? "Try a different search term or category filter." : "Add your first product to get the catalogue started."}</p>
+      {!hasProducts && (
+        <button type="button" onClick={onCreate} className="mt-1 flex h-9 items-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-medium text-white transition hover:opacity-90">
+          <Plus size={14} strokeWidth={2.5} />
+          Add product
+        </button>
+      )}
+    </div>
+  );
+}
+
+function SkeletonRows() {
+  return (
+    <div className="divide-y divide-[#efeeec]">
+      {Array.from({ length: 6 }, (_, i) => (
+        <div key={i} className="flex items-center gap-3 px-4 py-3">
+          <div className="h-9 w-9 animate-pulse rounded-xl bg-[#f0f0ee]" />
+          <div className="h-3 w-40 animate-pulse rounded bg-[#f0f0ee]" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ProductCard({ product, index, deleting, onEdit, onDelete }: { product: Product; index: number; deleting: boolean; onEdit: () => void; onDelete: () => void }) {
+  const availability = availabilityFor(product);
+
+  return (
+    <article className="flex flex-col gap-3 rounded-xl border border-[#e7e5e2] bg-white p-3.5">
+      <div className="flex items-center gap-3">
+        <ProductImage emoji={emojiFor(product.meatType)} index={index} />
+        <div className="min-w-0 flex-1">
+          <ProductName product={product} />
+          <p className="mt-1 truncate font-mono text-[11px] text-[#696661]">{skuFor(product)}</p>
+        </div>
+      </div>
+
+      <dl className="grid grid-cols-3 gap-2 text-xs">
+        <div>
+          <dt className="text-[11px] text-[#99958f]">Category</dt>
+          <dd className="mt-0.5 text-[#46433f]">{product.meatType}</dd>
+        </div>
+        <div>
+          <dt className="text-[11px] text-[#99958f]">Price</dt>
+          <dd className="mt-0.5 font-semibold text-[#343230]">{formatNaira(product.basePrice)}</dd>
+        </div>
+        <div>
+          <dt className="text-[11px] text-[#99958f]">Stock</dt>
+          <dd className="mt-0.5 text-[#46433f]">{product.stock}</dd>
+        </div>
+      </dl>
+
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <AvailabilityBadge type={availability.type}>{availability.label}</AvailabilityBadge>
+        <RatingBadge rating={product.rating} reviewCount={product.reviewCount} />
+      </div>
+
+      <div className="border-t border-[#efeeec] pt-2">
+        <RowActions product={product} deleting={deleting} onEdit={onEdit} onDelete={onDelete} />
+      </div>
+    </article>
   );
 }
 
@@ -177,10 +215,8 @@ export default function AdminProductsPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("ALL");
-  const [modal, setModal] = useState<{
-    mode: "create" | "edit";
-    productId?: string;
-  } | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>("list");
+  const [modal, setModal] = useState<ModalState>(null);
 
   const fetchProducts = useCallback(async () => {
     setError(null);
@@ -188,11 +224,7 @@ export default function AdminProductsPage() {
     try {
       const response = await fetchWithAuth("/api/admin/products");
       const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Could not load products.");
-      }
-
+      if (!response.ok) throw new Error(data.error || "Could not load products.");
       setProducts(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not load products.");
@@ -205,43 +237,27 @@ export default function AdminProductsPage() {
     fetchProducts();
   }, [fetchProducts]);
 
-  // Honor a deep link like /admin/products?edit=<id> (from the old
-  // /admin/products/[id]/edit route, which now redirects here).
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const editId = params.get("edit");
-    if (editId) {
-      setModal({ mode: "edit", productId: editId });
-      router.replace("/admin/products", { scroll: false });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    const editId = new URLSearchParams(window.location.search).get("edit");
+    if (!editId) return;
+    setModal({ mode: "edit", productId: editId });
+    router.replace("/admin/products", { scroll: false });
+  }, [router]);
 
-  const meatTypes = useMemo(
-    () =>
-      Array.from(new Set(products.map((product) => product.meatType))).sort(),
-    [products],
-  );
+  const meatTypes = useMemo(() => Array.from(new Set(products.map((p) => p.meatType))).sort(), [products]);
 
   const filtered = useMemo(() => {
-    const normalizedSearch = search.trim().toLowerCase();
+    const query = search.trim().toLowerCase();
 
     return products.filter((product) => {
-      const matchesSearch =
-        product.name.toLowerCase().includes(normalizedSearch) ||
-        skuFor(product).toLowerCase().includes(normalizedSearch);
-
-      const matchesType =
-        typeFilter === "ALL" || product.meatType === typeFilter;
-
+      const matchesSearch = product.name.toLowerCase().includes(query) || skuFor(product).toLowerCase().includes(query);
+      const matchesType = typeFilter === "ALL" || product.meatType === typeFilter;
       return matchesSearch && matchesType;
     });
   }, [products, search, typeFilter]);
 
   const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Delete "${name}"? This can't be undone.`)) {
-      return;
-    }
+    if (!confirm(`Delete "${name}"? This can't be undone.`)) return;
 
     setDeletingId(id);
     setError(null);
@@ -253,15 +269,12 @@ export default function AdminProductsPage() {
 
       if (!response.ok) {
         const data = await response.json().catch(() => null);
-
         throw new Error(data?.error || "Could not delete this product.");
       }
 
-      setProducts((prev) => prev.filter((product) => product.id !== id));
+      setProducts((prev) => prev.filter((p) => p.id !== id));
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Could not delete this product.",
-      );
+      setError(err instanceof Error ? err.message : "Could not delete this product.");
     } finally {
       setDeletingId(null);
     }
@@ -272,88 +285,76 @@ export default function AdminProductsPage() {
     fetchProducts();
   };
 
-  return (
-    <main className="min-h-screen w-full overflow-x-hidden bg-[#f7f8fa] px-3 py-4 font-sans text-[#292929] sm:px-5 sm:py-5 lg:px-6">
-      <div className="mx-auto w-full max-w-[1600px]">
-        {/* Header */}
-        <header className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-          <div className="min-w-0">
-            <h1 className="text-[16px] leading-5 font-semibold tracking-[-0.25px]">
-              Products
-            </h1>
+  const openCreate = () => setModal({ mode: "create" });
+  const openEdit = (productId: string) => setModal({ mode: "edit", productId });
 
-            <p className="mt-1 max-w-[700px] text-[11px] leading-3.5 text-[#99958f]">
-              Manage the ChunkNChop catalogue — cuts, weights, preparation
-              options and storefront visibility.
-            </p>
+  const showCards = (
+    <div className={`grid grid-cols-1 gap-3 p-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 ${viewMode === "list" ? "md:hidden" : ""}`}>
+      {filtered.map((product, index) => (
+        <ProductCard
+          key={product.id}
+          product={product}
+          index={index}
+          deleting={deletingId === product.id}
+          onEdit={() => openEdit(product.id)}
+          onDelete={() => handleDelete(product.id, product.name)}
+        />
+      ))}
+    </div>
+  );
+
+  return (
+    <main className={`${inter.className} min-h-screen w-full overflow-x-hidden bg-[#f7f8fa] px-3 py-4 text-[#292929] sm:px-5 lg:px-6`}>
+      <div className="mx-auto w-full max-w-[1600px]">
+        <header className="mb-4 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+          <div className="min-w-0">
+            <h1 className="text-lg font-semibold tracking-tight sm:text-xl">Products</h1>
+            <p className="mt-1 max-w-2xl text-xs leading-5 text-[#8d8984]">Manage the ChunkNChop catalogue — cuts, weights, preparation options and storefront visibility.</p>
           </div>
 
-          <div className="grid w-full grid-cols-2 gap-1.5 sm:flex sm:w-auto sm:items-center">
-            <button
-              type="button"
-              className="flex h-[29px] items-center justify-center gap-1.5 rounded-[8px] border border-[#dedbd7] bg-white px-2.5 text-[11px] font-medium whitespace-nowrap text-[#343434] shadow-[0_1px_1px_rgba(0,0,0,0.02)] transition hover:bg-[#fafafa]"
-            >
-              <ArrowUpFromLine size={11} strokeWidth={1.8} />
+          <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:items-center">
+            <button type="button" className={OUTLINE_BUTTON}>
+              <ArrowUpFromLine size={14} strokeWidth={1.8} />
               Import
             </button>
-
-            <button
-              type="button"
-              className="flex h-[29px] items-center justify-center gap-1.5 rounded-[8px] border border-[#dedbd7] bg-white px-2.5 text-[11px] font-medium whitespace-nowrap text-[#343434] shadow-[0_1px_1px_rgba(0,0,0,0.02)] transition hover:bg-[#fafafa]"
-            >
-              <ArrowDownToLine size={11} strokeWidth={1.8} />
+            <button type="button" className={OUTLINE_BUTTON}>
+              <ArrowDownToLine size={14} strokeWidth={1.8} />
               Export
             </button>
-
             <button
               type="button"
-              onClick={() => setModal({ mode: "create" })}
-              className="bg-brand hover:bg-brand col-span-2 flex h-[29px] items-center justify-center gap-1.5 rounded-[8px] px-2.5 text-[11px] font-medium whitespace-nowrap text-white shadow-[0_2px_4px_rgba(242,101,42,0.2)] transition sm:col-span-1"
+              onClick={openCreate}
+              className="col-span-2 flex h-9 items-center justify-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-medium whitespace-nowrap text-white shadow-sm transition hover:opacity-90 sm:col-span-1"
             >
-              <Plus size={11} strokeWidth={2.5} />
+              <Plus size={14} strokeWidth={2.5} />
               Create Product
             </button>
           </div>
         </header>
 
-        {/* Error */}
         {error && (
-          <div className="border-brand/30 mb-3 rounded-[11px] border bg-[#fff4ee] px-3 py-2 text-[11px] leading-3.5 text-[#c4491d]">
+          <div role="alert" className="mb-3 rounded-lg border border-brand/30 bg-[#fff4ee] px-3 py-2.5 text-xs text-[#c4491d]">
             {error}
           </div>
         )}
 
-        {/* Main card */}
-        <section className="w-full overflow-hidden rounded-[14px] border border-[#e7e5e2] bg-white shadow-[0_2px_7px_rgba(0,0,0,0.045)]">
-          {/* Toolbar */}
-          <div className="border-b border-[#eceae7] p-2.5 sm:p-3">
-            <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center">
-              {/* Search */}
+        <section className="w-full overflow-hidden rounded-xl border border-[#e7e5e2] bg-white shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+          <div className="border-b border-[#eceae7] p-3">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
               <div className="relative min-w-0 flex-1">
-                <Search
-                  size={11}
-                  strokeWidth={1.7}
-                  className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-[#aaa]"
-                />
-
+                <Search size={14} strokeWidth={1.8} className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-[#aaa]" />
                 <input
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search products or SKU..."
-                  className="h-[28px] w-full rounded-[8px] border border-[#dedbd7] bg-white pr-2.5 pl-7 text-[11px] text-[#333] outline-none placeholder:text-[#a7a7b0] focus:border-[#c8c5c1]"
+                  className={`${FIELD} w-full pr-3 pl-9 placeholder:text-[#a7a7b0]`}
                 />
               </div>
 
-              {/* Toolbar controls */}
-              <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] gap-1.5 sm:flex sm:shrink-0 sm:items-center">
-                <select
-                  value={typeFilter}
-                  onChange={(e) => setTypeFilter(e.target.value)}
-                  className="h-[28px] min-w-0 rounded-[8px] border border-[#dedbd7] bg-white px-2 text-[11px] text-[#454545] outline-none focus:border-[#c8c5c1] sm:w-[120px]"
-                >
+              <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] gap-2 sm:flex sm:shrink-0 sm:items-center">
+                <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className={`${FIELD} min-w-0 px-2.5 sm:w-40`}>
                   <option value="ALL">All categories</option>
-
                   {meatTypes.map((type) => (
                     <option key={type} value={type}>
                       {type}
@@ -361,270 +362,102 @@ export default function AdminProductsPage() {
                   ))}
                 </select>
 
-                <button
-                  type="button"
-                  className="flex h-[28px] shrink-0 items-center justify-center gap-1.25 rounded-[8px] border border-[#dedbd7] bg-white px-2 text-[11px] font-medium whitespace-nowrap text-[#454545] transition hover:bg-[#fafafa]"
-                >
-                  <Filter size={10} strokeWidth={1.8} />
-                  Filters
+                <button type="button" className={OUTLINE_BUTTON}>
+                  <Filter size={13} strokeWidth={1.8} />
+                  <span className="hidden sm:inline">Filters</span>
                 </button>
 
-                <div className="flex h-[28px] shrink-0 items-center rounded-[8px] border border-[#dedbd7] bg-white p-0.5">
-                  <button
-                    type="button"
-                    aria-label="List view"
-                    className="flex h-[23px] w-[23px] items-center justify-center rounded-[5px] bg-[#292824] text-white"
-                  >
-                    <List size={11} strokeWidth={2} />
-                  </button>
-
-                  <button
-                    type="button"
-                    aria-label="Grid view"
-                    className="flex h-[23px] w-[23px] items-center justify-center rounded-[5px] text-[#888]"
-                  >
-                    <Grid2X2 size={10} strokeWidth={1.8} />
-                  </button>
+                <div className="flex h-9 shrink-0 items-center rounded-lg border border-[#dedbd7] bg-white p-0.5">
+                  {(
+                    [
+                      { mode: "list", label: "List view", icon: List },
+                      { mode: "grid", label: "Grid view", icon: Grid2X2 },
+                    ] as const
+                  ).map(({ mode, label, icon: Icon }) => (
+                    <button
+                      key={mode}
+                      type="button"
+                      aria-label={label}
+                      aria-pressed={viewMode === mode}
+                      onClick={() => setViewMode(mode)}
+                      className={`flex h-7 w-7 items-center justify-center rounded-md transition ${viewMode === mode ? "bg-[#292824] text-white" : "text-[#888] hover:bg-[#f4f3f1]"}`}
+                    >
+                      <Icon size={14} strokeWidth={1.9} />
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Table */}
-          <div className="w-full overflow-x-auto overscroll-x-contain">
-            <table className="w-full min-w-[900px] border-collapse">
-              <thead>
-                <tr className="h-[26px] border-b border-[#eceae7] bg-[#fcfcfb] text-left">
-                  <th className="w-[235px] px-3 text-[7px] leading-none font-medium whitespace-nowrap text-[#77736f]">
-                    Product
-                  </th>
+          {loading ? (
+            <SkeletonRows />
+          ) : filtered.length === 0 ? (
+            <EmptyState hasProducts={products.length > 0} onCreate={openCreate} />
+          ) : (
+            <>
+              {showCards}
 
-                  <th className="w-[105px] px-2 text-[7px] leading-none font-medium whitespace-nowrap text-[#77736f]">
-                    SKU
-                  </th>
-
-                  <th className="w-[80px] px-2 text-[7px] leading-none font-medium whitespace-nowrap text-[#77736f]">
-                    Category
-                  </th>
-
-                  <th className="w-[90px] px-2 text-[7px] leading-none font-medium whitespace-nowrap text-[#77736f]">
-                    Price
-                  </th>
-
-                  <th className="w-[55px] px-2 text-[7px] leading-none font-medium whitespace-nowrap text-[#77736f]">
-                    Stock
-                  </th>
-
-                  <th className="w-[105px] px-2 text-[7px] leading-none font-medium whitespace-nowrap text-[#77736f]">
-                    Availability
-                  </th>
-
-                  <th className="w-[85px] px-2 text-[7px] leading-none font-medium whitespace-nowrap text-[#77736f]">
-                    Rating
-                  </th>
-
-                  <th className="w-[110px] px-1.5" />
-                </tr>
-              </thead>
-
-              <tbody>
-                {/* Loading */}
-                {loading ? (
-                  Array.from({ length: 6 }).map((_, i) => (
-                    <tr
-                      key={i}
-                      className="h-[48px] border-b border-[#efeeec] last:border-b-0"
-                    >
-                      <td className="px-3" colSpan={8}>
-                        <div className="flex items-center gap-2">
-                          <div className="h-[28px] w-[28px] animate-pulse rounded-[11px] bg-[#f0f0ee]" />
-
-                          <div className="h-2 w-[180px] animate-pulse rounded bg-[#f0f0ee]" />
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : filtered.length === 0 ? (
-                  <tr>
-                    <td colSpan={8} className="px-3 py-10">
-                      <div className="flex flex-col items-center gap-2 text-center">
-                        <PackageX
-                          size={26}
-                          strokeWidth={1.5}
-                          className="text-[#c8c5c1]"
-                        />
-
-                        <p className="text-[10px] font-medium whitespace-nowrap text-[#46433f]">
-                          {products.length === 0
-                            ? "No products yet"
-                            : "No products match your filters"}
-                        </p>
-
-                        <p className="text-[8px] whitespace-nowrap text-[#99958f]">
-                          {products.length === 0
-                            ? "Add your first product to get the catalogue started."
-                            : "Try a different search term or category filter."}
-                        </p>
-
-                        {products.length === 0 && (
-                          <button
-                            type="button"
-                            onClick={() => setModal({ mode: "create" })}
-                            className="bg-brand hover:bg-brand mt-1 flex items-center gap-1.5 rounded-[8px] px-2.5 py-1.5 text-[11px] font-medium whitespace-nowrap text-white transition"
-                          >
-                            <Plus size={11} strokeWidth={2.5} />
-                            Add product
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ) : (
-                  filtered.map((product, index) => {
-                    const availability = availabilityFor(product);
-
-                    return (
-                      <tr
-                        key={product.id}
-                        className="h-[48px] border-b border-[#efeeec] last:border-b-0 hover:bg-[#fdfdfc]"
-                      >
-                        {/* Product */}
-                        <td className="px-3">
-                          <div className="flex min-w-0 items-center gap-2">
-                            <ProductImage
-                              emoji={emojiFor(product.meatType)}
-                              index={index}
-                            />
-
-                            <div className="font-sora min-w-0">
-                              <div className="flex items-center gap-1 whitespace-nowrap">
-                                <span className="max-w-[180px] truncate text-[11px] leading-none font-semibold whitespace-nowrap text-[#292929]">
-                                  {product.name}
-                                </span>
-
-                                {product.isBestSeller && (
-                                  <span className="shrink-0 text-[10px] leading-none text-[#f59e0b]">
-                                    ★
-                                  </span>
-                                )}
-
-                                {product.isNewArrival && (
-                                  <span className="shrink-0 rounded-full bg-[#e9faf2] px-1.5 py-[2px] text-[6px] leading-none font-medium whitespace-nowrap text-[#09965c]">
-                                    New
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-
-                        <td className="px-2">
-                          <span className="block font-mono text-[7px] leading-none whitespace-nowrap text-[#696661]">
-                            {skuFor(product)}
-                          </span>
-                        </td>
-
-                        <td className="px-2">
-                          <span className="block text-[8px] leading-none whitespace-nowrap text-[#46433f]">
-                            {product.meatType}
-                          </span>
-                        </td>
-
-                        <td className="px-2">
-                          <span className="font-sora block text-[11px] leading-none font-semibold whitespace-nowrap text-[#343230]">
-                            {formatNaira(product.basePrice)}
-                          </span>
-                        </td>
-
-                        {/* Stock */}
-                        <td className="px-2">
-                          <span className="block text-[8px] leading-none whitespace-nowrap text-[#55514c]">
-                            {product.stock}
-                          </span>
-                        </td>
-
-                        {/* Availability */}
-                        <td className="px-2">
-                          <AvailabilityBadge type={availability.type}>
-                            {availability.label}
-                          </AvailabilityBadge>
-                        </td>
-
-                        {/* Rating */}
-                        <td className="px-2">
-                          <RatingBadge
-                            rating={product.rating}
-                            reviewCount={product.reviewCount}
-                          />
-                        </td>
-
-                        {/* Actions */}
-                        <td className="px-1.5">
-                          <div className="flex items-center justify-end gap-0.5 whitespace-nowrap">
-                            <ActionButton
-                              label={`Edit ${product.name}`}
-                              onClick={() =>
-                                setModal({
-                                  mode: "edit",
-                                  productId: product.id,
-                                })
-                              }
-                            >
-                              <Pencil size={12} strokeWidth={1.6} />
-                            </ActionButton>
-
-                            <ActionButton label={`Duplicate ${product.name}`}>
-                              <Copy size={12} strokeWidth={1.6} />
-                            </ActionButton>
-
-                            <ActionButton label="More options">
-                              <Ellipsis size={13} strokeWidth={1.7} />
-                            </ActionButton>
-
-                            <ActionButton
-                              label={`Delete ${product.name}`}
-                              disabled={deletingId === product.id}
-                              onClick={() =>
-                                handleDelete(product.id, product.name)
-                              }
-                            >
-                              {deletingId === product.id ? (
-                                <Loader2
-                                  size={12}
-                                  strokeWidth={1.6}
-                                  className="animate-spin"
-                                />
-                              ) : (
-                                <Trash2 size={12} strokeWidth={1.6} />
-                              )}
-                            </ActionButton>
-                          </div>
-                        </td>
+              {viewMode === "list" && (
+                <div className="hidden w-full overflow-x-auto overscroll-x-contain md:block">
+                  <table className="w-full min-w-[820px] border-collapse">
+                    <thead>
+                      <tr className="h-10 border-b border-[#eceae7] bg-[#fcfcfb] text-left">
+                        {TABLE_HEADERS.map((header, i) => (
+                          <th key={i} className={`px-3 text-[11px] font-medium tracking-wide whitespace-nowrap text-[#77736f] uppercase ${i === 0 ? "pl-4" : ""}`}>
+                            {header}
+                          </th>
+                        ))}
                       </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
+                    </thead>
 
-          {/* Mobile hint */}
-          {!loading && filtered.length > 0 && (
-            <div className="border-t border-[#efeeec] px-3 py-1.5 text-center text-[7px] text-[#aaa] sm:hidden">
-              Swipe horizontally to view all columns
-            </div>
+                    <tbody>
+                      {filtered.map((product, index) => {
+                        const availability = availabilityFor(product);
+
+                        return (
+                          <tr key={product.id} className="h-16 border-b border-[#efeeec] last:border-b-0 hover:bg-[#fdfdfc]">
+                            <td className="max-w-[260px] pr-3 pl-4">
+                              <div className="flex min-w-0 items-center gap-3">
+                                <ProductImage emoji={emojiFor(product.meatType)} index={index} />
+                                <ProductName product={product} />
+                              </div>
+                            </td>
+
+                            <td className="px-3">
+                              <span className="font-mono text-[11px] whitespace-nowrap text-[#696661]">{skuFor(product)}</span>
+                            </td>
+
+                            <td className="px-3 text-xs whitespace-nowrap text-[#46433f]">{product.meatType}</td>
+
+                            <td className="px-3 text-xs font-semibold whitespace-nowrap text-[#343230]">{formatNaira(product.basePrice)}</td>
+
+                            <td className="px-3 text-xs text-[#55514c]">{product.stock}</td>
+
+                            <td className="px-3">
+                              <AvailabilityBadge type={availability.type}>{availability.label}</AvailabilityBadge>
+                            </td>
+
+                            <td className="px-3">
+                              <RatingBadge rating={product.rating} reviewCount={product.reviewCount} />
+                            </td>
+
+                            <td className="px-3">
+                              <RowActions product={product} deleting={deletingId === product.id} onEdit={() => openEdit(product.id)} onDelete={() => handleDelete(product.id, product.name)} />
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </>
           )}
         </section>
       </div>
 
-      {modal && (
-        <ProductModal
-          mode={modal.mode}
-          productId={modal.productId}
-          onClose={() => setModal(null)}
-          onSaved={handleSaved}
-        />
-      )}
+      {modal && <ProductModal mode={modal.mode} productId={modal.productId} onClose={() => setModal(null)} onSaved={handleSaved} />}
     </main>
   );
 }

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserFromRequest } from "@/lib/request";
+import { getUserFromRequest } from "@/lib/http/request";
 import { prisma } from "@/lib/db";
-import { adjustInventoryRecord, getInventoryStatus } from "@/lib/inventory";
+import { adjustInventoryRecord, getInventoryStatus } from "@/features/catalog/server/inventory";
 import { InventoryChangeReason } from "@prisma/client";
 
 export async function GET(request: NextRequest) {
@@ -22,10 +22,7 @@ export async function GET(request: NextRequest) {
         ...(search
           ? {
               product: {
-                OR: [
-                  { name: { contains: search, mode: "insensitive" } },
-                  { sku: { contains: search, mode: "insensitive" } },
-                ],
+                OR: [{ name: { contains: search, mode: "insensitive" } }, { sku: { contains: search, mode: "insensitive" } }],
               },
             }
           : {}),
@@ -56,10 +53,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Inventory error:", error);
 
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
@@ -71,31 +65,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { inventoryRecordId, newOnHand, changeReason, notes } =
-      await request.json();
+    const { inventoryRecordId, newOnHand, changeReason, notes } = await request.json();
 
     if (!inventoryRecordId || typeof inventoryRecordId !== "string") {
-      return NextResponse.json(
-        { error: "inventoryRecordId is required" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "inventoryRecordId is required" }, { status: 400 });
     }
 
-    if (
-      typeof newOnHand !== "number" ||
-      !Number.isInteger(newOnHand) ||
-      newOnHand < 0
-    ) {
-      return NextResponse.json(
-        { error: "newOnHand must be a non-negative whole number" },
-        { status: 400 },
-      );
+    if (typeof newOnHand !== "number" || !Number.isInteger(newOnHand) || newOnHand < 0) {
+      return NextResponse.json({ error: "newOnHand must be a non-negative whole number" }, { status: 400 });
     }
 
-    if (
-      !changeReason ||
-      !Object.values(InventoryChangeReason).includes(changeReason)
-    ) {
+    if (!changeReason || !Object.values(InventoryChangeReason).includes(changeReason)) {
       return NextResponse.json(
         {
           error: `changeReason must be one of: ${Object.values(InventoryChangeReason).join(", ")}`,
@@ -116,8 +96,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Inventory update error:", error);
 
-    const message =
-      error instanceof Error ? error.message : "Internal server error";
+    const message = error instanceof Error ? error.message : "Internal server error";
 
     return NextResponse.json({ error: message }, { status: 400 });
   }

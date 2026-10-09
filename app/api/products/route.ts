@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { ACTIVE_PRODUCT_FILTER } from "@/lib/products";
+import { ACTIVE_PRODUCT_FILTER } from "@/features/catalog/server/products";
 
 export async function GET() {
   try {
@@ -41,9 +41,6 @@ export async function GET() {
     return NextResponse.json({ products: formatted });
   } catch (error) {
     console.error("Error fetching products:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch products" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed to fetch products" }, { status: 500 });
   }
 }

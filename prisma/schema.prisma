@@ -207,7 +207,7 @@ model Order {
   estimatedDelivery DateTime?
   riderId String? @db.ObjectId
   rider   Rider?  @relation(fields: [riderId], references: [id])
-
+  stockDeductedAt DateTime?
   inventoryLogs InventoryLog[]
 
   createdAt    DateTime  @default(now())
@@ -398,7 +398,7 @@ model Category {
   products Product[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
+sortOrder   Int?
   
 }
 
@@ -594,3 +594,43 @@ model WaitlistEntry {
 
   @@map("waitlist")
 }
+
+
+
+enum ContentType {
+  HERO
+  BANNER
+  SECTION
+  HIGHLIGHT
+  STEP
+  MEATBOX
+  STANDARD_POINT
+  FAQ
+  RECIPE
+  BLOG
+  PAGE
+  DELIVERY_LOCATION
+}
+ 
+enum ContentStatus {
+  DRAFT
+  LIVE
+}
+ 
+model ContentEntry {
+  id          String        @id @default(auto()) @map("_id") @db.ObjectId
+  type        ContentType
+  title       String
+  slug        String?
+  status      ContentStatus @default(DRAFT)
+  sortOrder   Int           @default(0)
+  data        Json
+  views       Int           @default(0)
+  publishedAt DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+ 
+  @@index([type, status, sortOrder])
+  @@index([type, slug])
+}
+ 

@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { PrismaClient, UserRole } from "@prisma/client";
 import bcrypt from "bcryptjs";
-import { StaffRole } from "../lib/permission";
+import { StaffRole } from "@/lib/auth/permissions";
 
 const prisma = new PrismaClient();
 
@@ -54,9 +54,7 @@ async function main() {
       },
     });
 
-    console.log(
-      `Created staff: ${user.name} (${user.email}) — ${staff.staffRole}`,
-    );
+    console.log(`Created staff: ${user.name} (${user.email}) — ${staff.staffRole}`);
   }
 }
 

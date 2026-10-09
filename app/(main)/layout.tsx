@@ -1,15 +1,10 @@
-
 import MobileAppPromo from "@/components/sections/MobileApp";
 
-import Header from "@/components/sections/common/Header";
-import Footer from "@/components/sections/common/Footer";
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
 import ComingSoon from "@/components/ComingSoon";
 
-export default function MainLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function MainLayout({ children }: { children: React.ReactNode }) {
   const isComingSoon = process.env.IS_COMING_SOON === "true";
 
   if (isComingSoon) {
@@ -17,7 +12,7 @@ export default function MainLayout({
   }
 
   return (
-    <div className="text-charcoal bg-white">
+    <div className="bg-white text-charcoal">
       <Header />
       {children}
       <Footer />

@@ -1,5 +1,5 @@
 import { PrismaClient, UserRole } from "@prisma/client";
-import { paystack } from "../lib/paystack";
+import { paystack } from "@/lib/payments/paystack";
 
 const prisma = new PrismaClient();
 
@@ -11,9 +11,7 @@ async function main() {
     },
   });
 
-  console.log(
-    `Found ${stuckOrders.length} pending order(s) with a saved reference.`,
-  );
+  console.log(`Found ${stuckOrders.length} pending order(s) with a saved reference.`);
 
   let fixed = 0;
   let stillPending = 0;
@@ -22,9 +20,7 @@ async function main() {
 
   for (const order of stuckOrders) {
     try {
-      const verified = await paystack.verifyTransaction(
-        order.paystackReference!,
-      );
+      const verified = await paystack.verifyTransaction(order.paystackReference!);
       const transaction = verified.data;
 
       if (transaction.status !== "success") {
@@ -34,9 +30,7 @@ async function main() {
 
       const expectedAmount = Math.round(Number(order.total) * 100);
       if (transaction.amount !== expectedAmount) {
-        console.warn(
-          `Order ${order.id} (${order.orderNumber}): amount mismatch — expected ${expectedAmount}, got ${transaction.amount}. Skipping, needs manual review.`,
-        );
+        console.warn(`Order ${order.id} (${order.orderNumber}): amount mismatch — expected ${expectedAmount}, got ${transaction.amount}. Skipping, needs manual review.`);
         mismatched++;
         continue;
       }
@@ -46,19 +40,14 @@ async function main() {
         data: {
           paymentStatus: "PAID",
           status: "PROCESSING",
-          paidAt: transaction.paid_at
-            ? new Date(transaction.paid_at)
-            : new Date(),
+          paidAt: transaction.paid_at ? new Date(transaction.paid_at) : new Date(),
         },
       });
 
       console.log(`Order ${order.id} (${order.orderNumber}): fixed → PAID`);
       fixed++;
     } catch (err) {
-      console.error(
-        `Order ${order.id} (${order.orderNumber}): error verifying —`,
-        err,
-      );
+      console.error(`Order ${order.id} (${order.orderNumber}): error verifying —`, err);
       errored++;
     }
   }

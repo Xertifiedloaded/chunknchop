@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserFromRequest } from "@/lib/request";
+import { getUserFromRequest } from "@/lib/http/request";
 import { prisma } from "@/lib/db";
-import { ACTIVE_PRODUCT_FILTER } from "@/lib/products";
+import { ACTIVE_PRODUCT_FILTER } from "@/features/catalog/server/products";
 
 export async function GET(request: NextRequest) {
   try {
@@ -11,13 +11,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const [
-      totalOrders,
-      totalCustomers,
-      totalProducts,
-      revenueResult,
-      recentOrders,
-    ] = await Promise.all([
+    const [totalOrders, totalCustomers, totalProducts, revenueResult, recentOrders] = await Promise.all([
       prisma.order.count(),
       prisma.user.count({ where: { role: "CUSTOMER" } }),
       prisma.product.count({ where: ACTIVE_PRODUCT_FILTER }),
@@ -50,9 +44,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error("Error fetching admin stats:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

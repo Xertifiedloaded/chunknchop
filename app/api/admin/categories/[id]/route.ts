@@ -1,126 +1,101 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserFromRequest } from "@/lib/request";
+import { revalidatePath } from "next/cache";
+import { getUserFromRequest } from "@/lib/http/request";
 import { prisma } from "@/lib/db";
-import { slugify } from "@/lib/slug";
+import { validateData } from "@/lib/cms/config";
+import { categoryToEntry, isObjectId } from "@/lib/cms/server";
 
-// PATCH /api/admin/categories/[id]
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } },
-) {
+export const dynamic = "force-dynamic";
+type Ctx = { params: Promise<{ id: string }> };
+
+const refresh = () => ["/", "/shop", "/categories"].forEach((p) => revalidatePath(p));
+
+export async function PATCH(request: NextRequest, { params }: Ctx) {
+  const user = getUserFromRequest(request);
+
+  if (!user || user.role !== "ADMIN") {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { id } = await params;
+  if (!isObjectId(id)) return NextResponse.json({ error: "Invalid id" }, { status: 400 });
+
+  const body = await request.json().catch(() => null);
+  if (!body || typeof body !== "object") return NextResponse.json({ error: "Invalid body" }, { status: 400 });
+
   try {
-    const user = getUserFromRequest(request);
+    const existing = await prisma.category.findUnique({ where: { id } });
+    if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-    if (!user || user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const update: Record<string, unknown> = {};
+    const fieldErrors: Record<string, string> = {};
+
+    if (body.title !== undefined) {
+      const name = typeof body.title === "string" ? body.title.trim() : "";
+      if (!name) fieldErrors.title = "Category name is required";
+      else if (name !== existing.name && (await prisma.category.findFirst({ where: { name, NOT: { id } }, select: { id: true } }))) {
+        fieldErrors.title = "A category with this name already exists";
+      } else update.name = name;
     }
 
-    const body = await request.json();
-    const data: Record<string, unknown> = {};
-
-    if (typeof body.name === "string" && body.name.trim())
-      data.name = body.name.trim();
-    if (typeof body.description === "string")
-      data.description = body.description.trim() || null;
-    if (typeof body.color === "string" && /^#[0-9a-fA-F]{6}$/.test(body.color))
-      data.color = body.color;
-    if (typeof body.visible === "boolean") data.isActive = body.visible;
-
-    if (typeof body.slug === "string" && body.slug.trim()) {
-      const slug = slugify(body.slug);
-      if (!slug)
-        return NextResponse.json({ error: "Invalid slug" }, { status: 400 });
-      data.slug = slug;
+    if (body.status !== undefined) {
+      if (body.status !== "LIVE" && body.status !== "DRAFT") fieldErrors.status = "Invalid status";
+      else update.isActive = body.status === "LIVE";
     }
 
-    if (Object.keys(data).length === 0) {
-      return NextResponse.json(
-        { error: "No valid fields to update" },
-        { status: 400 },
-      );
+    if (body.sortOrder !== undefined) {
+      if (!Number.isInteger(body.sortOrder)) fieldErrors.sortOrder = "Must be a whole number";
+      else update.sortOrder = body.sortOrder;
     }
 
-    const category = await prisma.category.update({
-      where: { id: params.id },
-      data,
-      include: { _count: { select: { products: true } } },
-    });
-
-    return NextResponse.json({
-      id: category.id,
-      name: category.name,
-      slug: `/${category.slug}`,
-      description: category.description,
-      image: category.image,
-      products: category._count.products,
-      color: category.color,
-      visible: category.isActive,
-    });
-  } catch (error: any) {
-    if (error?.code === "P2025") {
-      return NextResponse.json(
-        { error: "Category not found" },
-        { status: 404 },
-      );
-    }
-    if (error?.code === "P2002") {
-      const field = error?.meta?.target?.[0] ?? "name or slug";
-      return NextResponse.json(
-        { error: `A category with this ${field} already exists` },
-        { status: 409 },
-      );
+    if (body.data !== undefined) {
+      const merged = { description: existing.description ?? "", image: existing.image ?? "", ...body.data };
+      const res = validateData("CATEGORY", merged);
+      if (!res.ok) Object.assign(fieldErrors, res.errors);
+      else {
+        update.description = (res.data.description as string) || null;
+        update.image = (res.data.image as string) || null;
+      }
     }
 
-    console.error("Category update error:", error);
+    if (Object.keys(fieldErrors).length) {
+      return NextResponse.json({ error: "Validation failed", fieldErrors }, { status: 422 });
+    }
 
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    const item = await prisma.category.update({ where: { id }, data: update as any });
+    refresh();
+    return NextResponse.json({ item: categoryToEntry(item as any) });
+  } catch (error) {
+    console.error("Category update failed:", error);
+    return NextResponse.json({ error: "Failed to update category" }, { status: 500 });
   }
 }
 
-// DELETE /api/admin/categories/[id]
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } },
-) {
+export async function DELETE(request: NextRequest, { params }: Ctx) {
+  const user = getUserFromRequest(request);
+
+  if (!user || user.role !== "ADMIN") {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { id } = await params;
+  if (!isObjectId(id)) return NextResponse.json({ error: "Invalid id" }, { status: 400 });
+
   try {
-    const user = getUserFromRequest(request);
-
-    if (!user || user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const productCount = await prisma.product.count({
-      where: { categoryId: params.id },
-    });
-
-    if (productCount > 0) {
+    const inUse = await prisma.product.count({ where: { categoryId: id } });
+    if (inUse > 0) {
       return NextResponse.json(
-        {
-          error: `${productCount} product(s) still use this category. Reassign them first.`,
-        },
-        { status: 409 },
+        { error: `${inUse} product${inUse === 1 ? "" : "s"} still use this category. Unpublish it (set to Draft) instead of deleting.` },
+        { status: 409 }
       );
     }
 
-    await prisma.category.delete({ where: { id: params.id } });
-
+    await prisma.category.delete({ where: { id } });
+    refresh();
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    if (error?.code === "P2025") {
-      return NextResponse.json(
-        { error: "Category not found" },
-        { status: 404 },
-      );
-    }
-
-    console.error("Category delete error:", error);
-
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    if (error?.code === "P2025") return NextResponse.json({ error: "Not found" }, { status: 404 });
+    console.error("Category delete failed:", error);
+    return NextResponse.json({ error: "Failed to delete category" }, { status: 500 });
   }
 }

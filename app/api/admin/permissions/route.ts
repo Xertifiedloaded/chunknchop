@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserFromRequest } from "@/lib/request";
-import { STAFF_ROLES, ROLE_META, ROLE_PERMISSIONS } from "@/lib/permission";
+import { getUserFromRequest } from "@/lib/http/request";
+import { STAFF_ROLES, ROLE_META, ROLE_PERMISSIONS } from "@/lib/auth/permissions";
 
 function toCamelCase(value: string) {
   return value
     .toLowerCase()
     .split("_")
-    .map((part, i) =>
-      i === 0 ? part : part.charAt(0).toUpperCase() + part.slice(1),
-    )
+    .map((part, i) => (i === 0 ? part : part.charAt(0).toUpperCase() + part.slice(1)))
     .join("");
 }
 
@@ -22,8 +20,7 @@ export async function GET(req: NextRequest) {
   const areas = new Set<string>();
 
   STAFF_ROLES.forEach((role) => {
-    const rolePermissions =
-      ROLE_PERMISSIONS[role as keyof typeof ROLE_PERMISSIONS] || {};
+    const rolePermissions = ROLE_PERMISSIONS[role as keyof typeof ROLE_PERMISSIONS] || {};
     Object.keys(rolePermissions).forEach((area) => areas.add(area));
   });
 
@@ -31,8 +28,7 @@ export async function GET(req: NextRequest) {
     const row: Record<string, string> = { area };
 
     STAFF_ROLES.forEach((role) => {
-      const rolePermissions =
-        ROLE_PERMISSIONS[role as keyof typeof ROLE_PERMISSIONS] || {};
+      const rolePermissions = ROLE_PERMISSIONS[role as keyof typeof ROLE_PERMISSIONS] || {};
       const camelKey = toCamelCase(role);
       row[camelKey] = (rolePermissions as any)[area] || "None";
     });

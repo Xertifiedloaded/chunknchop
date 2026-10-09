@@ -17,29 +17,19 @@ export async function POST(req: Request) {
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json(
-      { status: "error", message: "Invalid request." },
-      { status: 400 },
-    );
+    return NextResponse.json({ status: "error", message: "Invalid request." }, { status: 400 });
   }
 
   const name = typeof body.name === "string" ? body.name.trim() : "";
 
   if (!name || name.length > 100) {
-    return NextResponse.json(
-      { status: "error", message: "Please enter a valid name." },
-      { status: 400 },
-    );
+    return NextResponse.json({ status: "error", message: "Please enter a valid name." }, { status: 400 });
   }
 
-  const email =
-    typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
+  const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
 
   if (!email || email.length > 254 || !EMAIL_REGEX.test(email)) {
-    return NextResponse.json(
-      { status: "error", message: "Please enter a valid email address." },
-      { status: 400 },
-    );
+    return NextResponse.json({ status: "error", message: "Please enter a valid email address." }, { status: 400 });
   }
 
   try {
@@ -61,10 +51,7 @@ export async function POST(req: Request) {
       data: { name, email },
     });
   } catch (err) {
-    if (
-      err instanceof Prisma.PrismaClientKnownRequestError &&
-      err.code === "P2002"
-    ) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
       return NextResponse.json(
         {
           status: "already_joined",
@@ -85,11 +72,10 @@ export async function POST(req: Request) {
     );
   }
 
-  
   let emailSent = true;
 
   try {
-    await sendWaitlistEmail(name, email); 
+    await sendWaitlistEmail(name, email);
   } catch (err) {
     emailSent = false;
     console.error("Waitlist email error:", err);
@@ -99,9 +85,7 @@ export async function POST(req: Request) {
     {
       status: "joined",
       emailSent,
-      message: emailSent
-        ? "You're on the list. Check your inbox for a confirmation."
-        : "You're on the list. We'll email you when we launch.",
+      message: emailSent ? "You're on the list. Check your inbox for a confirmation." : "You're on the list. We'll email you when we launch.",
     },
     { status: 201 },
   );

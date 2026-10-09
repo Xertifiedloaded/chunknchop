@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getUserFromRequest } from "@/lib/request";
-import { paystack } from "@/lib/paystack";
+import { getUserFromRequest } from "@/lib/http/request";
+import { paystack } from "@/lib/payments/paystack";
 
 class CheckoutError extends Error {
   constructor(
@@ -28,30 +28,13 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const {
-      items,
-      shippingAddress,
-      shippingCity,
-      shippingState,
-      shippingZip,
-      shippingCountry,
-    } = body;
+    const { items, shippingAddress, shippingCity, shippingState, shippingZip, shippingCountry } = body;
 
-    if (
-      !Array.isArray(items) ||
-      items.length === 0 ||
-      !items.every((id) => typeof id === "string")
-    ) {
+    if (!Array.isArray(items) || items.length === 0 || !items.every((id) => typeof id === "string")) {
       throw new CheckoutError("No items in cart");
     }
 
-    if (
-      !shippingAddress ||
-      !shippingCity ||
-      !shippingState ||
-      !shippingZip ||
-      !shippingCountry
-    ) {
+    if (!shippingAddress || !shippingCity || !shippingState || !shippingZip || !shippingCountry) {
       throw new CheckoutError("Missing shipping details");
     }
 
@@ -86,10 +69,7 @@ export async function POST(req: NextRequest) {
           throw new CheckoutError(`Not enough stock for ${product.name}`);
         }
 
-        const tierPrice = cartItem.selectedTier
-          ? product.tiers.find((tier) => tier.name === cartItem.selectedTier)
-              ?.price
-          : undefined;
+        const tierPrice = cartItem.selectedTier ? product.tiers.find((tier) => tier.name === cartItem.selectedTier)?.price : undefined;
         const pricePerUnit = tierPrice ?? product.basePrice;
 
         subtotal += pricePerUnit * cartItem.quantity;
@@ -178,25 +158,16 @@ export async function POST(req: NextRequest) {
           ),
       ]);
 
-      throw new CheckoutError(
-        "Failed to initialize payment. Please try again.",
-        502,
-      );
+      throw new CheckoutError("Failed to initialize payment. Please try again.", 502);
     }
   } catch (error) {
     console.error("Checkout error:", error);
 
     if (error instanceof CheckoutError) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: error.status },
-      );
+      return NextResponse.json({ error: error.message }, { status: error.status });
     }
 
-    return NextResponse.json(
-      { error: "Failed to create order" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed to create order" }, { status: 500 });
   }
 }
 
@@ -226,8 +197,7 @@ export async function GET(req: NextRequest) {
       ...order,
       items: order.items.map((item) => ({
         ...item,
-        productName:
-          item.productName ?? item.product?.name ?? UNAVAILABLE_PRODUCT_NAME,
+        productName: item.productName ?? item.product?.name ?? UNAVAILABLE_PRODUCT_NAME,
         productImage: item.productImage ?? item.product?.images?.[0] ?? null,
         productUnavailable: !item.product || item.product.isArchived,
       })),
@@ -236,9 +206,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ orders: formatted }, { status: 200 });
   } catch (error) {
     console.error("[GET /api/customer/orders]", error);
-    return NextResponse.json(
-      { error: "Failed to fetch orders", orders: [] },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed to fetch orders", orders: [] }, { status: 500 });
   }
 }

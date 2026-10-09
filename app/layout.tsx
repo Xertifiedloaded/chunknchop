@@ -2,12 +2,12 @@ import { Analytics } from "@vercel/analytics/next";
 import type { Metadata, Viewport } from "next";
 import { Inter, Sora, Work_Sans, Anton } from "next/font/google";
 import "./globals.css";
-import Header from "@/components/sections/common/Header";
-import Footer from "@/components/sections/common/Footer";
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
 import MobileAppPromo from "@/components/sections/MobileApp";
-import { ScrollToTop } from "@/lib/scroll";
+import { ScrollToTop } from "@/lib/utils/scroll";
 import { Toaster } from "react-hot-toast";
-import ClientAuthInit from "@/lib/ClientAuthInit";
+import ClientAuthInit from "@/features/auth/components/ClientAuthInit";
 
 const sora = Sora({
   subsets: ["latin"],
@@ -33,8 +33,7 @@ const workSans = Work_Sans({
 
 export const metadata: Metadata = {
   title: "ChunkNChop | Premium Meat Delivery in Lagos",
-  description:
-    "Certified, hygienically processed livestock products delivered fresh across Lagos.",
+  description: "Certified, hygienically processed livestock products delivered fresh across Lagos.",
   icons: {
     icon: "./chunkNchop.png",
   },
@@ -58,10 +57,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={` ${sora.variable} ${inter.variable} ${workSans.variable} ${anton.variable}  `}
-    >
+    <html lang="en" className={` ${sora.variable} ${inter.variable} ${workSans.variable} ${anton.variable} `}>
       <body className="antialiased">
         <Toaster />
         <ScrollToTop />

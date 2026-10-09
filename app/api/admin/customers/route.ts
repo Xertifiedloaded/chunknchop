@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserFromRequest } from "@/lib/request";
+import { getUserFromRequest } from "@/lib/http/request";
 import { prisma } from "@/lib/db";
 
 export async function GET(request: NextRequest) {
@@ -36,9 +36,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(formattedCustomers);
   } catch (error) {
     console.error("Error fetching customers:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserFromRequest } from "@/lib/request";
-import { STAFF_ROLES, ROLE_META } from "@/lib/permission";
+import { getUserFromRequest } from "@/lib/http/request";
+import { STAFF_ROLES, ROLE_META } from "@/lib/auth/permissions";
 
 export async function GET(req: NextRequest) {
   const current = await getUserFromRequest(req);

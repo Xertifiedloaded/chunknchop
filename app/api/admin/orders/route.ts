@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserFromRequest } from "@/lib/request";
+import { getUserFromRequest } from "@/lib/http/request";
 import { prisma } from "@/lib/db";
-import { restoreStockForOrder } from "@/lib/inventory";
+import { restoreStockForOrder } from "@/features/catalog/server/inventory";
 import { OrderStatus } from "@prisma/client";
 
 const UNAVAILABLE_PRODUCT_NAME = "Unavailable product";
@@ -27,8 +27,7 @@ export async function GET(request: NextRequest) {
 
     const formattedOrders = orders.map((order) => {
       const items = order.items.map((item) => ({
-        productName:
-          item.productName ?? item.product?.name ?? UNAVAILABLE_PRODUCT_NAME,
+        productName: item.productName ?? item.product?.name ?? UNAVAILABLE_PRODUCT_NAME,
         image: item.productImage ?? item.product?.images?.[0] ?? null,
         quantity: item.quantity,
         pricePerUnit: item.pricePerUnit,
@@ -74,10 +73,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(formattedOrders);
   } catch (error) {
     console.error("Error fetching orders:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
@@ -92,10 +88,7 @@ export async function PATCH(request: NextRequest) {
     const { orderId, status } = await request.json();
 
     if (!orderId || typeof orderId !== "string") {
-      return NextResponse.json(
-        { error: "orderId is required" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "orderId is required" }, { status: 400 });
     }
 
     if (!status || !Object.values(OrderStatus).includes(status)) {
@@ -114,14 +107,9 @@ export async function PATCH(request: NextRequest) {
     }
 
     const isCancelling = status === "CANCELLED" || status === "RETURNED";
-    const wasAlreadyCancelled =
-      order.status === "CANCELLED" || order.status === "RETURNED";
+    const wasAlreadyCancelled = order.status === "CANCELLED" || order.status === "RETURNED";
 
-    if (
-      isCancelling &&
-      !wasAlreadyCancelled &&
-      order.paymentStatus === "PAID"
-    ) {
+    if (isCancelling && !wasAlreadyCancelled && order.paymentStatus === "PAID") {
       await restoreStockForOrder(orderId);
     }
 
@@ -137,9 +125,6 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json(updated);
   } catch (error) {
     console.error("Order status update error:", error);
-    return NextResponse.json(
-      { error: "Failed to update order" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed to update order" }, { status: 500 });
   }
 }

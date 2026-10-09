@@ -1,16 +1,8 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-import {
-  GripVertical,
-  Loader2,
-  Pencil,
-  Plus,
-  Trash2,
-  X,
-  Check,
-} from "lucide-react";
-import { fetchWithAuth } from "@/lib/fetchClient";
+import { GripVertical, Loader2, Pencil, Plus, Trash2, X, Check } from "lucide-react";
+import { fetchWithAuth } from "@/lib/http/fetchClient";
 
 interface Category {
   id: string;
@@ -33,7 +25,6 @@ interface EditableFields {
   visible: boolean;
 }
 
-// The API returns `productCount` and `isActive`; older shapes used `products` and `visible`.
 type RawCategory = Partial<Category> & {
   id: string;
   name: string;
@@ -141,47 +132,32 @@ function CategoryCard({
   if (editing) {
     return (
       <article className="group relative min-w-0 overflow-hidden rounded-[17px] border border-[#e8e5e2] bg-white shadow-[0_3px_12px_rgba(0,0,0,0.035)]">
-        <div
-          className="absolute inset-x-0 top-0 h-[3px]"
-          style={{ backgroundColor: fields.color }}
-        />
+        <div className="absolute inset-x-0 top-0 h-[3px]" style={{ backgroundColor: fields.color }} />
 
         <div className="space-y-[10px] p-4 pt-[18px] sm:p-[18px] sm:pt-[19px]">
           <div>
-            <label className="text-[9px] font-medium text-[#8f8983]">
-              Name
-            </label>
+            <label className="text-[9px] font-medium text-[#8f8983]">Name</label>
             <input
               value={fields.name}
-              onChange={(e) =>
-                setFields((f) => ({ ...f, name: e.target.value }))
-              }
+              onChange={(e) => setFields((f) => ({ ...f, name: e.target.value }))}
               className="mt-[3px] w-full rounded-[10px] border border-[#ddd9d5] px-[10px] py-[7px] text-[13px] font-semibold text-[#2f2d2b] outline-none focus:border-[#f3652a]"
             />
           </div>
 
           <div>
-            <label className="text-[9px] font-medium text-[#8f8983]">
-              Slug
-            </label>
+            <label className="text-[9px] font-medium text-[#8f8983]">Slug</label>
             <input
               value={fields.slug}
-              onChange={(e) =>
-                setFields((f) => ({ ...f, slug: e.target.value }))
-              }
+              onChange={(e) => setFields((f) => ({ ...f, slug: e.target.value }))}
               className="mt-[3px] w-full rounded-[10px] border border-[#ddd9d5] px-[10px] py-[7px] text-[11px] text-[#4a4642] outline-none focus:border-[#f3652a]"
             />
           </div>
 
           <div>
-            <label className="text-[9px] font-medium text-[#8f8983]">
-              Description
-            </label>
+            <label className="text-[9px] font-medium text-[#8f8983]">Description</label>
             <textarea
               value={fields.description}
-              onChange={(e) =>
-                setFields((f) => ({ ...f, description: e.target.value }))
-              }
+              onChange={(e) => setFields((f) => ({ ...f, description: e.target.value }))}
               rows={2}
               className="mt-[3px] w-full resize-none rounded-[10px] border border-[#ddd9d5] px-[10px] py-[7px] text-[11px] text-[#4a4642] outline-none focus:border-[#f3652a]"
             />
@@ -189,34 +165,22 @@ function CategoryCard({
 
           <div className="flex items-center gap-[10px]">
             <div>
-              <label className="text-[9px] font-medium text-[#8f8983]">
-                Color
-              </label>
+              <label className="text-[9px] font-medium text-[#8f8983]">Color</label>
               <input
                 type="color"
                 value={fields.color}
-                onChange={(e) =>
-                  setFields((f) => ({ ...f, color: e.target.value }))
-                }
+                onChange={(e) => setFields((f) => ({ ...f, color: e.target.value }))}
                 className="mt-[3px] block h-[28px] w-[44px] cursor-pointer rounded-[8px] border border-[#ddd9d5] p-[2px]"
               />
             </div>
 
             <label className="mt-[13px] flex items-center gap-[6px] text-[11px] font-medium text-[#4a4642]">
-              <input
-                type="checkbox"
-                checked={fields.visible}
-                onChange={(e) =>
-                  setFields((f) => ({ ...f, visible: e.target.checked }))
-                }
-              />
+              <input type="checkbox" checked={fields.visible} onChange={(e) => setFields((f) => ({ ...f, visible: e.target.checked }))} />
               Visible in storefront
             </label>
           </div>
 
-          {error && (
-            <p className="text-[10px] font-medium text-[#d9412f]">{error}</p>
-          )}
+          {error && <p className="text-[10px] font-medium text-[#d9412f]">{error}</p>}
 
           <div className="flex items-center justify-end gap-[8px] pt-[2px]">
             <button
@@ -235,11 +199,7 @@ function CategoryCard({
               disabled={saving}
               className="inline-flex h-[30px] items-center gap-[5px] rounded-[9px] bg-[#f3652a] px-[11px] text-[11px] font-semibold text-white transition hover:bg-[#e9581f] disabled:opacity-60"
             >
-              {saving ? (
-                <Loader2 size={13} className="animate-spin" />
-              ) : (
-                <Check size={13} strokeWidth={2.5} />
-              )}
+              {saving ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} strokeWidth={2.5} />}
               Save
             </button>
           </div>
@@ -250,26 +210,15 @@ function CategoryCard({
 
   return (
     <article className="group relative min-w-0 overflow-hidden rounded-[17px] border border-[#e8e5e2] bg-white shadow-[0_3px_12px_rgba(0,0,0,0.035)] transition-shadow duration-200 hover:shadow-[0_5px_18px_rgba(0,0,0,0.07)]">
-      <div
-        className="absolute inset-x-0 top-0 h-[3px]"
-        style={{ backgroundColor: category.color }}
-      />
+      <div className="absolute inset-x-0 top-0 h-[3px]" style={{ backgroundColor: category.color }} />
 
       <div className="p-4 pt-[18px] sm:p-[18px] sm:pt-[19px]">
         <div className="flex items-start gap-2">
-          <GripVertical
-            size={14}
-            strokeWidth={2}
-            className="mt-[3px] shrink-0 text-[#d5d1cd]"
-          />
+          <GripVertical size={14} strokeWidth={2} className="mt-[3px] shrink-0 text-[#d5d1cd]" />
 
           <div className="min-w-0 flex-1">
-            <h3 className="truncate text-[14px] leading-[17px] font-semibold text-[#2f2d2b]">
-              {category.name}
-            </h3>
-            <p className="mt-[1px] text-[11px] leading-[14px] text-[#99938d]">
-              {category.slug}
-            </p>
+            <h3 className="truncate text-[14px] leading-[17px] font-semibold text-[#2f2d2b]">{category.name}</h3>
+            <p className="mt-[1px] text-[11px] leading-[14px] text-[#99938d]">{category.slug}</p>
           </div>
 
           <div className="flex shrink-0 items-center gap-[4px] opacity-0 transition-opacity group-hover:opacity-100">
@@ -295,32 +244,20 @@ function CategoryCard({
 
         <div className="mt-[14px] grid grid-cols-2 gap-[10px]">
           <div className="min-w-0 rounded-[14px] bg-[#f5f5f4] px-[12px] py-[9px]">
-            <p className="text-[9px] leading-[12px] font-medium text-[#8f8983]">
-              Products
-            </p>
-            <p className="mt-[3px] text-[15px] leading-[17px] font-bold tracking-[-0.2px] text-[#36322f]">
-              {category.products}
-            </p>
+            <p className="text-[9px] leading-[12px] font-medium text-[#8f8983]">Products</p>
+            <p className="mt-[3px] text-[15px] leading-[17px] font-bold tracking-[-0.2px] text-[#36322f]">{category.products}</p>
           </div>
 
           <div className="min-w-0 rounded-[14px] bg-[#f5f5f4] px-[12px] py-[9px]">
-            <p className="text-[9px] leading-[12px] font-medium text-[#8f8983]">
-              Revenue
-            </p>
-            <p className="mt-[3px] truncate text-[15px] leading-[17px] font-bold tracking-[-0.2px] text-[#36322f]">
-              ₦{formatRevenue(category.revenue)}
-            </p>
+            <p className="text-[9px] leading-[12px] font-medium text-[#8f8983]">Revenue</p>
+            <p className="mt-[3px] truncate text-[15px] leading-[17px] font-bold tracking-[-0.2px] text-[#36322f]">₦{formatRevenue(category.revenue)}</p>
           </div>
         </div>
 
         <div className="mt-[12px]">
           <div className="mb-[5px] flex items-center justify-between">
-            <span className="text-[10px] font-medium text-[#98918b]">
-              Share of revenue
-            </span>
-            <span className="text-[10px] font-semibold text-[#4b4744]">
-              {category.share}%
-            </span>
+            <span className="text-[10px] font-medium text-[#98918b]">Share of revenue</span>
+            <span className="text-[10px] font-semibold text-[#4b4744]">{category.share}%</span>
           </div>
 
           <div className="h-[5px] overflow-hidden rounded-full bg-[#e8e6e4]">
@@ -349,9 +286,7 @@ function CategoryCard({
 
           {confirmingDelete && (
             <div className="flex items-center gap-[6px]">
-              <span className="text-[10px] font-medium text-[#d9412f]">
-                Delete?
-              </span>
+              <span className="text-[10px] font-medium text-[#d9412f]">Delete?</span>
 
               <button
                 type="button"
@@ -359,11 +294,7 @@ function CategoryCard({
                 disabled={deleting}
                 className="flex h-[22px] w-[22px] items-center justify-center rounded-[6px] bg-[#d9412f] text-white transition hover:bg-[#c23824] disabled:opacity-60"
               >
-                {deleting ? (
-                  <Loader2 size={11} className="animate-spin" />
-                ) : (
-                  <Check size={11} strokeWidth={2.5} />
-                )}
+                {deleting ? <Loader2 size={11} className="animate-spin" /> : <Check size={11} strokeWidth={2.5} />}
               </button>
 
               <button
@@ -378,23 +309,13 @@ function CategoryCard({
           )}
         </div>
 
-        {error && !confirmingDelete && (
-          <p className="mt-[8px] text-[10px] font-medium text-[#d9412f]">
-            {error}
-          </p>
-        )}
+        {error && !confirmingDelete && <p className="mt-[8px] text-[10px] font-medium text-[#d9412f]">{error}</p>}
       </div>
     </article>
   );
 }
 
-function NewCategoryCard({
-  onCreate,
-  onCancel,
-}: {
-  onCreate: (fields: EditableFields) => Promise<string | null>;
-  onCancel: () => void;
-}) {
+function NewCategoryCard({ onCreate, onCancel }: { onCreate: (fields: EditableFields) => Promise<string | null>; onCancel: () => void }) {
   const [fields, setFields] = useState<EditableFields>({
     name: "",
     slug: "",
@@ -432,9 +353,7 @@ function NewCategoryCard({
         </div>
 
         <div>
-          <label className="text-[9px] font-medium text-[#8f8983]">
-            Slug (optional)
-          </label>
+          <label className="text-[9px] font-medium text-[#8f8983]">Slug (optional)</label>
           <input
             value={fields.slug}
             onChange={(e) => setFields((f) => ({ ...f, slug: e.target.value }))}
@@ -444,14 +363,10 @@ function NewCategoryCard({
         </div>
 
         <div>
-          <label className="text-[9px] font-medium text-[#8f8983]">
-            Description
-          </label>
+          <label className="text-[9px] font-medium text-[#8f8983]">Description</label>
           <textarea
             value={fields.description}
-            onChange={(e) =>
-              setFields((f) => ({ ...f, description: e.target.value }))
-            }
+            onChange={(e) => setFields((f) => ({ ...f, description: e.target.value }))}
             rows={2}
             className="mt-[3px] w-full resize-none rounded-[10px] border border-[#ddd9d5] px-[10px] py-[7px] text-[11px] text-[#4a4642] outline-none focus:border-[#f3652a]"
           />
@@ -459,34 +374,22 @@ function NewCategoryCard({
 
         <div className="flex items-center gap-[10px]">
           <div>
-            <label className="text-[9px] font-medium text-[#8f8983]">
-              Color
-            </label>
+            <label className="text-[9px] font-medium text-[#8f8983]">Color</label>
             <input
               type="color"
               value={fields.color}
-              onChange={(e) =>
-                setFields((f) => ({ ...f, color: e.target.value }))
-              }
+              onChange={(e) => setFields((f) => ({ ...f, color: e.target.value }))}
               className="mt-[3px] block h-[28px] w-[44px] cursor-pointer rounded-[8px] border border-[#ddd9d5] p-[2px]"
             />
           </div>
 
           <label className="mt-[13px] flex items-center gap-[6px] text-[11px] font-medium text-[#4a4642]">
-            <input
-              type="checkbox"
-              checked={fields.visible}
-              onChange={(e) =>
-                setFields((f) => ({ ...f, visible: e.target.checked }))
-              }
-            />
+            <input type="checkbox" checked={fields.visible} onChange={(e) => setFields((f) => ({ ...f, visible: e.target.checked }))} />
             Visible in storefront
           </label>
         </div>
 
-        {error && (
-          <p className="text-[10px] font-medium text-[#d9412f]">{error}</p>
-        )}
+        {error && <p className="text-[10px] font-medium text-[#d9412f]">{error}</p>}
 
         <div className="flex items-center justify-end gap-[8px] pt-[2px]">
           <button
@@ -505,11 +408,7 @@ function NewCategoryCard({
             disabled={saving}
             className="inline-flex h-[30px] items-center gap-[5px] rounded-[9px] bg-[#f3652a] px-[11px] text-[11px] font-semibold text-white transition hover:bg-[#e9581f] disabled:opacity-60"
           >
-            {saving ? (
-              <Loader2 size={13} className="animate-spin" />
-            ) : (
-              <Plus size={13} strokeWidth={2.5} />
-            )}
+            {saving ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} strokeWidth={2.5} />}
             Create
           </button>
         </div>
@@ -522,9 +421,7 @@ function RuleCard({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div className="rounded-[14px] border border-[#e7e3df] bg-white px-[14px] py-[13px]">
       <h3 className="text-[11px] font-bold text-[#36322f]">{title}</h3>
-      <p className="mt-[5px] text-[10px] leading-[15px] text-[#8d8781]">
-        {children}
-      </p>
+      <p className="mt-[5px] text-[10px] leading-[15px] text-[#8d8781]">{children}</p>
     </div>
   );
 }
@@ -535,7 +432,6 @@ export default function CategoriesPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
 
-  // silent = true refetches in the background without showing the loading skeleton
   async function load(silent = false) {
     if (!silent) setLoading(true);
     setLoadError(null);
@@ -559,16 +455,12 @@ export default function CategoriesPage() {
   useEffect(() => {
     load();
 
-    // Refresh counts when returning to this tab (e.g. after adding a product elsewhere)
     const onFocus = () => load(true);
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
   }, []);
 
-  async function handleSave(
-    id: string,
-    fields: EditableFields,
-  ): Promise<string | null> {
+  async function handleSave(id: string, fields: EditableFields): Promise<string | null> {
     try {
       const res = await fetchWithAuth(`/api/admin/categories/${id}`, {
         method: "PATCH",
@@ -584,8 +476,7 @@ export default function CategoriesPage() {
 
       if (!res.ok) return await parseError(res, "Failed to update category");
 
-      const updated: Partial<Category> & { productCount?: number } =
-        await res.json();
+      const updated: Partial<Category> & { productCount?: number } = await res.json();
       const updatedCount = updated.productCount ?? updated.products;
 
       setCategories((prev) =>
@@ -597,14 +488,9 @@ export default function CategoriesPage() {
                 slug: updated.slug ?? c.slug,
                 description: updated.description ?? null,
                 image: updated.image ?? c.image,
-                products:
-                  updatedCount != null ? toNumber(updatedCount) : c.products,
-                revenue:
-                  updated.revenue != null
-                    ? toNumber(updated.revenue)
-                    : c.revenue,
-                share:
-                  updated.share != null ? toNumber(updated.share) : c.share,
+                products: updatedCount != null ? toNumber(updatedCount) : c.products,
+                revenue: updated.revenue != null ? toNumber(updated.revenue) : c.revenue,
+                share: updated.share != null ? toNumber(updated.share) : c.share,
                 color: updated.color ?? c.color,
                 visible: updated.visible ?? c.visible,
               }
@@ -647,9 +533,7 @@ export default function CategoriesPage() {
       if (!res.ok) return await parseError(res, "Failed to create category");
 
       const created = normalizeCategory(await res.json());
-      setCategories((prev) =>
-        [...prev, created].sort((a, b) => a.name.localeCompare(b.name)),
-      );
+      setCategories((prev) => [...prev, created].sort((a, b) => a.name.localeCompare(b.name)));
       setCreating(false);
       return null;
     } catch {
@@ -662,17 +546,11 @@ export default function CategoriesPage() {
       <div className="mx-auto w-full max-w-[1320px]">
         <header className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h1 className="text-[21px] leading-[25px] font-bold tracking-[-0.4px] text-[#292725]">
-              Categories
-            </h1>
-            <p className="mt-[7px] text-[12px] leading-[17px] text-[#908a85]">
-              Organise the catalogue into the storefront categories customers
-              browse by.
-            </p>
+            <h1 className="text-[21px] leading-[25px] font-bold tracking-[-0.4px] text-[#292725]">Categories</h1>
+            <p className="mt-[7px] text-[12px] leading-[17px] text-[#908a85]">Organise the catalogue into the storefront categories customers browse by.</p>
           </div>
 
           <div className="flex shrink-0 items-center gap-2">
-            {/* Arrow function so the click event is not passed in as `silent` */}
             <button
               type="button"
               onClick={() => load()}
@@ -693,69 +571,28 @@ export default function CategoriesPage() {
           </div>
         </header>
 
-        {loadError && (
-          <div className="mb-4 rounded-[12px] border border-[#f3c9c0] bg-[#fbeeea] px-[14px] py-[11px] text-[11px] font-medium text-[#b23a25]">
-            {loadError}
-          </div>
-        )}
+        {loadError && <div className="mb-4 rounded-[12px] border border-[#f3c9c0] bg-[#fbeeea] px-[14px] py-[11px] text-[11px] font-medium text-[#b23a25]">{loadError}</div>}
 
         <section className="grid grid-cols-1 gap-[14px] md:grid-cols-2 xl:grid-cols-3">
-          {creating && (
-            <NewCategoryCard
-              onCreate={handleCreate}
-              onCancel={() => setCreating(false)}
-            />
-          )}
+          {creating && <NewCategoryCard onCreate={handleCreate} onCancel={() => setCreating(false)} />}
 
-          {loading &&
-            !creating &&
-            Array.from({ length: 3 }).map((_, i) => (
-              <div
-                key={i}
-                className="h-[220px] animate-pulse rounded-[17px] border border-[#e8e5e2] bg-white"
-              />
-            ))}
+          {loading && !creating && Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-[220px] animate-pulse rounded-[17px] border border-[#e8e5e2] bg-white" />)}
 
-          {!loading &&
-            categories.map((category) => (
-              <CategoryCard
-                key={category.id}
-                category={category}
-                onSave={handleSave}
-                onDelete={handleDelete}
-              />
-            ))}
+          {!loading && categories.map((category) => <CategoryCard key={category.id} category={category} onSave={handleSave} onDelete={handleDelete} />)}
         </section>
 
-        {!loading && !creating && categories.length === 0 && !loadError && (
-          <p className="mt-6 text-center text-[12px] text-[#908a85]">
-            No categories yet — create your first one.
-          </p>
-        )}
+        {!loading && !creating && categories.length === 0 && !loadError && <p className="mt-6 text-center text-[12px] text-[#908a85]">No categories yet — create your first one.</p>}
 
         <section className="mt-[21px] rounded-[17px] border border-[#e8e5e2] bg-white p-4 shadow-[0_4px_16px_rgba(0,0,0,0.04)] sm:p-[18px]">
           <div>
-            <h2 className="text-[13px] leading-[16px] font-bold text-[#3a3633]">
-              Category rules
-            </h2>
-            <p className="mt-[3px] text-[10px] leading-[14px] text-[#99928c]">
-              How categories behave across the storefront and processing floor
-            </p>
+            <h2 className="text-[13px] leading-[16px] font-bold text-[#3a3633]">Category rules</h2>
+            <p className="mt-[3px] text-[10px] leading-[14px] text-[#99928c]">How categories behave across the storefront and processing floor</p>
           </div>
 
           <div className="mt-[13px] grid grid-cols-1 gap-[10px] lg:grid-cols-3">
-            <RuleCard title="Preparation defaults">
-              Each category carries default preparation options that pre-fill on
-              new products.
-            </RuleCard>
-            <RuleCard title="Cold-chain class">
-              Frozen and Seafood are routed to blast freezers; Dairy holds at
-              0–4°C.
-            </RuleCard>
-            <RuleCard title="Storefront ordering">
-              Menu order follows this list — drag to reorder and publish
-              instantly.
-            </RuleCard>
+            <RuleCard title="Preparation defaults">Each category carries default preparation options that pre-fill on new products.</RuleCard>
+            <RuleCard title="Cold-chain class">Frozen and Seafood are routed to blast freezers; Dairy holds at 0–4°C.</RuleCard>
+            <RuleCard title="Storefront ordering">Menu order follows this list — drag to reorder and publish instantly.</RuleCard>
           </div>
         </section>
       </div>

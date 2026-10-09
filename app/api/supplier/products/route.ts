@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getUserFromRequest } from "@/lib/request";
+import { getUserFromRequest } from "@/lib/http/request";
 import { uploadProductImage } from "@/lib/storage";
 
 export async function GET(request: NextRequest) {
@@ -82,10 +82,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!meatType) {
-      return NextResponse.json(
-        { error: "Meat type is required" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Meat type is required" }, { status: 400 });
     }
 
     const basePrice = Number(formData.get("basePrice"));
@@ -118,9 +115,7 @@ export async function POST(request: NextRequest) {
 
       preparations = JSON.parse(String(formData.get("preparations") ?? "[]"));
 
-      existingImages = JSON.parse(
-        String(formData.get("existingImages") ?? "[]"),
-      );
+      existingImages = JSON.parse(String(formData.get("existingImages") ?? "[]"));
     } catch {
       return NextResponse.json(
         {
@@ -130,9 +125,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const imageFiles = formData
-      .getAll("images")
-      .filter((value): value is File => value instanceof File);
+    const imageFiles = formData.getAll("images").filter((value): value is File => value instanceof File);
 
     const uploadedUrls: string[] = [];
 
@@ -144,8 +137,7 @@ export async function POST(request: NextRequest) {
       } catch (error) {
         return NextResponse.json(
           {
-            error:
-              error instanceof Error ? error.message : "Image upload failed",
+            error: error instanceof Error ? error.message : "Image upload failed",
           },
           { status: 400 },
         );
@@ -178,14 +170,9 @@ export async function POST(request: NextRequest) {
 
         sameDayDelivery: formData.get("sameDayDelivery") === "true",
 
-        // The important difference from the admin route:
-        // the supplier can only create products under their own ID.
         supplierId: user.id,
 
-        images: [
-          ...(Array.isArray(existingImages) ? existingImages : []),
-          ...uploadedUrls,
-        ],
+        images: [...(Array.isArray(existingImages) ? existingImages : []), ...uploadedUrls],
       },
     });
 

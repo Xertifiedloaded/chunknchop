@@ -1,10 +1,11 @@
 "use client";
 
-import React from "react";
+import { useEffect, type CSSProperties, type ReactNode } from "react";
 import { X } from "lucide-react";
 import { PREPARATIONS } from "@/lib/categories";
 import { formatNaira } from "@/lib/format";
 import { FilterState, PRICE_MAX, PRICE_MIN } from "@/lib/filters";
+import { useCategories } from "@/lib/hooks/useCategories";
 
 interface Props {
   filters: FilterState;
@@ -14,8 +15,47 @@ interface Props {
   hideHeader?: boolean;
 }
 
-function SectionTitle({ children }: { children: React.ReactNode }) {
+type AvailabilityKey = "inStock" | "sameDayDelivery" | "newArrival" | "bestSeller";
+
+const AVAILABILITY_OPTIONS: { key: AvailabilityKey; label: string }[] = [
+  { key: "inStock", label: "In Stock" },
+  { key: "sameDayDelivery", label: "Same Day Delivery" },
+  { key: "newArrival", label: "New Arrival" },
+  { key: "bestSeller", label: "Best Seller" },
+];
+
+const OPTION_CLASS =
+  "text-charcoal flex cursor-pointer items-center gap-2.5 text-sm";
+
+function SectionTitle({ children }: { children: ReactNode }) {
   return <h3 className="text-ink mb-3 text-sm font-semibold">{children}</h3>;
+}
+
+function Option({
+  type,
+  name,
+  checked,
+  onChange,
+  children,
+}: {
+  type: "radio" | "checkbox";
+  name?: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  children: ReactNode;
+}) {
+  return (
+    <label className={OPTION_CLASS}>
+      <input
+        type={type}
+        name={name}
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        className={`text-brand h-4 w-4 ${type === "checkbox" ? "rounded" : ""}`}
+      />
+      {children}
+    </label>
+  );
 }
 
 export default function FilterSidebar({
@@ -25,41 +65,29 @@ export default function FilterSidebar({
   className = "",
   hideHeader = false,
 }: Props) {
+  const { categories } = useCategories();
+
   const update = (patch: Partial<FilterState>) =>
     onChange({ ...filters, ...patch });
 
-  const toggleInArray = (arr: string[], value: string): string[] =>
-    arr.includes(value) ? arr.filter((v) => v !== value) : [...arr, value];
+  const togglePreparation = (value: string) => {
+    const current = filters.preparations ?? [];
+    update({
+      preparations: current.includes(value)
+        ? current.filter((v) => v !== value)
+        : [...current, value],
+    });
+  };
 
   const rangeProgress = Math.round(
     ((filters.maxPrice - PRICE_MIN) / (PRICE_MAX - PRICE_MIN)) * 100,
   );
 
-  const [categories, setCategories] = React.useState<string[]>([]);
-  React.useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      try {
-        const res = await fetch("/api/categories");
-        if (!res.ok) throw new Error("Failed to load categories");
-        const data = await res.json();
-        if (cancelled) return;
-        setCategories(data.map((c: any) => c.name));
-      } catch (err) {
-        console.error("Failed to load categories for filters:", err);
-      }
-    }
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
   return (
     <aside className={`flex flex-col ${className}`}>
       {!hideHeader && (
         <div className="mb-5 flex items-center justify-between">
-          <h2 className="text-ink text-base font-bold">Filters</h2>
+          <h2 className="text-ink text-base font-semibold">Filters</h2>
           <button
             type="button"
             onClick={onClearAll}
@@ -70,34 +98,28 @@ export default function FilterSidebar({
         </div>
       )}
 
-      <div className="divide-ink/5 flex flex-col divide-y [&>section]:py-5 first:[&>section]:pt-0">
+      <div className="divide-ink/5 flex flex-col divide-y [&>section]:py-5 [&>section:first-child]:pt-0">
         <section>
           <SectionTitle>Categories</SectionTitle>
           <div className="flex flex-col gap-2.5">
-            <label className="text-charcoal flex cursor-pointer items-center gap-2.5 text-sm">
-              <input
+            <Option
+              type="radio"
+              name="category"
+              checked={filters.category === "All"}
+              onChange={() => update({ category: "All" })}
+            >
+              All
+            </Option>
+            {categories.map(({ name }) => (
+              <Option
+                key={name}
                 type="radio"
                 name="category"
-                className="text-brand h-4 w-4"
-                checked={filters.category === "All"}
-                onChange={() => update({ category: "All" })}
-              />
-              All
-            </label>
-            {categories.map((cat) => (
-              <label
-                key={cat}
-                className="text-charcoal flex cursor-pointer items-center gap-2.5 text-sm"
+                checked={filters.category === name}
+                onChange={() => update({ category: name })}
               >
-                <input
-                  type="radio"
-                  name="category"
-                  className="text-brand h-4 w-4"
-                  checked={filters.category === cat}
-                  onChange={() => update({ category: cat })}
-                />
-                {cat}
-              </label>
+                {name}
+              </Option>
             ))}
           </div>
         </section>
@@ -110,37 +132,29 @@ export default function FilterSidebar({
             max={PRICE_MAX}
             step={500}
             value={filters.maxPrice}
-            style={{ ["--range-progress" as string]: `${rangeProgress}%` }}
+            style={{ "--range-progress": `${rangeProgress}%` } as CSSProperties}
             onChange={(e) => update({ maxPrice: Number(e.target.value) })}
             className="w-full"
             aria-label="Maximum price"
           />
           <div className="text-ink mt-2 flex items-center justify-between text-xs font-medium">
             <span>{formatNaira(PRICE_MIN)}</span>
-            <span className="text-ink">{formatNaira(filters.maxPrice)}</span>
+            <span>{formatNaira(filters.maxPrice)}</span>
           </div>
         </section>
 
         <section>
           <SectionTitle>Preparation</SectionTitle>
           <div className="flex flex-col gap-2.5">
-            {PREPARATIONS.map((p) => (
-              <label
-                key={p}
-                className="text-charcoal flex cursor-pointer items-center gap-2.5 text-sm"
+            {PREPARATIONS.map((prep) => (
+              <Option
+                key={prep}
+                type="checkbox"
+                checked={(filters.preparations ?? []).includes(prep)}
+                onChange={() => togglePreparation(prep)}
               >
-                <input
-                  type="checkbox"
-                  className="text-brand h-4 w-4 rounded"
-                  checked={filters.preparations.includes(p)}
-                  onChange={() =>
-                    update({
-                      preparations: toggleInArray(filters.preparations, p),
-                    })
-                  }
-                />
-                {p}
-              </label>
+                {prep}
+              </Option>
             ))}
           </div>
         </section>
@@ -148,42 +162,16 @@ export default function FilterSidebar({
         <section>
           <SectionTitle>Availability</SectionTitle>
           <div className="flex flex-col gap-2.5">
-            <label className="text-charcoal flex cursor-pointer items-center gap-2.5 text-sm">
-              <input
+            {AVAILABILITY_OPTIONS.map(({ key, label }) => (
+              <Option
+                key={key}
                 type="checkbox"
-                className="text-brand h-4 w-4 rounded"
-                checked={filters.inStock}
-                onChange={(e) => update({ inStock: e.target.checked })}
-              />
-              In Stock
-            </label>
-            <label className="text-charcoal flex cursor-pointer items-center gap-2.5 text-sm">
-              <input
-                type="checkbox"
-                className="text-brand h-4 w-4 rounded"
-                checked={filters.sameDayDelivery}
-                onChange={(e) => update({ sameDayDelivery: e.target.checked })}
-              />
-              Same Day Delivery
-            </label>
-            <label className="text-charcoal flex cursor-pointer items-center gap-2.5 text-sm">
-              <input
-                type="checkbox"
-                className="text-brand h-4 w-4 rounded"
-                checked={filters.newArrival}
-                onChange={(e) => update({ newArrival: e.target.checked })}
-              />
-              New Arrival
-            </label>
-            <label className="text-charcoal flex cursor-pointer items-center gap-2.5 text-sm">
-              <input
-                type="checkbox"
-                className="text-brand h-4 w-4 rounded"
-                checked={filters.bestSeller}
-                onChange={(e) => update({ bestSeller: e.target.checked })}
-              />
-              Best Seller
-            </label>
+                checked={Boolean(filters[key])}
+                onChange={(checked) => update({ [key]: checked })}
+              >
+                {label}
+              </Option>
+            ))}
           </div>
         </section>
       </div>
@@ -204,7 +192,25 @@ export function MobileFilterDrawer({
   onChange: (next: FilterState) => void;
   onClearAll: () => void;
 }) {
+  useEffect(() => {
+    if (!open) return;
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    const previousOverflow = document.body.style.overflow;
+
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open, onClose]);
+
   if (!open) return null;
+
   return (
     <div className="fixed inset-0 z-50 lg:hidden">
       <div
@@ -212,9 +218,15 @@ export function MobileFilterDrawer({
         onClick={onClose}
         aria-hidden="true"
       />
-      <div className="absolute inset-y-0 left-0 flex w-[85vw] max-w-sm flex-col bg-white shadow-2xl">
+
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Filters"
+        className="absolute inset-y-0 left-0 flex w-[85vw] max-w-sm flex-col bg-white shadow-2xl"
+      >
         <div className="border-ink/10 flex items-center justify-between border-b px-5 py-4">
-          <span className="text-ink text-base font-bold">Filters</span>
+          <span className="text-ink text-base font-semibold">Filters</span>
           <button
             type="button"
             onClick={onClose}
@@ -224,13 +236,31 @@ export function MobileFilterDrawer({
             <X className="h-5 w-5" />
           </button>
         </div>
-        <div className="flex-1 scrollbar-thin overflow-y-auto px-5 py-5">
+
+        <div className="scrollbar-thin flex-1 overflow-y-auto px-5 py-5">
           <FilterSidebar
             filters={filters}
             onChange={onChange}
             onClearAll={onClearAll}
             hideHeader
           />
+        </div>
+
+        <div className="border-ink/10 grid grid-cols-2 gap-2 border-t px-5 py-3">
+          <button
+            type="button"
+            onClick={onClearAll}
+            className="text-ink h-10 rounded-lg border border-[#dedbd7] text-sm font-medium"
+          >
+            Clear all
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            className="bg-brand h-10 rounded-lg text-sm font-medium text-white"
+          >
+            Show results
+          </button>
         </div>
       </div>
     </div>

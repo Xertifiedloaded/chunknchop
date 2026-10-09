@@ -15,7 +15,7 @@ import {
 import toast from "react-hot-toast";
 import { useAuthStore } from "@/lib/store/authStore";
 import { useCartStore } from "@/lib/store/cartStore";
-import CartDropdown from "./CartDropdown";
+import CartDropdown from "../../CartDropdown";
 import { ROLE_STYLES } from "@/lib";
 
 type Panel = "menu" | "search" | "cart" | "account" | null;

@@ -2,13 +2,18 @@
 
 import { fetchWithAuth } from "@/lib/fetchClient";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect } from "react";
 import { Loader2, Minus, Plus, Trash2, X } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { useAuthStore } from "@/lib/store/authStore";
 import { useCartStore } from "@/lib/store/cartStore";
 import { formatNaira } from "@/lib/format";
+import {
+  isTempItem,
+  maxQuantityFor,
+  useCartActions,
+} from "@/lib/hooks/useCartActions";
 
 interface CartDropdownProps {
   isOpen: boolean;
@@ -27,8 +32,7 @@ export default function CartDropdown({ isOpen, onClose }: CartDropdownProps) {
     isLoading: cartLoading,
   } = useCartStore();
 
-  const [updatingId, setUpdatingId] = useState<string | null>(null);
-  const [removingId, setRemovingId] = useState<string | null>(null);
+  const { setQuantity, removeItem } = useCartActions();
 
   const isSupplier = user?.role === "SUPPLIER";
 
@@ -81,103 +85,6 @@ export default function CartDropdown({ isOpen, onClose }: CartDropdownProps) {
     }
   }, [isHydrated, user, isSupplier, fetchCart, setCartItems]);
 
-  async function handleRemoveItem(cartItemId: string) {
-    if (!isHydrated || !user) {
-      toast.error("Please sign in to manage your cart");
-      return;
-    }
-
-    const previousItems = cartItems;
-
-    setCartItems(cartItems.filter((item) => item.id !== cartItemId));
-    setRemovingId(cartItemId);
-    try {
-      const res = await fetchWithAuth(`/api/customer/cart/${cartItemId}`, {
-        method: "DELETE",
-      });
-
-      if (!res.ok) {
-        const error = await res.json().catch(() => null);
-
-        throw new Error(error?.error || "Failed to remove item");
-      }
-
-      toast.success("Item removed");
-    } catch (error) {
-      console.error("[cart] remove error:", error);
-
-      setCartItems(previousItems);
-
-      toast.error("Failed to remove item");
-    } finally {
-      setRemovingId(null);
-    }
-  }
-
-  async function handleUpdateQuantity(cartItemId: string, newQuantity: number) {
-    const item = cartItems.find((cartItem) => cartItem.id === cartItemId);
-
-    if (!item) {
-      return;
-    }
-
-    if (newQuantity < 1) {
-      await handleRemoveItem(cartItemId);
-      return;
-    }
-
-    if (!isHydrated || !user) {
-      toast.error("Please sign in to manage your cart");
-      return;
-    }
-
-    const previousItems = cartItems;
-
-    setCartItems(
-      cartItems.map((cartItem) =>
-        cartItem.id === cartItemId
-          ? {
-              ...cartItem,
-              quantity: newQuantity,
-            }
-          : cartItem,
-      ),
-    );
-
-    setUpdatingId(cartItemId);
-
-    try {
-      const res = await fetchWithAuth("/api/customer/cart", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          productId: item.productId,
-          quantity: newQuantity,
-          selectedTier: item.selectedTier,
-          selectedPreparation: item.selectedPreparation,
-          selectedVariants: item.selectedVariants || [],
-        }),
-      });
-
-      if (!res.ok) {
-        const error = await res.json().catch(() => null);
-
-        throw new Error(error?.error || "Failed to update quantity");
-      }
-
-      await fetchCart();
-    } catch (error) {
-      console.error("[cart] update quantity error:", error);
-      setCartItems(previousItems);
-
-      toast.error("Failed to update quantity");
-    } finally {
-      setUpdatingId(null);
-    }
-  }
-
   if (isSupplier) {
     return null;
   }
@@ -229,9 +136,9 @@ export default function CartDropdown({ isOpen, onClose }: CartDropdownProps) {
 
               const itemPrice = tierPrice ?? item.product.basePrice;
 
-              const isUpdating = updatingId === item.id;
-
-              const isRemoving = removingId === item.id;
+              const isTemp = isTempItem(item.id);
+              const maxQty = maxQuantityFor(item.product?.stock);
+              const atMax = item.quantity >= maxQty;
 
               return (
                 <div
@@ -274,9 +181,11 @@ export default function CartDropdown({ isOpen, onClose }: CartDropdownProps) {
                   <div className="flex items-center gap-1.5 text-[#2D2D2D]">
                     <button
                       type="button"
-                      disabled={isUpdating || isRemoving}
+                      disabled={isTemp}
                       onClick={() =>
-                        handleUpdateQuantity(item.id, item.quantity - 1)
+                        item.quantity <= 1
+                          ? removeItem(item.id)
+                          : setQuantity(item.id, item.quantity - 1)
                       }
                       aria-label={`Decrease quantity of ${item.product.name}`}
                       className="flex h-6 w-6 items-center justify-center rounded-full border border-neutral-200 bg-white transition hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
@@ -285,7 +194,7 @@ export default function CartDropdown({ isOpen, onClose }: CartDropdownProps) {
                     </button>
 
                     <span className="w-4 text-center text-xs font-semibold">
-                      {isUpdating ? (
+                      {isTemp ? (
                         <Loader2 size={12} className="mx-auto animate-spin" />
                       ) : (
                         item.quantity
@@ -294,10 +203,8 @@ export default function CartDropdown({ isOpen, onClose }: CartDropdownProps) {
 
                     <button
                       type="button"
-                      disabled={isUpdating || isRemoving}
-                      onClick={() =>
-                        handleUpdateQuantity(item.id, item.quantity + 1)
-                      }
+                      disabled={isTemp || atMax}
+                      onClick={() => setQuantity(item.id, item.quantity + 1)}
                       aria-label={`Increase quantity of ${item.product.name}`}
                       className="flex h-6 w-6 items-center justify-center rounded-full border border-neutral-200 bg-white transition hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
                     >
@@ -307,16 +214,12 @@ export default function CartDropdown({ isOpen, onClose }: CartDropdownProps) {
 
                   <button
                     type="button"
-                    disabled={isRemoving}
-                    onClick={() => handleRemoveItem(item.id)}
+                    disabled={isTemp}
+                    onClick={() => removeItem(item.id)}
                     aria-label={`Remove ${item.product.name} from cart`}
                     className="text-[#2D2D2D] transition hover:text-red-500 disabled:opacity-50"
                   >
-                    {isRemoving ? (
-                      <Loader2 size={14} className="animate-spin" />
-                    ) : (
-                      <Trash2 size={14} />
-                    )}
+                    <Trash2 size={14} />
                   </button>
                 </div>
               );

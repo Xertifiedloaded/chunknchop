@@ -1,15 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState, type MouseEvent } from "react";
 import Link from "next/link";
-import { Heart, Plus, Star, Clock, Loader2 } from "lucide-react";
-import toast from "react-hot-toast";
+import { Heart, Plus, Check, Star, Clock, Loader2 } from "lucide-react";
 
 import type { Product } from "@/lib/types";
 import { formatNaira } from "@/lib/format";
-import { useAuthStore } from "@/lib/store/authStore";
 import { useCartStore } from "@/lib/store/cartStore";
-import { fetchWithAuth } from "@/lib/fetchClient";
+import { useShopActions } from "@/lib/hooks/useShopActions";
 
 function daysAgoLabel(createdAt: string) {
   const days = Math.floor(
@@ -36,12 +34,15 @@ export default function ProductCard({
   isWishlisted?: boolean;
 }) {
   const [saved, setSaved] = useState(isWishlisted);
-  const [isAdding, setIsAdding] = useState(false);
   const [isTogglingWishlist, setIsTogglingWishlist] = useState(false);
 
-  const user = useAuthStore((s) => s.user);
-  const isHydrated = useAuthStore((s) => s.isHydrated);
-  const { setItems: setCartItems } = useCartStore();
+  const { addToCart, setWishlisted } = useShopActions();
+
+  const inCart = useCartStore((s) =>
+    s.items.some(
+      (i) => ((i as any).product?.id ?? (i as any).productId) === product.id,
+    ),
+  );
 
   const image = product.images?.[0];
   const badge = getProductBadge(product);
@@ -50,154 +51,26 @@ export default function ProductCard({
     setSaved(isWishlisted);
   }, [isWishlisted]);
 
-  const refreshCart = async () => {
-    if (!isHydrated || !user || user.role === "SUPPLIER") return;
-
-    try {
-      const res = await fetchWithAuth("/api/customer/cart", {
-        method: "GET",
-        cache: "no-store",
-      });
-
-      if (!res.ok) return;
-
-      const data = await res.json();
-
-      setCartItems(
-        (data.cartItems || []).map((item: any) => ({
-          ...item,
-          selectedVariants: item.selectedVariants || [],
-          selectedTier: item.selectedTier || undefined,
-          product: {
-            ...item.product,
-            tiers: item.product.tiers || [],
-            variants: item.product.variants || [],
-          },
-        })),
-      );
-    } catch (error) {
-      console.error("failed to refresh cart:", error);
-    }
-  };
-
-  const handleAddToCart = async (e: React.MouseEvent) => {
+  const handleAddToCart = (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-
-    if (!product.inStock) return;
-
-    if (!isHydrated || !user) {
-      toast.error("Please sign in to add items to your cart.");
-      return;
-    }
-
-    if (user.role === "SUPPLIER") {
-      toast.error("Suppliers cannot add products to cart.");
-      return;
-    }
-
-    try {
-      setIsAdding(true);
-
-      const res = await fetchWithAuth("/api/customer/cart", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          productId: product.id,
-          quantity: 1,
-          selectedTier: null,
-          selectedPreparation: product.preparations?.[0] || null,
-          selectedVariants: [],
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data?.error || "Failed to add product to cart");
-      }
-
-      await refreshCart();
-      toast.success("Added to cart");
-    } catch (error) {
-      console.error("failed to add item:", error);
-      toast.error(
-        error instanceof Error ? error.message : "Failed to add item to cart",
-      );
-    } finally {
-      setIsAdding(false);
-    }
+    addToCart(product);
   };
 
-  const handleToggleWishlist = async (e: React.MouseEvent) => {
+  const handleToggleWishlist = async (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
     if (isTogglingWishlist) return;
 
-    if (!isHydrated || !user) {
-      toast.error("Please sign in to save favorites.");
-      return;
-    }
-
-    if (user.role === "SUPPLIER") {
-      toast.error("Suppliers cannot save favorites.");
-      return;
-    }
-
-    const wasSaved = saved;
-
-    setSaved(!wasSaved);
+    const next = !saved;
+    setSaved(next);
     setIsTogglingWishlist(true);
 
-    try {
-      if (!wasSaved) {
-        const res = await fetchWithAuth("/api/customer/wishlist", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ productId: product.id }),
-        });
+    const ok = await setWishlisted(product.id, next);
+    if (!ok) setSaved(!next);
 
-        const data = await res.json().catch(() => ({}));
-
-        if (!res.ok) {
-          if (res.status === 400 && data?.error === "Already in wishlist") {
-            toast.success("Already in favorites");
-            return;
-          }
-          throw new Error(data?.error || "Failed to add to favorites");
-        }
-
-        toast.success("Added to favorites");
-      } else {
-        const res = await fetchWithAuth(
-          `/api/customer/wishlist/${product.id}`,
-          {
-            method: "DELETE",
-          },
-        );
-
-        const data = await res.json().catch(() => ({}));
-
-        if (!res.ok) {
-          throw new Error(data?.error || "Failed to remove from favorites");
-        }
-
-        toast.success("Removed from favorites");
-      }
-    } catch (error) {
-      setSaved(wasSaved);
-      console.error("failed to toggle wishlist:", error);
-      toast.error(
-        error instanceof Error ? error.message : "Failed to update favorites",
-      );
-    } finally {
-      setIsTogglingWishlist(false);
-    }
+    setIsTogglingWishlist(false);
   };
 
   return (
@@ -272,9 +145,9 @@ export default function ProductCard({
         <div className="text-ink flex items-center gap-1 text-[11px] sm:gap-1.5 sm:text-xs">
           <Star className="fill-brand text-brand h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" />
           <span className="text-ink font-medium">
-            {product.rating.toFixed(1)}
+            {(product.rating ?? 0).toFixed(1)}
           </span>
-          <span>({product.reviewCount})</span>
+          <span>({product.reviewCount ?? 0})</span>
           <span className="text-ink mx-0.5 sm:mx-1">·</span>
           <Clock className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" />
           <span>{daysAgoLabel(product.createdAt)}</span>
@@ -287,13 +160,22 @@ export default function ProductCard({
 
           <button
             type="button"
-            disabled={!product.inStock || isAdding}
+            disabled={!product.inStock}
             onClick={handleAddToCart}
-            aria-label="Add to cart"
-            className="bg-brand disabled:bg-ink relative z-10 inline-flex h-9 min-w-9 shrink-0 items-center justify-center gap-1.5 rounded-xl px-2 text-sm font-medium text-white transition-colors hover:bg-orange-600 disabled:cursor-not-allowed sm:h-11 sm:min-w-20 sm:px-4"
+            aria-label={
+              inCart
+                ? `${product.name} is in your cart`
+                : `Add ${product.name} to cart`
+            }
+            className={`disabled:bg-ink relative z-10 inline-flex h-9 min-w-9 shrink-0 items-center justify-center gap-1.5 rounded-xl px-2 text-sm font-medium text-white transition active:scale-95 disabled:cursor-not-allowed sm:h-11 sm:min-w-20 sm:px-4 ${
+              inCart ? "bg-[#0ca66a]" : "bg-brand hover:bg-orange-600"
+            }`}
           >
-            {isAdding ? (
-              <Loader2 className="h-4 w-4 animate-spin sm:h-5 sm:w-5" />
+            {inCart ? (
+              <>
+                <Check className="h-4 w-4 shrink-0 sm:h-5 sm:w-5" />
+                <span className="hidden sm:inline">In cart</span>
+              </>
             ) : (
               <>
                 <Plus className="h-4 w-4 shrink-0 sm:h-5 sm:w-5" />

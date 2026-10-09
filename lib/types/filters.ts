@@ -1,3 +1,5 @@
+import { slugify } from "@/lib/slug";
+
 export const SORT_OPTIONS = [
   "Newest",
   "Price: Low to High",
@@ -33,63 +35,97 @@ export const DEFAULT_FILTERS: FilterState = {
   bestSeller: false,
 };
 
-export function countActiveFilters(f: FilterState) {
-  let count = 0;
-  if (f.category !== "All") count++;
-  if (f.maxPrice < PRICE_MAX) count++;
-  if (f.preparations.length) count++;
-  if (f.inStock) count++;
-  if (f.sameDayDelivery) count++;
-  if (f.newArrival) count++;
-  if (f.bestSeller) count++;
-  return count;
+export interface FilterableProduct {
+  name: string;
+  basePrice: number;
+  rating?: number | null;
+  createdAt?: string | number | Date | null;
+  category?: string | null;
+  categoryId?: string | number | null;
+  categoryRef?: { slug?: string | null; name?: string | null } | null;
+  preparations?: string[] | null;
+  inStock?: boolean;
+  sameDayDelivery?: boolean;
+  isNewArrival?: boolean;
+  isBestSeller?: boolean;
 }
 
-import { slugify } from "@/lib/slug";
+export function countActiveFilters(f: FilterState) {
+  return [
+    f.category !== "All",
+    f.maxPrice < PRICE_MAX,
+    (f.preparations?.length ?? 0) > 0,
+    f.inStock,
+    f.sameDayDelivery,
+    f.newArrival,
+    f.bestSeller,
+  ].filter(Boolean).length;
+}
 
-export function filterProducts(products: any[], f: FilterState): any[] {
+function productCategorySlug(p: FilterableProduct): string {
+  const ref = p.categoryRef;
+
+  const raw = ref?.slug
+    ? ref.slug.replace(/^\//, "")
+    : typeof p.category === "string" && p.category.trim()
+      ? p.category
+      : ref?.name
+        ? ref.name
+        : p.categoryId
+          ? String(p.categoryId)
+          : "";
+
+  return raw ? slugify(raw) : "";
+}
+
+function timeOf(value: FilterableProduct["createdAt"]) {
+  const time = value ? new Date(value).getTime() : 0;
+  return Number.isNaN(time) ? 0 : time;
+}
+
+export function filterProducts<T extends FilterableProduct>(
+  products: T[],
+  f: FilterState,
+): T[] {
+  const query = f.search.trim().toLowerCase();
+  const selectedPreparations = f.preparations ?? [];
+  const selectedCategory =
+    f.category !== "All" && typeof f.category === "string"
+      ? slugify(f.category)
+      : null;
+
   const result = products.filter((p) => {
     if (f.category !== "All") {
-      const rawPCat =
-        p.categoryRef && p.categoryRef.slug
-          ? p.categoryRef.slug.replace(/^\//, "")
-          : typeof p.category === "string" && p.category.trim()
-            ? p.category
-            : p.categoryRef && p.categoryRef.name
-              ? p.categoryRef.name
-              : p.categoryId
-                ? String(p.categoryId)
-                : "";
-      const pCat = rawPCat ? slugify(rawPCat) : "";
-      const fCat = typeof f.category === "string" ? slugify(f.category) : "";
-      if (!pCat || !fCat || pCat !== fCat) return false;
+      const productCategory = productCategorySlug(p);
+      if (!productCategory || !selectedCategory) return false;
+      if (productCategory !== selectedCategory) return false;
     }
+
     if (p.basePrice > f.maxPrice) return false;
-    if (
-      f.preparations.length &&
-      !f.preparations.some((prep) => p.preparations.includes(prep))
-    )
-      return false;
+
+    if (selectedPreparations.length) {
+      const available = p.preparations ?? [];
+      if (!selectedPreparations.some((prep) => available.includes(prep)))
+        return false;
+    }
+
     if (f.inStock && !p.inStock) return false;
     if (f.sameDayDelivery && !p.sameDayDelivery) return false;
     if (f.newArrival && !p.isNewArrival) return false;
     if (f.bestSeller && !p.isBestSeller) return false;
-    if (f.search && !p.name.toLowerCase().includes(f.search.toLowerCase()))
-      return false;
+    if (query && !p.name.toLowerCase().includes(query)) return false;
+
     return true;
   });
 
   switch (f.sort) {
     case "Price: Low to High":
-      return [...result].sort((a, b) => a.basePrice - b.basePrice);
+      return result.sort((a, b) => a.basePrice - b.basePrice);
     case "Price: High to Low":
-      return [...result].sort((a, b) => b.basePrice - a.basePrice);
+      return result.sort((a, b) => b.basePrice - a.basePrice);
     case "Top Rated":
-      return [...result].sort((a, b) => b.rating - a.rating);
+      return result.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
     default:
-      return [...result].sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-      );
+      return result.sort((a, b) => timeOf(b.createdAt) - timeOf(a.createdAt));
   }
 }

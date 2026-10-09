@@ -36,6 +36,12 @@ const isPlainLine = (item: any, productId: string) =>
   !item.selectedVariants?.length &&
   !item.selectedTier;
 
+const isInCart = (productId: string) =>
+  pendingAdds.has(productId) ||
+  useCartStore
+    .getState()
+    .items.some((i: any) => (i.product?.id ?? i.productId) === productId);
+
 function adjustCart(product: any, delta: number) {
   const { items, setItems } = useCartStore.getState();
   const existing = items.find((i: any) => isPlainLine(i, product.id));
@@ -162,6 +168,11 @@ export function useShopActions() {
   const addToCart = useCallback(
     (product: any) => {
       if (!product.inStock || !guard("add items to your cart")) return false;
+
+      if (isInCart(product.id)) {
+        toast("Already in cart", { id: `cart-${product.id}` });
+        return false;
+      }
 
       adjustCart(product, 1);
       queueAdd(product);

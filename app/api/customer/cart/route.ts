@@ -2,6 +2,25 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getUserFromRequest } from "@/lib/request";
 
+const cartItemInclude = {
+  product: {
+    include: {
+      tiers: true,
+      variants: true,
+      supplier: {
+        select: {
+          id: true,
+          supplierProfile: {
+            select: {
+              storeName: true,
+            },
+          },
+        },
+      },
+    },
+  },
+} as const;
+
 export async function GET(req: NextRequest) {
   try {
     const user = getUserFromRequest(req);
@@ -11,45 +30,21 @@ export async function GET(req: NextRequest) {
     }
 
     const cartItems = await prisma.cartItem.findMany({
-      where: {
-        userId: user.id,
-      },
-      include: {
-        product: {
-          include: {
-            tiers: true,
-            variants: true,
-            supplier: {
-              select: {
-                id: true,
-                supplierProfile: {
-                  select: {
-                    storeName: true,
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-      orderBy: {
-        id: "desc",
-      },
+      where: { userId: user.id },
+      include: cartItemInclude,
+      orderBy: { id: "desc" },
     });
 
-    return NextResponse.json({
-      cartItems,
-    });
+    return NextResponse.json(
+      { cartItems },
+      { headers: { "Cache-Control": "no-store" } },
+    );
   } catch (error) {
     console.error("[cart GET] Failed:", error);
 
     return NextResponse.json(
-      {
-        error: "Failed to fetch cart",
-      },
-      {
-        status: 500,
-      },
+      { error: "Failed to fetch cart" },
+      { status: 500 },
     );
   }
 }
@@ -62,15 +57,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await req.json();
+    const body = await req.json().catch(() => null);
 
-    const {
-      productId,
-      quantity,
-      selectedTier,
-      selectedPreparation,
-      selectedVariants,
-    } = body;
+    const productId: string | undefined = body?.productId;
+    const quantity = Number(body?.quantity);
+    const selectedTier: string | null = body?.selectedTier || null;
+    const selectedPreparation: string | null = body?.selectedPreparation || null;
+    const selectedVariants = Array.isArray(body?.selectedVariants)
+      ? body.selectedVariants
+      : [];
 
     if (!productId) {
       return NextResponse.json(
@@ -79,81 +74,59 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!quantity || quantity < 1) {
+    if (!Number.isInteger(quantity) || quantity < 1) {
       return NextResponse.json({ error: "Invalid quantity" }, { status: 400 });
     }
 
-    const product = await prisma.product.findUnique({
-      where: {
-        id: productId,
-      },
-    });
+    const [product, existing] = await Promise.all([
+      prisma.product.findUnique({
+        where: { id: productId },
+        select: { id: true, stock: true },
+      }),
+      prisma.cartItem.findUnique({
+        where: { userId_productId: { userId: user.id, productId } },
+        select: { quantity: true },
+      }),
+    ]);
 
     if (!product) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
 
-    if (quantity > product.stock) {
+    const nextQuantity = (existing?.quantity ?? 0) + quantity;
+
+    if (nextQuantity > product.stock) {
       return NextResponse.json(
-        {
-          error: `Only ${product.stock} items available`,
-        },
+        { error: `Only ${product.stock} items available` },
         { status: 400 },
       );
     }
 
     const cartItem = await prisma.cartItem.upsert({
-      where: {
-        userId_productId: {
-          userId: user.id,
-          productId,
-        },
-      },
-
+      where: { userId_productId: { userId: user.id, productId } },
       create: {
         userId: user.id,
         productId,
         quantity,
-        selectedTier: selectedTier || null,
-        selectedPreparation: selectedPreparation || null,
-        selectedVariants: selectedVariants || [],
+        selectedTier,
+        selectedPreparation,
+        selectedVariants,
       },
-
       update: {
-        quantity,
-        selectedTier: selectedTier || null,
-        selectedPreparation: selectedPreparation || null,
-        selectedVariants: selectedVariants || [],
+        quantity: nextQuantity,
+        selectedTier,
+        selectedPreparation,
+        selectedVariants,
       },
-
-      include: {
-        product: {
-          include: {
-            tiers: true,
-            variants: true,
-            supplier: {
-              select: {
-                id: true,
-                supplierProfile: {
-                  select: {
-                    storeName: true,
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
+      include: cartItemInclude,
     });
 
     return NextResponse.json(cartItem, { status: 200 });
   } catch (error) {
-    console.error("[cart] add/update error:", error);
+    console.error("[cart POST] Failed:", error);
 
     return NextResponse.json(
-      {
-        error: "Failed to update cart",
-      },
+      { error: "Failed to update cart" },
       { status: 500 },
     );
   }

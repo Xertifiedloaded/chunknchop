@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast";
 import WishlistHeader from "@/components/sections/wishlist/WishlistHeader";
 import WishlistProductCard from "@/components/sections/wishlist/WishlistCard";
-import SimilarProducts from "@/components/sections/common/SimilarProducts";
+import SimilarProducts from "@/components/SimilarProducts";
 import { useAuthStore } from "@/lib/store/authStore";
 import { useCartStore } from "@/lib/store/cartStore";
 

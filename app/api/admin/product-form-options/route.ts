@@ -34,9 +34,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error("Error fetching product form options:", error);
-    return NextResponse.json(
-      { error: "Failed to load form options" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed to load form options" }, { status: 500 });
   }
 }

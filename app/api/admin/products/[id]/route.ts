@@ -3,10 +3,7 @@ import { getUserFromRequest } from "@/lib/http/request";
 import { prisma } from "@/lib/db";
 import { uploadProductImage } from "@/lib/storage";
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
 
@@ -49,17 +46,11 @@ export async function GET(
     return NextResponse.json(product);
   } catch (error) {
     console.error("Error fetching product:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const user = getUserFromRequest(request);
 
@@ -86,26 +77,17 @@ export async function PUT(
       return NextResponse.json({ error: "Name is required" }, { status: 400 });
     }
     if (!meatType) {
-      return NextResponse.json(
-        { error: "Meat type is required" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Meat type is required" }, { status: 400 });
     }
 
     const basePrice = Number(formData.get("basePrice"));
     const stock = Number(formData.get("stock"));
 
     if (!Number.isFinite(basePrice) || basePrice < 0) {
-      return NextResponse.json(
-        { error: "Base price must be a valid non-negative number" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Base price must be a valid non-negative number" }, { status: 400 });
     }
     if (!Number.isFinite(stock) || stock < 0 || !Number.isInteger(stock)) {
-      return NextResponse.json(
-        { error: "Stock must be a valid non-negative whole number" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Stock must be a valid non-negative whole number" }, { status: 400 });
     }
 
     let tags: unknown = [];
@@ -115,19 +97,12 @@ export async function PUT(
     try {
       tags = JSON.parse(String(formData.get("tags") ?? "[]"));
       preparations = JSON.parse(String(formData.get("preparations") ?? "[]"));
-      existingImages = JSON.parse(
-        String(formData.get("existingImages") ?? "[]"),
-      );
+      existingImages = JSON.parse(String(formData.get("existingImages") ?? "[]"));
     } catch {
-      return NextResponse.json(
-        { error: "Malformed tags, preparations, or images data" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Malformed tags, preparations, or images data" }, { status: 400 });
     }
 
-    const imageFiles = formData
-      .getAll("images")
-      .filter((value): value is File => value instanceof File);
+    const imageFiles = formData.getAll("images").filter((value): value is File => value instanceof File);
 
     const uploadedUrls: string[] = [];
 
@@ -138,16 +113,13 @@ export async function PUT(
       } catch (error) {
         return NextResponse.json(
           {
-            error:
-              error instanceof Error ? error.message : "Image upload failed",
+            error: error instanceof Error ? error.message : "Image upload failed",
           },
           { status: 400 },
         );
       }
     }
 
-    // Accept categoryId when editing so the product's categoryId and
-    // legacy category string remain in sync with the selected Category.
     const categoryId = String(formData.get("categoryId") ?? "").trim();
     let categoryName: string | undefined = undefined;
 
@@ -156,10 +128,7 @@ export async function PUT(
         where: { id: categoryId },
       });
       if (!found || !found.isActive) {
-        return NextResponse.json(
-          { error: "Selected category is invalid or not visible" },
-          { status: 400 },
-        );
+        return NextResponse.json({ error: "Selected category is invalid or not visible" }, { status: 400 });
       }
       categoryName = found.name;
     }
@@ -176,14 +145,9 @@ export async function PUT(
       isNewArrival: formData.get("isNewArrival") === "true",
       isBestSeller: formData.get("isBestSeller") === "true",
       sameDayDelivery: formData.get("sameDayDelivery") === "true",
-      images: [
-        ...(Array.isArray(existingImages) ? existingImages : []),
-        ...uploadedUrls,
-      ],
+      images: [...(Array.isArray(existingImages) ? existingImages : []), ...uploadedUrls],
     };
 
-    // If the client provided a categoryId, set both the FK and the legacy
-    // category string (keeps older parts of the app compatible).
     if (categoryId) {
       updateData.categoryId = categoryId;
       updateData.category = categoryName ?? "";
@@ -197,17 +161,11 @@ export async function PUT(
     return NextResponse.json(product);
   } catch (error) {
     console.error("Error updating product:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const user = getUserFromRequest(request);
 
@@ -230,9 +188,6 @@ export async function DELETE(
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting product:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

@@ -5,19 +5,16 @@ import { prisma } from "@/lib/db";
 import { uploadProductImage } from "@/lib/storage";
 import { resolveCategory, resolveLocation } from "@/features/catalog/server/catalog";
 
-const text = (formData: FormData, key: string) =>
-  String(formData.get(key) ?? "").trim();
+const text = (formData: FormData, key: string) => String(formData.get(key) ?? "").trim();
 
 const parseJsonArray = (value: FormDataEntryValue | null): string[] => {
   const parsed = JSON.parse(String(value ?? "[]"));
   return Array.isArray(parsed) ? parsed.map(String) : [];
 };
 
-const isNonNegativeInt = (value: number) =>
-  Number.isInteger(value) && value >= 0;
+const isNonNegativeInt = (value: number) => Number.isInteger(value) && value >= 0;
 
-const badRequest = (error: string) =>
-  NextResponse.json({ error }, { status: 400 });
+const badRequest = (error: string) => NextResponse.json({ error }, { status: 400 });
 
 const toMeatType = (name: string): MeatType | null => {
   const key = name
@@ -35,8 +32,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const includeArchived =
-      request.nextUrl.searchParams.get("includeArchived") === "true";
+    const includeArchived = request.nextUrl.searchParams.get("includeArchived") === "true";
 
     const products = await prisma.product.findMany({
       where: includeArchived ? undefined : { isArchived: false },
@@ -72,10 +68,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(products);
   } catch (error) {
     console.error("Error fetching admin products:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch products" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed to fetch products" }, { status: 500 });
   }
 }
 
@@ -111,27 +104,17 @@ export async function POST(request: NextRequest) {
     const categoryName = category.existing?.name ?? category.create?.name ?? "";
     const meatType = toMeatType(categoryName);
     if (!meatType) {
-      return badRequest(
-        `Category "${categoryName}" does not map to a supported meat type`,
-      );
+      return badRequest(`Category "${categoryName}" does not map to a supported meat type`);
     }
 
     const basePrice = Number(formData.get("basePrice"));
     const stock = Number(formData.get("stock"));
-    const reorderPoint =
-      text(formData, "reorderPoint") === ""
-        ? 0
-        : Number(formData.get("reorderPoint"));
+    const reorderPoint = text(formData, "reorderPoint") === "" ? 0 : Number(formData.get("reorderPoint"));
     const unit = text(formData, "unit") || "kg";
 
-    if (!Number.isFinite(basePrice) || basePrice < 0)
-      return badRequest("Base price must be a valid non-negative number");
-    if (!isNonNegativeInt(stock))
-      return badRequest("Stock must be a valid non-negative whole number");
-    if (!isNonNegativeInt(reorderPoint))
-      return badRequest(
-        "Reorder point must be a valid non-negative whole number",
-      );
+    if (!Number.isFinite(basePrice) || basePrice < 0) return badRequest("Base price must be a valid non-negative number");
+    if (!isNonNegativeInt(stock)) return badRequest("Stock must be a valid non-negative whole number");
+    if (!isNonNegativeInt(reorderPoint)) return badRequest("Reorder point must be a valid non-negative whole number");
 
     let tags: string[];
     let preparations: string[];
@@ -145,35 +128,25 @@ export async function POST(request: NextRequest) {
       return badRequest("Malformed tags, preparations, or images data");
     }
 
-    const imageFiles = formData
-      .getAll("images")
-      .filter((value): value is File => value instanceof File);
+    const imageFiles = formData.getAll("images").filter((value): value is File => value instanceof File);
 
     let uploadedUrls: string[];
 
     try {
-      uploadedUrls = await Promise.all(
-        imageFiles.map((file) => uploadProductImage(file)),
-      );
+      uploadedUrls = await Promise.all(imageFiles.map((file) => uploadProductImage(file)));
     } catch (error) {
-      return badRequest(
-        error instanceof Error ? error.message : "Image upload failed",
-      );
+      return badRequest(error instanceof Error ? error.message : "Image upload failed");
     }
 
     const result = await prisma.$transaction(async (tx) => {
-      const resolvedCategory =
-        category.existing ??
-        (await tx.category.create({ data: category.create }));
-      const resolvedLocation =
-        location.existing ??
-        (await tx.storageLocation.create({ data: location.create }));
+      const resolvedCategory = category.existing ?? (await tx.category.create({ data: category.create }));
+      const resolvedLocation = location.existing ?? (await tx.storageLocation.create({ data: location.create }));
 
       const product = await tx.product.create({
         data: {
           name,
           description: text(formData, "description"),
-          meatType, // enum value, not the display name
+          meatType,
           category: resolvedCategory.name,
           categoryId: resolvedCategory.id,
           basePrice,
@@ -231,25 +204,16 @@ export async function POST(request: NextRequest) {
       { status: 201 },
     );
   } catch (error: unknown) {
-    if (
-      error &&
-      typeof error === "object" &&
-      "code" in error &&
-      error.code === "P2002"
-    ) {
+    if (error && typeof error === "object" && "code" in error && error.code === "P2002") {
       return NextResponse.json(
         {
-          error:
-            "A category, location or product with these details already exists",
+          error: "A category, location or product with these details already exists",
         },
         { status: 409 },
       );
     }
 
     console.error("Error creating product:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

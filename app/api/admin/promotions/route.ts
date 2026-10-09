@@ -16,10 +16,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(promotions);
   } catch (error) {
     console.error("Promotions error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
@@ -51,9 +48,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(promotion);
   } catch (error) {
     console.error("Promotion create error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

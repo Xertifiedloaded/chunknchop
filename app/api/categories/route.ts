@@ -32,9 +32,6 @@ export async function GET() {
     return NextResponse.json(result);
   } catch (error) {
     console.error("Public categories error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch categories" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed to fetch categories" }, { status: 500 });
   }
 }

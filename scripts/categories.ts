@@ -90,9 +90,7 @@ async function main() {
       },
     });
 
-    console.log(
-      `${result.name} → /${result.slug} → ${result.color} → visible: ${result.isActive}`,
-    );
+    console.log(`${result.name} → /${result.slug} → ${result.color} → visible: ${result.isActive}`);
   }
 
   console.log(`\nCreated/updated ${categories.length} categories.`);

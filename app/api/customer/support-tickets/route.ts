@@ -20,10 +20,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(tickets);
   } catch (error) {
     console.error("Error fetching support tickets:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
@@ -37,10 +34,7 @@ export async function POST(request: NextRequest) {
     const { subject, description, category, priority } = await request.json();
 
     if (!subject || !description || !category || !priority) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
     const ticket = await prisma.supportTicket.create({
@@ -58,9 +52,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(ticket, { status: 201 });
   } catch (error) {
     console.error("Error creating support ticket:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

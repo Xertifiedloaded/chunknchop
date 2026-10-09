@@ -17,10 +17,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(methods);
   } catch (error) {
     console.error("Payment methods error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
@@ -34,10 +31,7 @@ export async function POST(request: NextRequest) {
     const data = await request.json();
 
     if (!data.paystackAuthorizationCode) {
-      return NextResponse.json(
-        { error: "Missing Paystack authorization code" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Missing Paystack authorization code" }, { status: 400 });
     }
 
     if (data.isDefault) {
@@ -72,9 +66,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(paymentMethod);
   } catch (error) {
     console.error("Payment method create error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

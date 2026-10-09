@@ -1,15 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import {
-  Copy,
-  Gift,
-  MoreHorizontal,
-  Plus,
-  Send,
-  Ticket,
-  Zap,
-} from "lucide-react";
+import { Copy, Gift, MoreHorizontal, Plus, Send, Ticket, Zap } from "lucide-react";
 
 type CampaignStatus = "active" | "scheduled" | "expired" | "paused";
 
@@ -153,20 +145,8 @@ function StatusBadge({ status }: { status: CampaignStatus }) {
   };
 
   return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold ${styles[status]}`}
-    >
-      <span
-        className={`h-1.5 w-1.5 rounded-full ${
-          status === "active"
-            ? "bg-[#14b87a]"
-            : status === "scheduled"
-              ? "bg-[#f1a000]"
-              : status === "expired"
-                ? "bg-[#ef4d4d]"
-                : "bg-[#8b8580]"
-        }`}
-      />
+    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold ${styles[status]}`}>
+      <span className={`h-1.5 w-1.5 rounded-full ${status === "active" ? "bg-[#14b87a]" : status === "scheduled" ? "bg-[#f1a000]" : status === "expired" ? "bg-[#ef4d4d]" : "bg-[#8b8580]"}`} />
       {labels[status]}
     </span>
   );
@@ -174,11 +154,7 @@ function StatusBadge({ status }: { status: CampaignStatus }) {
 
 function UsageBar({ usage, limit }: { usage: number; limit: number }) {
   if (!limit) {
-    return (
-      <span className="text-[11px] text-[#827b74]">
-        {usage.toLocaleString()} uses
-      </span>
-    );
+    return <span className="text-[11px] text-[#827b74]">{usage.toLocaleString()} uses</span>;
   }
 
   const percentage = Math.min((usage / limit) * 100, 100);
@@ -186,13 +162,10 @@ function UsageBar({ usage, limit }: { usage: number; limit: number }) {
   return (
     <div className="flex min-w-[130px] items-center gap-2">
       <div className="h-[5px] w-[65px] overflow-hidden rounded-full bg-[#e9e7e5]">
-        <div
-          className="h-full rounded-full bg-[#f15b2a]"
-          style={{ width: `${percentage}%` }}
-        />
+        <div className="h-full rounded-full bg-[#f15b2a]" style={{ width: `${percentage}%` }} />
       </div>
 
-      <span className="whitespace-nowrap text-[10px] text-[#77716b]">
+      <span className="text-[10px] whitespace-nowrap text-[#77716b]">
         {usage.toLocaleString()}/{limit.toLocaleString()}
       </span>
     </div>
@@ -218,36 +191,18 @@ function KpiCard({
 }) {
   return (
     <div className="relative min-h-[120px] overflow-hidden rounded-[16px] border border-[#e7e4e1] bg-white px-4 py-4 shadow-[0_3px_12px_rgba(40,35,30,0.05)]">
-      {title === "Active Campaigns" && (
-        <div className="absolute left-0 right-0 top-0 h-[3px] bg-[#f15b2a]" />
-      )}
+      {title === "Active Campaigns" && <div className="absolute top-0 right-0 left-0 h-[3px] bg-[#f15b2a]" />}
 
       <div className="flex items-start justify-between">
         <p className="text-[10px] font-medium text-[#837c75]">{title}</p>
 
-        <div
-          className={`flex h-8 w-8 items-center justify-center rounded-[9px] ${iconClass}`}
-        >
-          {icon}
-        </div>
+        <div className={`flex h-8 w-8 items-center justify-center rounded-[9px] ${iconClass}`}>{icon}</div>
       </div>
 
-      <p className="mt-1 text-[22px] font-bold tracking-[-0.4px] text-[#302d29]">
-        {value}
-      </p>
+      <p className="mt-1 text-[22px] font-bold tracking-[-0.4px] text-[#302d29]">{value}</p>
 
       <div className="mt-1.5 flex items-center gap-2">
-        {trend && (
-          <span
-            className={`rounded-full px-1.5 py-0.5 text-[9px] font-bold ${
-              trendType === "negative"
-                ? "bg-[#fff0f0] text-[#df4545]"
-                : "bg-[#e9faf3] text-[#009c69]"
-            }`}
-          >
-            {trend}
-          </span>
-        )}
+        {trend && <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-bold ${trendType === "negative" ? "bg-[#fff0f0] text-[#df4545]" : "bg-[#e9faf3] text-[#009c69]"}`}>{trend}</span>}
 
         <span className="text-[10px] text-[#958e87]">{subtitle}</span>
       </div>
@@ -266,8 +221,7 @@ function PerformanceChart() {
       const min = 15;
       const max = 80;
 
-      const y =
-        height - 20 - ((item.value - min) / (max - min)) * (height - 40);
+      const y = height - 20 - ((item.value - min) / (max - min)) * (height - 40);
 
       return `${x},${y}`;
     })
@@ -275,18 +229,8 @@ function PerformanceChart() {
 
   return (
     <div className="mt-3 h-[185px] w-full">
-      <svg
-        viewBox={`0 0 ${width} ${height}`}
-        preserveAspectRatio="none"
-        className="h-full w-full"
-      >
-        <polyline
-          points={points}
-          fill="none"
-          stroke="#f15b2a"
-          strokeWidth="2"
-          vectorEffect="non-scaling-stroke"
-        />
+      <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" className="h-full w-full">
+        <polyline points={points} fill="none" stroke="#f15b2a" strokeWidth="2" vectorEffect="non-scaling-stroke" />
       </svg>
     </div>
   );
@@ -298,9 +242,7 @@ export default function PromotionsPage() {
 
   const filteredCampaigns = useMemo(() => {
     return campaigns.filter((campaign) => {
-      const matchesSearch =
-        campaign.code.toLowerCase().includes(search.toLowerCase()) ||
-        campaign.campaign.toLowerCase().includes(search.toLowerCase());
+      const matchesSearch = campaign.code.toLowerCase().includes(search.toLowerCase()) || campaign.campaign.toLowerCase().includes(search.toLowerCase());
 
       const matchesFilter = filter === "All types" || campaign.type === filter;
 
@@ -315,17 +257,11 @@ export default function PromotionsPage() {
   return (
     <main className="min-h-screen bg-[#f7f8f9] px-4 py-4 text-[#302d29] md:px-5 lg:px-6">
       <div className="mx-auto max-w-[1280px]">
-        {/* Header */}
         <header className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-[23px] font-bold tracking-[-0.4px]">
-              Promotions
-            </h1>
+            <h1 className="text-[23px] font-bold tracking-[-0.4px]">Promotions</h1>
 
-            <p className="mt-1 text-[12px] text-[#8d867f]">
-              Coupons, flash sales, banners, referrals and loyalty rewards
-              driving repeat orders.
-            </p>
+            <p className="mt-1 text-[12px] text-[#8d867f]">Coupons, flash sales, banners, referrals and loyalty rewards driving repeat orders.</p>
           </div>
 
           <div className="flex items-center gap-2">
@@ -337,25 +273,15 @@ export default function PromotionsPage() {
               Send Promotion
             </button>
 
-            <button
-              className="flex h-9 items-center gap-1.5 rounded-[11px] bg-[#f15b2a] px-3.5 text-[12px] font-semibold text-white transition hover:bg-[#df4e20]"
-              type="button"
-            >
+            <button className="flex h-9 items-center gap-1.5 rounded-[11px] bg-[#f15b2a] px-3.5 text-[12px] font-semibold text-white transition hover:bg-[#df4e20]" type="button">
               <Plus className="h-4 w-4" />
               Create Coupon
             </button>
           </div>
         </header>
 
-        {/* KPI Cards */}
         <section className="grid grid-cols-2 gap-1 sm:grid-cols-2 xl:grid-cols-4">
-          <KpiCard
-            title="Active Campaigns"
-            value="6"
-            icon={<Zap className="h-4 w-4 text-[#f15b2a]" />}
-            iconClass="bg-[#fff2ed]"
-            subtitle="2 scheduled this month"
-          />
+          <KpiCard title="Active Campaigns" value="6" icon={<Zap className="h-4 w-4 text-[#f15b2a]" />} iconClass="bg-[#fff2ed]" subtitle="2 scheduled this month" />
 
           <KpiCard
             title="Redemptions (30d)"
@@ -388,20 +314,15 @@ export default function PromotionsPage() {
           />
         </section>
 
-        {/* Performance */}
         <section className="mt-5 rounded-[16px] border border-[#e7e4e1] bg-white px-5 py-4 shadow-[0_5px_18px_rgba(40,35,30,0.06)]">
           <h2 className="text-[13px] font-semibold">Campaign Performance</h2>
 
-          <p className="text-[10px] text-[#918a83]">
-            Weekly redemptions and attributed revenue
-          </p>
+          <p className="text-[10px] text-[#918a83]">Weekly redemptions and attributed revenue</p>
 
           <PerformanceChart />
         </section>
 
-        {/* Campaign table */}
         <section className="mt-5 overflow-hidden rounded-[16px] border border-[#e7e4e1] bg-white shadow-[0_5px_18px_rgba(40,35,30,0.06)]">
-          {/* Search */}
           <div className="flex gap-2 border-b border-[#e7e4e1] p-3">
             <input
               value={search}
@@ -410,11 +331,7 @@ export default function PromotionsPage() {
               className="h-8 flex-1 rounded-[9px] border border-[#ddd8d3] bg-white px-4 text-[11px] text-[#3c3732] outline-none placeholder:text-[#a1a9b8] focus:border-[#f15b2a]"
             />
 
-            <select
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-              className="h-8 w-[150px] rounded-[9px] border border-[#ddd8d3] bg-white px-3 text-[11px] text-[#756e67] outline-none"
-            >
+            <select value={filter} onChange={(e) => setFilter(e.target.value)} className="h-8 w-[150px] rounded-[9px] border border-[#ddd8d3] bg-white px-3 text-[11px] text-[#756e67] outline-none">
               <option>All types</option>
               <option>Coupon</option>
               <option>Flash Sale</option>
@@ -425,88 +342,51 @@ export default function PromotionsPage() {
             </select>
           </div>
 
-          {/* Table */}
           <div className="overflow-x-auto">
             <table className="w-full min-w-[1050px] border-collapse">
               <thead>
                 <tr className="border-b border-[#ebe8e5] bg-[#fcfbfa] text-left">
-                  <th className="px-4 py-2.5 text-[9px] font-semibold text-[#807971]">
-                    Code
-                  </th>
-                  <th className="px-4 py-2.5 text-[9px] font-semibold text-[#807971]">
-                    Campaign
-                  </th>
-                  <th className="px-4 py-2.5 text-[9px] font-semibold text-[#807971]">
-                    Type
-                  </th>
-                  <th className="px-4 py-2.5 text-[9px] font-semibold text-[#807971]">
-                    Value
-                  </th>
-                  <th className="px-4 py-2.5 text-[9px] font-semibold text-[#807971]">
-                    Usage
-                  </th>
-                  <th className="px-4 py-2.5 text-[9px] font-semibold text-[#807971]">
-                    Revenue
-                  </th>
-                  <th className="px-4 py-2.5 text-[9px] font-semibold text-[#807971]">
-                    Window
-                  </th>
-                  <th className="px-4 py-2.5 text-[9px] font-semibold text-[#807971]">
-                    Status
-                  </th>
+                  <th className="px-4 py-2.5 text-[9px] font-semibold text-[#807971]">Code</th>
+                  <th className="px-4 py-2.5 text-[9px] font-semibold text-[#807971]">Campaign</th>
+                  <th className="px-4 py-2.5 text-[9px] font-semibold text-[#807971]">Type</th>
+                  <th className="px-4 py-2.5 text-[9px] font-semibold text-[#807971]">Value</th>
+                  <th className="px-4 py-2.5 text-[9px] font-semibold text-[#807971]">Usage</th>
+                  <th className="px-4 py-2.5 text-[9px] font-semibold text-[#807971]">Revenue</th>
+                  <th className="px-4 py-2.5 text-[9px] font-semibold text-[#807971]">Window</th>
+                  <th className="px-4 py-2.5 text-[9px] font-semibold text-[#807971]">Status</th>
                   <th className="w-10 px-2 py-2.5" />
                 </tr>
               </thead>
 
               <tbody>
                 {filteredCampaigns.map((campaign) => (
-                  <tr
-                    key={campaign.code}
-                    className="border-b border-[#efedeb] last:border-0 hover:bg-[#fdfcfb]"
-                  >
+                  <tr key={campaign.code} className="border-b border-[#efedeb] last:border-0 hover:bg-[#fdfcfb]">
                     <td className="px-4 py-3">
-                      <span className="rounded-[7px] bg-[#f2f1ef] px-2 py-1 text-[9px] font-bold text-[#514b46]">
-                        {campaign.code}
-                      </span>
+                      <span className="rounded-[7px] bg-[#f2f1ef] px-2 py-1 text-[9px] font-bold text-[#514b46]">{campaign.code}</span>
                     </td>
 
-                    <td className="px-4 py-3 text-[11px] font-medium text-[#36322e]">
-                      {campaign.campaign}
-                    </td>
+                    <td className="px-4 py-3 text-[11px] font-medium text-[#36322e]">{campaign.campaign}</td>
 
                     <td className="px-4 py-3">
-                      <span className="rounded-full bg-[#e9e7e5] px-2.5 py-1 text-[9px] font-semibold text-[#655f59]">
-                        {campaign.type}
-                      </span>
+                      <span className="rounded-full bg-[#e9e7e5] px-2.5 py-1 text-[9px] font-semibold text-[#655f59]">{campaign.type}</span>
                     </td>
 
-                    <td className="px-4 py-3 whitespace-nowrap text-[11px] text-[#5d5751]">
-                      {campaign.value}
-                    </td>
+                    <td className="px-4 py-3 text-[11px] whitespace-nowrap text-[#5d5751]">{campaign.value}</td>
 
                     <td className="px-4 py-3">
                       <UsageBar usage={campaign.usage} limit={campaign.limit} />
                     </td>
 
-                    <td className="px-4 py-3 whitespace-nowrap text-[11px] font-semibold text-[#393530]">
-                      {campaign.revenue}
-                    </td>
+                    <td className="px-4 py-3 text-[11px] font-semibold whitespace-nowrap text-[#393530]">{campaign.revenue}</td>
 
-                    <td className="px-4 py-3 whitespace-nowrap text-[10px] text-[#5f5953]">
-                      {campaign.window}
-                    </td>
+                    <td className="px-4 py-3 text-[10px] whitespace-nowrap text-[#5f5953]">{campaign.window}</td>
 
                     <td className="px-4 py-3">
                       <StatusBadge status={campaign.status} />
                     </td>
 
                     <td className="px-2 py-3">
-                      <button
-                        type="button"
-                        onClick={() => copyCode(campaign.code)}
-                        className="rounded-md p-1.5 text-[#8d8780] transition hover:bg-[#f1efed] hover:text-[#3c3732]"
-                        title="Copy code"
-                      >
+                      <button type="button" onClick={() => copyCode(campaign.code)} className="rounded-md p-1.5 text-[#8d8780] transition hover:bg-[#f1efed] hover:text-[#3c3732]" title="Copy code">
                         <Copy className="h-3.5 w-3.5" />
                       </button>
                     </td>
@@ -515,58 +395,30 @@ export default function PromotionsPage() {
               </tbody>
             </table>
 
-            {filteredCampaigns.length === 0 && (
-              <div className="py-12 text-center text-[12px] text-[#918a83]">
-                No campaigns found.
-              </div>
-            )}
+            {filteredCampaigns.length === 0 && <div className="py-12 text-center text-[12px] text-[#918a83]">No campaigns found.</div>}
           </div>
         </section>
 
-        {/* Bottom shortcuts */}
         <section className="mt-5 grid gap-3 md:grid-cols-3">
-          <ShortcutCard
-            title="Homepage Banners"
-            description="4 slots live · 9,588 clicks this month"
-            action="Manage banners →"
-          />
+          <ShortcutCard title="Homepage Banners" description="4 slots live · 9,588 clicks this month" action="Manage banners →" />
 
-          <ShortcutCard
-            title="Referral Campaign"
-            description="318 referrals converted · ₦5,000 credit each"
-            action="View referrals →"
-          />
+          <ShortcutCard title="Referral Campaign" description="318 referrals converted · ₦5,000 credit each" action="View referrals →" />
 
-          <ShortcutCard
-            title="Loyalty Rewards"
-            description="4 tiers · Gold and above get free delivery"
-            action="Edit tiers →"
-          />
+          <ShortcutCard title="Loyalty Rewards" description="4 tiers · Gold and above get free delivery" action="Edit tiers →" />
         </section>
       </div>
     </main>
   );
 }
 
-function ShortcutCard({
-  title,
-  description,
-  action,
-}: {
-  title: string;
-  description: string;
-  action: string;
-}) {
+function ShortcutCard({ title, description, action }: { title: string; description: string; action: string }) {
   return (
     <div className="rounded-[16px] border border-[#e7e4e1] bg-white px-4 py-4 shadow-[0_5px_18px_rgba(40,35,30,0.06)]">
       <h3 className="text-[13px] font-semibold text-[#38342f]">{title}</h3>
 
       <p className="mt-1 text-[11px] text-[#746d66]">{description}</p>
 
-      <button
-        type="button"
-        className="mt-3 text-[10px] font-semibold text-[#ed5929] hover:underline"
-      >
+      <button type="button" className="mt-3 text-[10px] font-semibold text-[#ed5929] hover:underline">
         {action}
       </button>
     </div>

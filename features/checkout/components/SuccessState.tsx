@@ -9,14 +9,11 @@ export function SuccessState({ result }: { result: VerifySuccess }) {
 
   return (
     <div>
-      {/* Success icon */}
       <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-green-100">
         <span className="text-2xl font-bold text-green-600">✓</span>
       </div>
 
-      <h1 className="text-xl font-semibold text-neutral-900">
-        Payment successful
-      </h1>
+      <h1 className="text-xl font-semibold text-neutral-900">Payment successful</h1>
 
       <p className="mt-2 text-sm text-neutral-500">
         ₦
@@ -32,12 +29,7 @@ export function SuccessState({ result }: { result: VerifySuccess }) {
 
         <DetailRow label="Order ID" value={result.orderId} />
 
-        {result.paidAt && (
-          <DetailRow
-            label="Paid at"
-            value={new Date(result.paidAt).toLocaleString()}
-          />
-        )}
+        {result.paidAt && <DetailRow label="Paid at" value={new Date(result.paidAt).toLocaleString()} />}
 
         {result.channel && <DetailRow label="Channel" value={result.channel} />}
       </div>

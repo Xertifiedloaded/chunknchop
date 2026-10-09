@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  CalendarDays,
-  ChevronDown,
-  Download,
-  MoreVertical,
-  SlidersHorizontal,
-  Truck,
-} from "lucide-react";
+import { CalendarDays, ChevronDown, Download, MoreVertical, SlidersHorizontal, Truck } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { fetchWithAuth } from "@/lib/http/fetchClient";
@@ -57,9 +50,7 @@ function StatusBadge({ status }: { status: string }) {
   const dot = style.split("before:")[1] ?? "bg-[#89847f]";
 
   return (
-    <span
-      className={`relative inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] leading-none font-semibold ${style}`}
-    >
+    <span className={`relative inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] leading-none font-semibold ${style}`}>
       <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
       {formatStatusLabel(status)}
     </span>
@@ -79,13 +70,7 @@ function PaymentBadge({ payment }: { payment: string }) {
   );
 }
 
-const AVATAR_PALETTE = [
-  "bg-[#fce0d6] text-[#e75b2e]",
-  "bg-[#fff0b8] text-[#a67900]",
-  "bg-[#d9efff] text-[#1675aa]",
-  "bg-[#d5f8e9] text-[#149568]",
-  "bg-[#e8e6e4] text-[#55514d]",
-];
+const AVATAR_PALETTE = ["bg-[#fce0d6] text-[#e75b2e]", "bg-[#fff0b8] text-[#a67900]", "bg-[#d9efff] text-[#1675aa]", "bg-[#d5f8e9] text-[#149568]", "bg-[#e8e6e4] text-[#55514d]"];
 
 function getInitials(name: string) {
   const parts = name.trim().split(/\s+/);
@@ -142,37 +127,24 @@ export default function AdminOrdersPage() {
       const label = formatStatusLabel(o.status);
       counts.set(label, (counts.get(label) ?? 0) + 1);
     });
-    return [
-      [TAB_ALL, orders.length] as [string, number],
-      ...Array.from(counts.entries()),
-    ];
+    return [[TAB_ALL, orders.length] as [string, number], ...Array.from(counts.entries())];
   }, [orders]);
 
   const filteredOrders = useMemo(() => {
     return orders.filter((o) => {
-      const matchesTab =
-        activeTab === TAB_ALL || formatStatusLabel(o.status) === activeTab;
+      const matchesTab = activeTab === TAB_ALL || formatStatusLabel(o.status) === activeTab;
       const q = search.trim().toLowerCase();
-      const matchesSearch =
-        q === "" ||
-        o.orderNumber.toLowerCase().includes(q) ||
-        o.customerName.toLowerCase().includes(q);
+      const matchesSearch = q === "" || o.orderNumber.toLowerCase().includes(q) || o.customerName.toLowerCase().includes(q);
       return matchesTab && matchesSearch;
     });
   }, [orders, activeTab, search]);
 
   const totalPages = Math.max(1, Math.ceil(filteredOrders.length / pageSize));
-  const paginatedOrders = filteredOrders.slice(
-    (page - 1) * pageSize,
-    page * pageSize,
-  );
+  const paginatedOrders = filteredOrders.slice((page - 1) * pageSize, page * pageSize);
 
-  // Only show a handful of page buttons, centered around the current page,
-  // so the pager doesn't overflow on narrow screens.
   const pageButtons = useMemo(() => {
     const maxButtons = 5;
-    if (totalPages <= maxButtons)
-      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    if (totalPages <= maxButtons) return Array.from({ length: totalPages }, (_, i) => i + 1);
     let start = Math.max(1, page - Math.floor(maxButtons / 2));
     const end = Math.min(totalPages, start + maxButtons - 1);
     start = Math.max(1, end - maxButtons + 1);
@@ -181,16 +153,10 @@ export default function AdminOrdersPage() {
 
   return (
     <main className="min-h-screen bg-[#f8f9fa] px-4 py-5 text-[#292725] sm:px-6 sm:py-7">
-      {/* Header */}
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-[19px] font-bold tracking-[-0.3px] sm:text-[21px]">
-            Orders
-          </h1>
-          <p className="mt-1 text-[12px] text-[#8d8985]">
-            Every order across the ChunkNChop storefront, wholesale desk and
-            subscription runs.
-          </p>
+          <h1 className="text-[19px] font-bold tracking-[-0.3px] sm:text-[21px]">Orders</h1>
+          <p className="mt-1 text-[12px] text-[#8d8985]">Every order across the ChunkNChop storefront, wholesale desk and subscription runs.</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
@@ -212,9 +178,7 @@ export default function AdminOrdersPage() {
         </div>
       </div>
 
-      {/* Main card */}
       <section className="overflow-hidden rounded-[17px] border border-[#e8e5e2] bg-white shadow-[0_2px_7px_rgba(0,0,0,0.04)]">
-        {/* Tabs */}
         <div className="flex h-11.75 items-center gap-0 overflow-x-auto border-b border-[#ebe8e5] px-[14px]">
           {tabs.map(([label, count]) => (
             <button
@@ -226,16 +190,11 @@ export default function AdminOrdersPage() {
               className={`flex h-7.75 shrink-0 items-center gap-2 rounded-[10px] px-3 text-[11px] font-semibold whitespace-nowrap transition ${activeTab === label ? "bg-[#292725] text-white" : "text-[#635d58] hover:bg-[#f7f5f3]"}`}
             >
               {label}
-              <span
-                className={`rounded-full px-1.5 py-0.5 text-[9px] ${activeTab === label ? "bg-[#56524f] text-white" : "bg-[#eeecea] text-[#766f69]"}`}
-              >
-                {count}
-              </span>
+              <span className={`rounded-full px-1.5 py-0.5 text-[9px] ${activeTab === label ? "bg-[#56524f] text-white" : "bg-[#eeecea] text-[#766f69]"}`}>{count}</span>
             </button>
           ))}
         </div>
 
-        {/* Search / filters */}
         <div className="flex flex-col gap-2 border-b border-[#e8e5e2] px-[14px] py-3 sm:h-15.5 sm:flex-row sm:items-center sm:gap-1.5 sm:px-[17px] sm:py-0">
           <div className="relative flex-1">
             <input
@@ -262,53 +221,28 @@ export default function AdminOrdersPage() {
           </div>
         </div>
 
-        {/* Body */}
         {loading ? (
-          <div className="p-10 text-center text-[13px] text-[#8d8985]">
-            Loading orders…
-          </div>
+          <div className="p-10 text-center text-[13px] text-[#8d8985]">Loading orders…</div>
         ) : error ? (
-          <div className="p-10 text-center text-[13px] text-[#e93636]">
-            {error}
-          </div>
+          <div className="p-10 text-center text-[13px] text-[#e93636]">{error}</div>
         ) : filteredOrders.length === 0 ? (
-          <div className="p-10 text-center text-[13px] text-[#8d8985]">
-            No orders match this filter.
-          </div>
+          <div className="p-10 text-center text-[13px] text-[#8d8985]">No orders match this filter.</div>
         ) : (
           <>
-            {/* Table — visible from md up */}
             <div className="hidden w-full overflow-x-auto md:block">
               <table className="w-full min-w-[1100px] border-collapse">
                 <thead>
                   <tr className="h-[38px] border-b border-[#ebe8e5] bg-[#fcfbfa] text-left">
                     <th className="w-[48px] px-[17px]">
-                      <input
-                        type="checkbox"
-                        className="h-[14px] w-[14px] appearance-none rounded-[3px] border border-[#ff5b2d] checked:bg-[#ff5b2d]"
-                      />
+                      <input type="checkbox" className="h-[14px] w-[14px] appearance-none rounded-[3px] border border-[#ff5b2d] checked:bg-[#ff5b2d]" />
                     </th>
-                    <th className="w-[158px] text-[9px] font-semibold tracking-[0.3px] text-[#827c77]">
-                      Order
-                    </th>
-                    <th className="w-[205px] text-[9px] font-semibold tracking-[0.3px] text-[#827c77]">
-                      Customer
-                    </th>
-                    <th className="w-[203px] text-[9px] font-semibold tracking-[0.3px] text-[#827c77]">
-                      Items
-                    </th>
-                    <th className="w-[180px] text-[9px] font-semibold tracking-[0.3px] text-[#827c77]">
-                      Status
-                    </th>
-                    <th className="w-[100px] text-[9px] font-semibold tracking-[0.3px] text-[#827c77]">
-                      Payment
-                    </th>
-                    <th className="w-[175px] text-[9px] font-semibold tracking-[0.3px] text-[#827c77]">
-                      Rider
-                    </th>
-                    <th className="w-[105px] text-[9px] font-semibold tracking-[0.3px] text-[#827c77]">
-                      Total
-                    </th>
+                    <th className="w-[158px] text-[9px] font-semibold tracking-[0.3px] text-[#827c77]">Order</th>
+                    <th className="w-[205px] text-[9px] font-semibold tracking-[0.3px] text-[#827c77]">Customer</th>
+                    <th className="w-[203px] text-[9px] font-semibold tracking-[0.3px] text-[#827c77]">Items</th>
+                    <th className="w-[180px] text-[9px] font-semibold tracking-[0.3px] text-[#827c77]">Status</th>
+                    <th className="w-[100px] text-[9px] font-semibold tracking-[0.3px] text-[#827c77]">Payment</th>
+                    <th className="w-[175px] text-[9px] font-semibold tracking-[0.3px] text-[#827c77]">Rider</th>
+                    <th className="w-[105px] text-[9px] font-semibold tracking-[0.3px] text-[#827c77]">Total</th>
                     <th className="w-[30px]" />
                   </tr>
                 </thead>
@@ -317,22 +251,13 @@ export default function AdminOrdersPage() {
                   {paginatedOrders.map((order) => {
                     const created = new Date(order.createdAt);
                     return (
-                      <tr
-                        key={order.id}
-                        className="h-[55px] border-b border-[#efedeb] last:border-b-0 hover:bg-[#fdfbf9]"
-                      >
+                      <tr key={order.id} className="h-[55px] border-b border-[#efedeb] last:border-b-0 hover:bg-[#fdfbf9]">
                         <td className="px-[17px]">
-                          <input
-                            type="checkbox"
-                            className="h-[14px] w-[14px] appearance-none rounded-[3px] border border-[#ff5b2d] checked:bg-[#ff5b2d]"
-                          />
+                          <input type="checkbox" className="h-[14px] w-[14px] appearance-none rounded-[3px] border border-[#ff5b2d] checked:bg-[#ff5b2d]" />
                         </td>
 
-                        {/* Order */}
                         <td>
-                          <div className="text-[12px] font-bold text-[#34312f]">
-                            {order.orderNumber}
-                          </div>
+                          <div className="text-[12px] font-bold text-[#34312f]">{order.orderNumber}</div>
                           <div className="mt-[1px] text-[10px] text-[#8e8883]">
                             {created.toLocaleDateString()} ·{" "}
                             {created.toLocaleTimeString([], {
@@ -342,73 +267,41 @@ export default function AdminOrdersPage() {
                           </div>
                         </td>
 
-                        {/* Customer */}
                         <td>
                           <div className="flex items-center gap-2">
-                            <div
-                              className={`flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-[7px] text-[9px] font-bold ${getAvatarColor(order.customerName)}`}
-                            >
+                            <div className={`flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-[7px] text-[9px] font-bold ${getAvatarColor(order.customerName)}`}>
                               {getInitials(order.customerName)}
                             </div>
                             <div>
-                              <div className="text-[12px] font-medium text-[#393532]">
-                                {order.customerName}
-                              </div>
-                              <div className="text-[10px] text-[#948e89]">
-                                {order.location ?? "—"}
-                              </div>
+                              <div className="text-[12px] font-medium text-[#393532]">{order.customerName}</div>
+                              <div className="text-[10px] text-[#948e89]">{order.location ?? "—"}</div>
                             </div>
                           </div>
                         </td>
 
-                        {/* Items */}
                         <td>
-                          <div className="text-[11px] font-medium text-[#4d4844]">
-                            {order.itemsCount
-                              ? `${order.itemsCount} item${order.itemsCount > 1 ? "s" : ""}`
-                              : "—"}
-                          </div>
-                          <div className="mt-[1px] max-w-[170px] truncate text-[10px] text-[#8c8681]">
-                            {order.productSummary ?? ""}
-                          </div>
+                          <div className="text-[11px] font-medium text-[#4d4844]">{order.itemsCount ? `${order.itemsCount} item${order.itemsCount > 1 ? "s" : ""}` : "—"}</div>
+                          <div className="mt-[1px] max-w-[170px] truncate text-[10px] text-[#8c8681]">{order.productSummary ?? ""}</div>
                         </td>
 
-                        {/* Status */}
                         <td>
                           <StatusBadge status={order.status} />
                         </td>
 
-                        {/* Payment */}
                         <td>
                           <PaymentBadge payment={order.paymentStatus} />
                         </td>
 
-                        {/* Rider */}
                         <td>
-                          <span
-                            className={
-                              !order.riderName
-                                ? "text-[11px] text-[#aaa39d]"
-                                : "text-[11px] font-medium text-[#48433f]"
-                            }
-                          >
-                            {order.riderName ?? "Unassigned"}
-                          </span>
+                          <span className={!order.riderName ? "text-[11px] text-[#aaa39d]" : "text-[11px] font-medium text-[#48433f]"}>{order.riderName ?? "Unassigned"}</span>
                         </td>
 
-                        {/* Total */}
                         <td>
-                          <span className="text-[12px] font-bold text-[#393532]">
-                            {formatNaira(order.total)}
-                          </span>
+                          <span className="text-[12px] font-bold text-[#393532]">{formatNaira(order.total)}</span>
                         </td>
 
-                        {/* More / View */}
                         <td className="pr-[17px] text-right">
-                          <Link
-                            href={`/admin/orders/${order.id}`}
-                            className="inline-flex text-[#8d8782] hover:text-[#292725]"
-                          >
+                          <Link href={`/admin/orders/${order.id}`} className="inline-flex text-[#8d8782] hover:text-[#292725]">
                             <MoreVertical size={15} />
                           </Link>
                         </td>
@@ -419,35 +312,22 @@ export default function AdminOrdersPage() {
               </table>
             </div>
 
-            {/* Card list — visible below md */}
             <div className="divide-y divide-[#efedeb] md:hidden">
               {paginatedOrders.map((order) => {
                 const created = new Date(order.createdAt);
                 return (
-                  <Link
-                    key={order.id}
-                    href={`/admin/orders/${order.id}`}
-                    className="flex flex-col gap-3 px-4 py-4 active:bg-[#fdfbf9]"
-                  >
+                  <Link key={order.id} href={`/admin/orders/${order.id}`} className="flex flex-col gap-3 px-4 py-4 active:bg-[#fdfbf9]">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-2.5">
-                        <div
-                          className={`flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-[8px] text-[10px] font-bold ${getAvatarColor(order.customerName)}`}
-                        >
+                        <div className={`flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-[8px] text-[10px] font-bold ${getAvatarColor(order.customerName)}`}>
                           {getInitials(order.customerName)}
                         </div>
                         <div>
-                          <div className="text-[13px] font-bold text-[#34312f]">
-                            {order.orderNumber}
-                          </div>
-                          <div className="text-[11px] text-[#948e89]">
-                            {order.customerName}
-                          </div>
+                          <div className="text-[13px] font-bold text-[#34312f]">{order.orderNumber}</div>
+                          <div className="text-[11px] text-[#948e89]">{order.customerName}</div>
                         </div>
                       </div>
-                      <span className="text-[13px] font-bold whitespace-nowrap text-[#393532]">
-                        {formatNaira(order.total)}
-                      </span>
+                      <span className="text-[13px] font-bold whitespace-nowrap text-[#393532]">{formatNaira(order.total)}</span>
                     </div>
 
                     <div className="flex flex-wrap items-center gap-1.5">
@@ -472,13 +352,10 @@ export default function AdminOrdersPage() {
           </>
         )}
 
-        {/* Footer / Pagination */}
         {!loading && !error && filteredOrders.length > 0 && (
           <div className="flex flex-col gap-3 border-t border-[#ebe8e5] px-[14px] py-3 sm:h-[51px] sm:flex-row sm:items-center sm:justify-between sm:gap-0 sm:px-[17px] sm:py-0">
             <div className="text-[10px] text-[#8e8883]">
-              Page <span className="text-[#5f5954]">{page}</span> of{" "}
-              <span className="text-[#5f5954]">{totalPages}</span> ·{" "}
-              {filteredOrders.length} records
+              Page <span className="text-[#5f5954]">{page}</span> of <span className="text-[#5f5954]">{totalPages}</span> · {filteredOrders.length} records
             </div>
 
             <div className="flex flex-wrap items-center gap-1">

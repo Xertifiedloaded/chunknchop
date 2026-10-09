@@ -9,7 +9,7 @@ function getToken(req: NextRequest): string | null {
   return req.cookies.get("accessToken")?.value || null;
 }
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname, search } = req.nextUrl;
   const rule = findRule(pathname);
 
@@ -21,33 +21,20 @@ export async function middleware(req: NextRequest) {
 
   if (!payload) {
     if (isApi) {
-      const res = NextResponse.json(
-        token
-          ? { error: "Session expired", code: "TOKEN_EXPIRED" }
-          : { error: "Unauthorized", code: "NO_TOKEN" },
-        { status: 401 },
-      );
+      const res = NextResponse.json(token ? { error: "Session expired", code: "TOKEN_EXPIRED" } : { error: "Unauthorized", code: "NO_TOKEN" }, { status: 401 });
       if (token) res.cookies.set("accessToken", "", { path: "/", maxAge: 0 });
       return res;
     }
 
     const next = `${pathname}${search}`;
     const hasRefreshToken = Boolean(req.cookies.get("refreshToken")?.value);
-    const url = new URL(
-      hasRefreshToken ? "/api/auth/refresh" : "/auth/login",
-      req.url,
-    );
+    const url = new URL(hasRefreshToken ? "/api/auth/refresh" : "/auth/login", req.url);
     url.searchParams.set("next", next);
     return NextResponse.redirect(url);
   }
 
   if (!isAllowed(rule, payload.role)) {
-    return isApi
-      ? NextResponse.json(
-          { error: "Forbidden", code: "FORBIDDEN" },
-          { status: 403 },
-        )
-      : NextResponse.redirect(new URL("/", req.url));
+    return isApi ? NextResponse.json({ error: "Forbidden", code: "FORBIDDEN" }, { status: 403 }) : NextResponse.redirect(new URL("/", req.url));
   }
 
   const headers = new Headers(req.headers);
@@ -59,15 +46,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    "/api/customer/:path*",
-    "/api/supplier/:path*",
-    "/api/staff/:path*",
-    "/api/admin/:path*",
-    "/admin/:path*",
-    "/supplier/:path*",
-    "/staff/:path*",
-    "/orders/:path*",
-    "/account/:path*",
-  ],
+  matcher: ["/api/customer/:path*", "/api/supplier/:path*", "/api/staff/:path*", "/api/admin/:path*", "/admin/:path*", "/supplier/:path*", "/staff/:path*", "/orders/:path*", "/account/:path*"],
 };

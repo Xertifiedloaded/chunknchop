@@ -1,29 +1,9 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Inter } from "next/font/google";
-import {
-  ArrowDownToLine,
-  ArrowUpFromLine,
-  Copy,
-  Ellipsis,
-  Filter,
-  Grid2X2,
-  List,
-  Loader2,
-  PackageX,
-  Pencil,
-  Plus,
-  Search,
-  Trash2,
-} from "lucide-react";
+import { ArrowDownToLine, ArrowUpFromLine, Copy, Ellipsis, Filter, Grid2X2, List, Loader2, PackageX, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { fetchWithAuth } from "@/lib/http/fetchClient";
 import ProductModal from "@/features/catalog/components/ProductModal";
 
@@ -68,83 +48,44 @@ const BADGE_STYLES: Record<AvailabilityType, { pill: string; dot: string }> = {
   danger: { pill: "bg-[#ffeded] text-[#ed3b3b]", dot: "bg-[#ef4444]" },
 };
 
-const TABLE_HEADERS = [
-  "Product",
-  "SKU",
-  "Category",
-  "Price",
-  "Stock",
-  "Availability",
-  "Rating",
-  "",
-];
+const TABLE_HEADERS = ["Product", "SKU", "Category", "Price", "Stock", "Availability", "Rating", ""];
 
 const OUTLINE_BUTTON =
   "flex h-9 items-center justify-center gap-1.5 rounded-lg border border-[#dedbd7] bg-white px-3 text-xs font-medium whitespace-nowrap text-[#343434] transition hover:bg-[#fafafa]";
 
-const FIELD =
-  "h-9 rounded-lg border border-[#dedbd7] bg-white text-xs text-[#333] outline-none focus:border-[#c8c5c1]";
+const FIELD = "h-9 rounded-lg border border-[#dedbd7] bg-white text-xs text-[#333] outline-none focus:border-[#c8c5c1]";
 
-const emojiFor = (meatType: string) =>
-  MEAT_EMOJI[meatType?.toUpperCase()] ?? "🍖";
+const emojiFor = (meatType: string) => MEAT_EMOJI[meatType?.toUpperCase()] ?? "🍖";
 
 const formatNaira = (amount: number) => `₦${amount.toLocaleString("en-NG")}`;
 
-const skuFor = (product: Product) =>
-  `CNC-${product.meatType?.slice(0, 3).toUpperCase() ?? "GEN"}-${product.id
-    .replace(/-/g, "")
-    .slice(-4)
-    .toUpperCase()}`;
+const skuFor = (product: Product) => `CNC-${product.meatType?.slice(0, 3).toUpperCase() ?? "GEN"}-${product.id.replace(/-/g, "").slice(-4).toUpperCase()}`;
 
 function availabilityFor(product: Product): {
   label: string;
   type: AvailabilityType;
 } {
-  if (!product.inStock || product.stock <= 0)
-    return { label: "Out of stock", type: "danger" };
-  if (product.stock <= LOW_STOCK_THRESHOLD)
-    return { label: "Low stock", type: "warning" };
+  if (!product.inStock || product.stock <= 0) return { label: "Out of stock", type: "danger" };
+  if (product.stock <= LOW_STOCK_THRESHOLD) return { label: "Low stock", type: "warning" };
   return { label: "In stock", type: "success" };
 }
 
 function ProductImage({ emoji, index }: { emoji: string; index: number }) {
-  return (
-    <div
-      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#f0f0ee] text-lg ${
-        index % 2 === 0 ? "-rotate-2" : "rotate-2"
-      }`}
-    >
-      {emoji}
-    </div>
-  );
+  return <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#f0f0ee] text-lg ${index % 2 === 0 ? "-rotate-2" : "rotate-2"}`}>{emoji}</div>;
 }
 
-function AvailabilityBadge({
-  type,
-  children,
-}: {
-  type: AvailabilityType;
-  children: ReactNode;
-}) {
+function AvailabilityBadge({ type, children }: { type: AvailabilityType; children: ReactNode }) {
   const { pill, dot } = BADGE_STYLES[type];
 
   return (
-    <span
-      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2 py-1 text-[11px] leading-none font-medium whitespace-nowrap ${pill}`}
-    >
+    <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2 py-1 text-[11px] leading-none font-medium whitespace-nowrap ${pill}`}>
       <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${dot}`} />
       {children}
     </span>
   );
 }
 
-function RatingBadge({
-  rating,
-  reviewCount,
-}: {
-  rating: number;
-  reviewCount: number;
-}) {
+function RatingBadge({ rating, reviewCount }: { rating: number; reviewCount: number }) {
   return (
     <span className="inline-flex shrink-0 items-center gap-1 text-xs leading-none whitespace-nowrap text-[#46433f]">
       <span className="text-sm leading-none text-[#f59e0b]">★</span>
@@ -154,17 +95,7 @@ function RatingBadge({
   );
 }
 
-function ActionButton({
-  children,
-  onClick,
-  disabled,
-  label,
-}: {
-  children: ReactNode;
-  onClick?: () => void;
-  disabled?: boolean;
-  label: string;
-}) {
+function ActionButton({ children, onClick, disabled, label }: { children: ReactNode; onClick?: () => void; disabled?: boolean; label: string }) {
   return (
     <button
       type="button"
@@ -181,32 +112,14 @@ function ActionButton({
 function ProductName({ product }: { product: Product }) {
   return (
     <div className="flex min-w-0 items-center gap-1.5">
-      <span className="truncate text-sm font-semibold text-[#292929]">
-        {product.name}
-      </span>
-      {product.isBestSeller && (
-        <span className="shrink-0 text-xs leading-none text-[#f59e0b]">★</span>
-      )}
-      {product.isNewArrival && (
-        <span className="shrink-0 rounded-full bg-[#e9faf2] px-1.5 py-0.5 text-[11px] leading-none font-medium text-[#09965c]">
-          New
-        </span>
-      )}
+      <span className="truncate text-sm font-semibold text-[#292929]">{product.name}</span>
+      {product.isBestSeller && <span className="shrink-0 text-xs leading-none text-[#f59e0b]">★</span>}
+      {product.isNewArrival && <span className="shrink-0 rounded-full bg-[#e9faf2] px-1.5 py-0.5 text-[11px] leading-none font-medium text-[#09965c]">New</span>}
     </div>
   );
 }
 
-function RowActions({
-  product,
-  deleting,
-  onEdit,
-  onDelete,
-}: {
-  product: Product;
-  deleting: boolean;
-  onEdit: () => void;
-  onDelete: () => void;
-}) {
+function RowActions({ product, deleting, onEdit, onDelete }: { product: Product; deleting: boolean; onEdit: () => void; onDelete: () => void }) {
   return (
     <div className="flex items-center justify-end gap-0.5">
       <ActionButton label={`Edit ${product.name}`} onClick={onEdit}>
@@ -218,45 +131,21 @@ function RowActions({
       <ActionButton label="More options">
         <Ellipsis size={15} strokeWidth={1.7} />
       </ActionButton>
-      <ActionButton
-        label={`Delete ${product.name}`}
-        disabled={deleting}
-        onClick={onDelete}
-      >
-        {deleting ? (
-          <Loader2 size={14} strokeWidth={1.7} className="animate-spin" />
-        ) : (
-          <Trash2 size={14} strokeWidth={1.7} />
-        )}
+      <ActionButton label={`Delete ${product.name}`} disabled={deleting} onClick={onDelete}>
+        {deleting ? <Loader2 size={14} strokeWidth={1.7} className="animate-spin" /> : <Trash2 size={14} strokeWidth={1.7} />}
       </ActionButton>
     </div>
   );
 }
 
-function EmptyState({
-  hasProducts,
-  onCreate,
-}: {
-  hasProducts: boolean;
-  onCreate: () => void;
-}) {
+function EmptyState({ hasProducts, onCreate }: { hasProducts: boolean; onCreate: () => void }) {
   return (
     <div className="flex flex-col items-center gap-2 px-4 py-12 text-center">
       <PackageX size={28} strokeWidth={1.5} className="text-[#c8c5c1]" />
-      <p className="text-sm font-medium text-[#46433f]">
-        {hasProducts ? "No products match your filters" : "No products yet"}
-      </p>
-      <p className="text-xs text-[#99958f]">
-        {hasProducts
-          ? "Try a different search term or category filter."
-          : "Add your first product to get the catalogue started."}
-      </p>
+      <p className="text-sm font-medium text-[#46433f]">{hasProducts ? "No products match your filters" : "No products yet"}</p>
+      <p className="text-xs text-[#99958f]">{hasProducts ? "Try a different search term or category filter." : "Add your first product to get the catalogue started."}</p>
       {!hasProducts && (
-        <button
-          type="button"
-          onClick={onCreate}
-          className="mt-1 flex h-9 items-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-medium text-white transition hover:opacity-90"
-        >
+        <button type="button" onClick={onCreate} className="mt-1 flex h-9 items-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-medium text-white transition hover:opacity-90">
           <Plus size={14} strokeWidth={2.5} />
           Add product
         </button>
@@ -278,19 +167,7 @@ function SkeletonRows() {
   );
 }
 
-function ProductCard({
-  product,
-  index,
-  deleting,
-  onEdit,
-  onDelete,
-}: {
-  product: Product;
-  index: number;
-  deleting: boolean;
-  onEdit: () => void;
-  onDelete: () => void;
-}) {
+function ProductCard({ product, index, deleting, onEdit, onDelete }: { product: Product; index: number; deleting: boolean; onEdit: () => void; onDelete: () => void }) {
   const availability = availabilityFor(product);
 
   return (
@@ -299,9 +176,7 @@ function ProductCard({
         <ProductImage emoji={emojiFor(product.meatType)} index={index} />
         <div className="min-w-0 flex-1">
           <ProductName product={product} />
-          <p className="mt-1 truncate font-mono text-[11px] text-[#696661]">
-            {skuFor(product)}
-          </p>
+          <p className="mt-1 truncate font-mono text-[11px] text-[#696661]">{skuFor(product)}</p>
         </div>
       </div>
 
@@ -312,9 +187,7 @@ function ProductCard({
         </div>
         <div>
           <dt className="text-[11px] text-[#99958f]">Price</dt>
-          <dd className="mt-0.5 font-semibold text-[#343230]">
-            {formatNaira(product.basePrice)}
-          </dd>
+          <dd className="mt-0.5 font-semibold text-[#343230]">{formatNaira(product.basePrice)}</dd>
         </div>
         <div>
           <dt className="text-[11px] text-[#99958f]">Stock</dt>
@@ -323,19 +196,12 @@ function ProductCard({
       </dl>
 
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <AvailabilityBadge type={availability.type}>
-          {availability.label}
-        </AvailabilityBadge>
+        <AvailabilityBadge type={availability.type}>{availability.label}</AvailabilityBadge>
         <RatingBadge rating={product.rating} reviewCount={product.reviewCount} />
       </div>
 
       <div className="border-t border-[#efeeec] pt-2">
-        <RowActions
-          product={product}
-          deleting={deleting}
-          onEdit={onEdit}
-          onDelete={onDelete}
-        />
+        <RowActions product={product} deleting={deleting} onEdit={onEdit} onDelete={onDelete} />
       </div>
     </article>
   );
@@ -378,18 +244,13 @@ export default function AdminProductsPage() {
     router.replace("/admin/products", { scroll: false });
   }, [router]);
 
-  const meatTypes = useMemo(
-    () => Array.from(new Set(products.map((p) => p.meatType))).sort(),
-    [products],
-  );
+  const meatTypes = useMemo(() => Array.from(new Set(products.map((p) => p.meatType))).sort(), [products]);
 
   const filtered = useMemo(() => {
     const query = search.trim().toLowerCase();
 
     return products.filter((product) => {
-      const matchesSearch =
-        product.name.toLowerCase().includes(query) ||
-        skuFor(product).toLowerCase().includes(query);
+      const matchesSearch = product.name.toLowerCase().includes(query) || skuFor(product).toLowerCase().includes(query);
       const matchesType = typeFilter === "ALL" || product.meatType === typeFilter;
       return matchesSearch && matchesType;
     });
@@ -413,9 +274,7 @@ export default function AdminProductsPage() {
 
       setProducts((prev) => prev.filter((p) => p.id !== id));
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Could not delete this product.",
-      );
+      setError(err instanceof Error ? err.message : "Could not delete this product.");
     } finally {
       setDeletingId(null);
     }
@@ -430,11 +289,7 @@ export default function AdminProductsPage() {
   const openEdit = (productId: string) => setModal({ mode: "edit", productId });
 
   const showCards = (
-    <div
-      className={`grid grid-cols-1 gap-3 p-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 ${
-        viewMode === "list" ? "md:hidden" : ""
-      }`}
-    >
+    <div className={`grid grid-cols-1 gap-3 p-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 ${viewMode === "list" ? "md:hidden" : ""}`}>
       {filtered.map((product, index) => (
         <ProductCard
           key={product.id}
@@ -449,19 +304,12 @@ export default function AdminProductsPage() {
   );
 
   return (
-    <main
-      className={`${inter.className} min-h-screen w-full overflow-x-hidden bg-[#f7f8fa] px-3 py-4 text-[#292929] sm:px-5 lg:px-6`}
-    >
+    <main className={`${inter.className} min-h-screen w-full overflow-x-hidden bg-[#f7f8fa] px-3 py-4 text-[#292929] sm:px-5 lg:px-6`}>
       <div className="mx-auto w-full max-w-[1600px]">
         <header className="mb-4 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div className="min-w-0">
-            <h1 className="text-lg font-semibold tracking-tight sm:text-xl">
-              Products
-            </h1>
-            <p className="mt-1 max-w-2xl text-xs leading-5 text-[#8d8984]">
-              Manage the ChunkNChop catalogue — cuts, weights, preparation
-              options and storefront visibility.
-            </p>
+            <h1 className="text-lg font-semibold tracking-tight sm:text-xl">Products</h1>
+            <p className="mt-1 max-w-2xl text-xs leading-5 text-[#8d8984]">Manage the ChunkNChop catalogue — cuts, weights, preparation options and storefront visibility.</p>
           </div>
 
           <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:items-center">
@@ -485,10 +333,7 @@ export default function AdminProductsPage() {
         </header>
 
         {error && (
-          <div
-            role="alert"
-            className="mb-3 rounded-lg border border-brand/30 bg-[#fff4ee] px-3 py-2.5 text-xs text-[#c4491d]"
-          >
+          <div role="alert" className="mb-3 rounded-lg border border-brand/30 bg-[#fff4ee] px-3 py-2.5 text-xs text-[#c4491d]">
             {error}
           </div>
         )}
@@ -497,11 +342,7 @@ export default function AdminProductsPage() {
           <div className="border-b border-[#eceae7] p-3">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
               <div className="relative min-w-0 flex-1">
-                <Search
-                  size={14}
-                  strokeWidth={1.8}
-                  className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-[#aaa]"
-                />
+                <Search size={14} strokeWidth={1.8} className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-[#aaa]" />
                 <input
                   type="text"
                   value={search}
@@ -512,11 +353,7 @@ export default function AdminProductsPage() {
               </div>
 
               <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] gap-2 sm:flex sm:shrink-0 sm:items-center">
-                <select
-                  value={typeFilter}
-                  onChange={(e) => setTypeFilter(e.target.value)}
-                  className={`${FIELD} min-w-0 px-2.5 sm:w-40`}
-                >
+                <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className={`${FIELD} min-w-0 px-2.5 sm:w-40`}>
                   <option value="ALL">All categories</option>
                   {meatTypes.map((type) => (
                     <option key={type} value={type}>
@@ -543,11 +380,7 @@ export default function AdminProductsPage() {
                       aria-label={label}
                       aria-pressed={viewMode === mode}
                       onClick={() => setViewMode(mode)}
-                      className={`flex h-7 w-7 items-center justify-center rounded-md transition ${
-                        viewMode === mode
-                          ? "bg-[#292824] text-white"
-                          : "text-[#888] hover:bg-[#f4f3f1]"
-                      }`}
+                      className={`flex h-7 w-7 items-center justify-center rounded-md transition ${viewMode === mode ? "bg-[#292824] text-white" : "text-[#888] hover:bg-[#f4f3f1]"}`}
                     >
                       <Icon size={14} strokeWidth={1.9} />
                     </button>
@@ -560,10 +393,7 @@ export default function AdminProductsPage() {
           {loading ? (
             <SkeletonRows />
           ) : filtered.length === 0 ? (
-            <EmptyState
-              hasProducts={products.length > 0}
-              onCreate={openCreate}
-            />
+            <EmptyState hasProducts={products.length > 0} onCreate={openCreate} />
           ) : (
             <>
               {showCards}
@@ -574,12 +404,7 @@ export default function AdminProductsPage() {
                     <thead>
                       <tr className="h-10 border-b border-[#eceae7] bg-[#fcfcfb] text-left">
                         {TABLE_HEADERS.map((header, i) => (
-                          <th
-                            key={i}
-                            className={`px-3 text-[11px] font-medium tracking-wide whitespace-nowrap text-[#77736f] uppercase ${
-                              i === 0 ? "pl-4" : ""
-                            }`}
-                          >
+                          <th key={i} className={`px-3 text-[11px] font-medium tracking-wide whitespace-nowrap text-[#77736f] uppercase ${i === 0 ? "pl-4" : ""}`}>
                             {header}
                           </th>
                         ))}
@@ -591,60 +416,34 @@ export default function AdminProductsPage() {
                         const availability = availabilityFor(product);
 
                         return (
-                          <tr
-                            key={product.id}
-                            className="h-16 border-b border-[#efeeec] last:border-b-0 hover:bg-[#fdfdfc]"
-                          >
+                          <tr key={product.id} className="h-16 border-b border-[#efeeec] last:border-b-0 hover:bg-[#fdfdfc]">
                             <td className="max-w-[260px] pr-3 pl-4">
                               <div className="flex min-w-0 items-center gap-3">
-                                <ProductImage
-                                  emoji={emojiFor(product.meatType)}
-                                  index={index}
-                                />
+                                <ProductImage emoji={emojiFor(product.meatType)} index={index} />
                                 <ProductName product={product} />
                               </div>
                             </td>
 
                             <td className="px-3">
-                              <span className="font-mono text-[11px] whitespace-nowrap text-[#696661]">
-                                {skuFor(product)}
-                              </span>
+                              <span className="font-mono text-[11px] whitespace-nowrap text-[#696661]">{skuFor(product)}</span>
                             </td>
 
-                            <td className="px-3 text-xs whitespace-nowrap text-[#46433f]">
-                              {product.meatType}
-                            </td>
+                            <td className="px-3 text-xs whitespace-nowrap text-[#46433f]">{product.meatType}</td>
 
-                            <td className="px-3 text-xs font-semibold whitespace-nowrap text-[#343230]">
-                              {formatNaira(product.basePrice)}
-                            </td>
+                            <td className="px-3 text-xs font-semibold whitespace-nowrap text-[#343230]">{formatNaira(product.basePrice)}</td>
 
-                            <td className="px-3 text-xs text-[#55514c]">
-                              {product.stock}
+                            <td className="px-3 text-xs text-[#55514c]">{product.stock}</td>
+
+                            <td className="px-3">
+                              <AvailabilityBadge type={availability.type}>{availability.label}</AvailabilityBadge>
                             </td>
 
                             <td className="px-3">
-                              <AvailabilityBadge type={availability.type}>
-                                {availability.label}
-                              </AvailabilityBadge>
+                              <RatingBadge rating={product.rating} reviewCount={product.reviewCount} />
                             </td>
 
                             <td className="px-3">
-                              <RatingBadge
-                                rating={product.rating}
-                                reviewCount={product.reviewCount}
-                              />
-                            </td>
-
-                            <td className="px-3">
-                              <RowActions
-                                product={product}
-                                deleting={deletingId === product.id}
-                                onEdit={() => openEdit(product.id)}
-                                onDelete={() =>
-                                  handleDelete(product.id, product.name)
-                                }
-                              />
+                              <RowActions product={product} deleting={deletingId === product.id} onEdit={() => openEdit(product.id)} onDelete={() => handleDelete(product.id, product.name)} />
                             </td>
                           </tr>
                         );
@@ -658,14 +457,7 @@ export default function AdminProductsPage() {
         </section>
       </div>
 
-      {modal && (
-        <ProductModal
-          mode={modal.mode}
-          productId={modal.productId}
-          onClose={() => setModal(null)}
-          onSaved={handleSaved}
-        />
-      )}
+      {modal && <ProductModal mode={modal.mode} productId={modal.productId} onClose={() => setModal(null)} onSaved={handleSaved} />}
     </main>
   );
 }

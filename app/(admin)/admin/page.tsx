@@ -1,14 +1,6 @@
 "use client";
 
-import {
-  useEffect,
-  useId,
-  useMemo,
-  useRef,
-  useState,
-  type PointerEvent,
-  type ReactNode,
-} from "react";
+import { useEffect, useId, useMemo, useRef, useState, type PointerEvent, type ReactNode } from "react";
 import Link from "next/link";
 import { Inter } from "next/font/google";
 import {
@@ -58,8 +50,7 @@ const nairaFormatter = (fractionDigits: number) =>
 const NAIRA_WHOLE = nairaFormatter(0);
 const NAIRA_DECIMAL = nairaFormatter(2);
 
-const naira = (value: number) =>
-  (value % 1 === 0 ? NAIRA_WHOLE : NAIRA_DECIMAL).format(value);
+const naira = (value: number) => (value % 1 === 0 ? NAIRA_WHOLE : NAIRA_DECIMAL).format(value);
 
 const relativeTime = (value: string | Date) => {
   const date = new Date(value);
@@ -78,17 +69,9 @@ const getGreeting = () => {
   return "Good evening";
 };
 
-const CARD =
-  "rounded-xl border border-[#e8e8e6] bg-white shadow-[0_2px_8px_rgba(0,0,0,0.035)]";
+const CARD = "rounded-xl border border-[#e8e8e6] bg-white shadow-[0_2px_8px_rgba(0,0,0,0.035)]";
 
-const AVATAR_COLORS = [
-  "bg-[#f26422]",
-  "bg-[#20b87a]",
-  "bg-[#ef4444]",
-  "bg-[#742b43]",
-  "bg-[#f5a623]",
-  "bg-[#ef7045]",
-];
+const AVATAR_COLORS = ["bg-[#f26422]", "bg-[#20b87a]", "bg-[#ef4444]", "bg-[#742b43]", "bg-[#f5a623]", "bg-[#ef7045]"];
 
 const STATUS_COPY: Record<string, string> = {
   PENDING: "placed an order",
@@ -171,9 +154,7 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [clock, setClock] = useState<{ greeting: string; today: string } | null>(
-    null,
-  );
+  const [clock, setClock] = useState<{ greeting: string; today: string } | null>(null);
 
   const user = useAuthStore((state) => state.user);
   const firstName = user?.name?.trim().split(/\s+/)[0] || null;
@@ -199,10 +180,7 @@ export default function AdminDashboard() {
         if (!res.ok) throw new Error(data.error || "Could not load dashboard stats.");
         if (!cancelled) setStats(data);
       } catch (e) {
-        if (!cancelled)
-          setError(
-            e instanceof Error ? e.message : "Could not load dashboard stats.",
-          );
+        if (!cancelled) setError(e instanceof Error ? e.message : "Could not load dashboard stats.");
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -213,17 +191,16 @@ export default function AdminDashboard() {
     };
   }, []);
 
-  const { totalOrders, totalRevenue, totalCustomers, totalProducts, recentOrders } =
-    useMemo(
-      () => ({
-        totalOrders: stats?.totalOrders ?? 0,
-        totalRevenue: stats?.totalRevenue ?? 0,
-        totalCustomers: stats?.totalCustomers ?? 0,
-        totalProducts: stats?.totalProducts ?? 0,
-        recentOrders: stats?.recentOrders ?? [],
-      }),
-      [stats],
-    );
+  const { totalOrders, totalRevenue, totalCustomers, totalProducts, recentOrders } = useMemo(
+    () => ({
+      totalOrders: stats?.totalOrders ?? 0,
+      totalRevenue: stats?.totalRevenue ?? 0,
+      totalCustomers: stats?.totalCustomers ?? 0,
+      totalProducts: stats?.totalProducts ?? 0,
+      recentOrders: stats?.recentOrders ?? [],
+    }),
+    [stats],
+  );
 
   const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
   const display = (value: string) => (loading ? "—" : value);
@@ -237,32 +214,20 @@ export default function AdminDashboard() {
               {clock?.greeting ?? "Welcome"}
               {firstName ? `, ${firstName}` : ""}
             </h1>
-            <p className="mt-1 text-xs leading-5 text-[#8d8d8d]">
-              {clock?.today ?? "\u00A0"} · Here&apos;s how ChunkNChop is
-              performing across processing, fulfilment and sales today.
-            </p>
+            <p className="mt-1 text-xs leading-5 text-[#8d8d8d]">{clock?.today ?? "\u00A0"} · Here&apos;s how ChunkNChop is performing across processing, fulfilment and sales today.</p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              className="flex h-9 items-center gap-2 rounded-lg border border-[#dedede] bg-white px-3 text-xs font-medium text-[#555] shadow-sm"
-            >
+            <button type="button" className="flex h-9 items-center gap-2 rounded-lg border border-[#dedede] bg-white px-3 text-xs font-medium text-[#555] shadow-sm">
               <CalendarDays size={14} />
               Today
               <ChevronDown size={12} />
             </button>
-            <button
-              type="button"
-              className="flex h-9 items-center gap-2 rounded-lg border border-[#dedede] bg-white px-3 text-xs font-medium text-[#555] shadow-sm"
-            >
+            <button type="button" className="flex h-9 items-center gap-2 rounded-lg border border-[#dedede] bg-white px-3 text-xs font-medium text-[#555] shadow-sm">
               <Download size={14} />
               Export
             </button>
-            <button
-              type="button"
-              className="flex h-9 items-center gap-2 rounded-lg bg-[#f26422] px-3 text-xs font-medium text-white shadow-sm"
-            >
+            <button type="button" className="flex h-9 items-center gap-2 rounded-lg bg-[#f26422] px-3 text-xs font-medium text-white shadow-sm">
               <Clock3 size={14} />
               Open Processing
             </button>
@@ -270,23 +235,13 @@ export default function AdminDashboard() {
         </header>
 
         {error && (
-          <div
-            role="alert"
-            className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3.5 text-xs text-red-700"
-          >
+          <div role="alert" className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3.5 text-xs text-red-700">
             {error}
           </div>
         )}
 
         <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <MetricCard
-            title="Total Revenue"
-            value={display(naira(totalRevenue))}
-            icon={<Wallet size={14} />}
-            iconClass="bg-[#fff0e9] text-[#f26422]"
-            change="+12.4%"
-            description="vs last month"
-          />
+          <MetricCard title="Total Revenue" value={display(naira(totalRevenue))} icon={<Wallet size={14} />} iconClass="bg-[#fff0e9] text-[#f26422]" change="+12.4%" description="vs last month" />
           <MetricCard
             title="Total Orders"
             value={display(totalOrders.toLocaleString())}
@@ -330,9 +285,7 @@ export default function AdminDashboard() {
             <div className="flex flex-col gap-2 px-4 pt-4 sm:flex-row sm:items-start sm:justify-between sm:px-5">
               <div>
                 <h2 className="text-sm font-semibold">Weekly Revenue</h2>
-                <p className="mt-0.5 text-xs text-[#777]">
-                  Gross revenue this week compared with the same days last week
-                </p>
+                <p className="mt-0.5 text-xs text-[#777]">Gross revenue this week compared with the same days last week</p>
               </div>
               <div className="flex shrink-0 items-center gap-3 text-[11px] text-[#888]">
                 <LegendDot color="bg-[#f26422]" label="This week" />
@@ -340,28 +293,13 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            <div className="px-3 pb-3 pt-4 sm:px-4">
-              <LineChart
-                labels={DAYS}
-                series={WEEKLY_SERIES}
-                height={200}
-                formatValue={naira}
-                formatAxis={(v) => `₦${compact.format(v)}`}
-              />
+            <div className="px-3 pt-4 pb-3 sm:px-4">
+              <LineChart labels={DAYS} series={WEEKLY_SERIES} height={200} formatValue={naira} formatAxis={(v) => `₦${compact.format(v)}`} />
             </div>
 
             <div className="grid grid-cols-1 border-t border-[#eeeeee] sm:grid-cols-3">
-              <RevenueStat
-                label="Weekly sales"
-                value={display(naira(totalRevenue))}
-                change="+12.8%"
-              />
-              <RevenueStat
-                label="Orders this week"
-                value={display(totalOrders.toLocaleString())}
-                change="+9.4%"
-                bordered
-              />
+              <RevenueStat label="Weekly sales" value={display(naira(totalRevenue))} change="+12.8%" />
+              <RevenueStat label="Orders this week" value={display(totalOrders.toLocaleString())} change="+9.4%" bordered />
               <RevenueStat label="Refund rate" value="1.2%" change="-0.4%" bordered />
             </div>
           </div>
@@ -372,9 +310,7 @@ export default function AdminDashboard() {
         <section className="mt-3 grid gap-3 lg:grid-cols-[minmax(240px,0.9fr)_minmax(0,1.8fr)]">
           <div className={`${CARD} p-4`}>
             <h3 className="text-sm font-semibold text-[#2f2b28]">Orders by hour</h3>
-            <p className="mt-0.5 text-xs text-[#99938d]">
-              Delivered vs late, last 7 days
-            </p>
+            <p className="mt-0.5 text-xs text-[#99938d]">Delivered vs late, last 7 days</p>
 
             <div className="mt-3 flex items-center gap-3 text-[11px] text-[#888]">
               <LegendDot color="bg-[#f15b2a]" label="Delivered" />
@@ -382,13 +318,7 @@ export default function AdminDashboard() {
             </div>
 
             <div className="mt-2">
-              <LineChart
-                labels={HOUR_LABELS}
-                series={HOURLY_SERIES}
-                height={170}
-                formatValue={(v) => `${v} orders`}
-                formatAxis={(v) => String(v)}
-              />
+              <LineChart labels={HOUR_LABELS} series={HOURLY_SERIES} height={170} formatValue={(v) => `${v} orders`} formatAxis={(v) => String(v)} />
             </div>
           </div>
 
@@ -487,9 +417,7 @@ function LineChart({
     const el = wrapRef.current;
     if (!el) return;
     setWidth(el.clientWidth);
-    const observer = new ResizeObserver(([entry]) =>
-      setWidth(entry.contentRect.width),
-    );
+    const observer = new ResizeObserver(([entry]) => setWidth(entry.contentRect.width));
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
@@ -499,9 +427,7 @@ function LineChart({
   const innerH = height - top - bottom;
   const count = labels.length;
 
-  const step = niceStep(
-    Math.max(...series.flatMap((s) => s.data), 1) / GRID_LINES,
-  );
+  const step = niceStep(Math.max(...series.flatMap((s) => s.data), 1) / GRID_LINES);
   const yMax = step * GRID_LINES;
 
   const x = (i: number) => left + (count > 1 ? (i / (count - 1)) * innerW : 0);
@@ -527,8 +453,7 @@ function LineChart({
     setActive(idx);
   };
 
-  const tooltipLeft =
-    active !== null ? Math.min(Math.max(x(active), 70), width - 70) : 0;
+  const tooltipLeft = active !== null ? Math.min(Math.max(x(active), 70), width - 70) : 0;
 
   return (
     <div ref={wrapRef} className="relative w-full" style={{ height }}>
@@ -545,14 +470,7 @@ function LineChart({
         >
           <defs>
             {series.map((s, i) => (
-              <linearGradient
-                key={s.name}
-                id={`${uid}-${i}`}
-                x1="0"
-                y1="0"
-                x2="0"
-                y2="1"
-              >
+              <linearGradient key={s.name} id={`${uid}-${i}`} x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor={s.color} stopOpacity={0.18} />
                 <stop offset="100%" stopColor={s.color} stopOpacity={0} />
               </linearGradient>
@@ -563,22 +481,8 @@ function LineChart({
             const value = step * i;
             return (
               <g key={i}>
-                <line
-                  x1={left}
-                  x2={left + innerW}
-                  y1={y(value)}
-                  y2={y(value)}
-                  stroke="#efefed"
-                  strokeDasharray={i === 0 ? undefined : "3 4"}
-                />
-                <text
-                  x={left - 8}
-                  y={y(value)}
-                  textAnchor="end"
-                  dominantBaseline="middle"
-                  fontSize={11}
-                  fill="#9a9a9a"
-                >
+                <line x1={left} x2={left + innerW} y1={y(value)} y2={y(value)} stroke="#efefed" strokeDasharray={i === 0 ? undefined : "3 4"} />
+                <text x={left - 8} y={y(value)} textAnchor="end" dominantBaseline="middle" fontSize={11} fill="#9a9a9a">
                   {formatAxis(value)}
                 </text>
               </g>
@@ -586,50 +490,18 @@ function LineChart({
           })}
 
           {labels.map((label, i) => (
-            <text
-              key={label}
-              x={x(i)}
-              y={height - 8}
-              textAnchor={i === 0 ? "start" : i === count - 1 ? "end" : "middle"}
-              fontSize={11}
-              fill="#9a9a9a"
-            >
+            <text key={label} x={x(i)} y={height - 8} textAnchor={i === 0 ? "start" : i === count - 1 ? "end" : "middle"} fontSize={11} fill="#9a9a9a">
               {label}
             </text>
           ))}
 
-          {active !== null && (
-            <line
-              x1={x(active)}
-              x2={x(active)}
-              y1={top}
-              y2={top + innerH}
-              stroke="#d6d6d3"
-              strokeDasharray="3 3"
-            />
-          )}
+          {active !== null && <line x1={x(active)} x2={x(active)} y1={top} y2={top + innerH} stroke="#d6d6d3" strokeDasharray="3 3" />}
 
           {series.map((s, i) => (
             <g key={s.name}>
               {s.area && <path d={paths[i].area} fill={`url(#${uid}-${i})`} />}
-              <path
-                d={paths[i].line}
-                fill="none"
-                stroke={s.color}
-                strokeWidth={2}
-                strokeLinecap="round"
-                strokeDasharray={s.dashed ? "5 4" : undefined}
-              />
-              {active !== null && (
-                <circle
-                  cx={x(active)}
-                  cy={y(s.data[active])}
-                  r={4}
-                  fill="#fff"
-                  stroke={s.color}
-                  strokeWidth={2}
-                />
-              )}
+              <path d={paths[i].line} fill="none" stroke={s.color} strokeWidth={2} strokeLinecap="round" strokeDasharray={s.dashed ? "5 4" : undefined} />
+              {active !== null && <circle cx={x(active)} cy={y(s.data[active])} r={4} fill="#fff" stroke={s.color} strokeWidth={2} />}
             </g>
           ))}
         </svg>
@@ -644,15 +516,10 @@ function LineChart({
           {series.map((s) => (
             <p key={s.name} className="flex items-center justify-between gap-3">
               <span className="flex items-center gap-1.5 text-[#777]">
-                <span
-                  className="h-1.5 w-1.5 rounded-full"
-                  style={{ backgroundColor: s.color }}
-                />
+                <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: s.color }} />
                 {s.name}
               </span>
-              <span className="font-semibold tabular-nums text-[#222]">
-                {formatValue(s.data[active])}
-              </span>
+              <span className="font-semibold text-[#222] tabular-nums">{formatValue(s.data[active])}</span>
             </p>
           ))}
         </div>
@@ -670,79 +537,35 @@ function LegendDot({ color, label }: { color: string; label: string }) {
   );
 }
 
-function MetricCard({
-  title,
-  value,
-  icon,
-  iconClass,
-  change,
-  description,
-}: {
-  title: string;
-  value: string;
-  icon: ReactNode;
-  iconClass: string;
-  change: string;
-  description: string;
-}) {
+function MetricCard({ title, value, icon, iconClass, change, description }: { title: string; value: string; icon: ReactNode; iconClass: string; change: string; description: string }) {
   const positive = !change.startsWith("-");
 
   return (
     <div className={`${CARD} min-h-20 px-3.5 py-3`}>
       <div className="flex items-start justify-between gap-2">
         <span className="text-xs text-[#666]">{title}</span>
-        <span
-          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md ${iconClass}`}
-        >
-          {icon}
-        </span>
+        <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md ${iconClass}`}>{icon}</span>
       </div>
 
-      <div className="mt-1 truncate text-lg font-semibold tracking-tight tabular-nums sm:text-xl">
-        {value}
-      </div>
+      <div className="mt-1 truncate text-lg font-semibold tracking-tight tabular-nums sm:text-xl">{value}</div>
 
       <div className="mt-1 flex flex-wrap items-center gap-x-1.5 text-[11px]">
-        <span
-          className={`font-semibold ${positive ? "text-[#0a9a5c]" : "text-[#e33e3e]"}`}
-        >
-          {change}
-        </span>
+        <span className={`font-semibold ${positive ? "text-[#0a9a5c]" : "text-[#e33e3e]"}`}>{change}</span>
         <span className="text-[#a0a0a0]">{description}</span>
       </div>
     </div>
   );
 }
 
-function RevenueStat({
-  label,
-  value,
-  change,
-  bordered,
-}: {
-  label: string;
-  value: string;
-  change: string;
-  bordered?: boolean;
-}) {
+function RevenueStat({ label, value, change, bordered }: { label: string; value: string; change: string; bordered?: boolean }) {
   const positive = !change.startsWith("-");
 
   return (
-    <div
-      className={`px-4 py-3 ${
-        bordered
-          ? "border-t border-[#eeeeee] sm:border-t-0 sm:border-l"
-          : ""
-      }`}
-    >
+    <div className={`px-4 py-3 ${bordered ? "border-t border-[#eeeeee] sm:border-t-0 sm:border-l" : ""}`}>
       <p className="text-xs text-[#888]">{label}</p>
       <div className="mt-1 flex flex-wrap items-baseline gap-x-2">
         <span className="text-sm font-semibold">{value}</span>
-        <span
-          className={`text-[11px] font-semibold ${positive ? "text-[#0a9a5c]" : "text-[#e33e3e]"}`}
-        >
-          {change}
-        </span>
+        <span className={`text-[11px] font-semibold ${positive ? "text-[#0a9a5c]" : "text-[#e33e3e]"}`}>{change}</span>
       </div>
     </div>
   );
@@ -767,10 +590,7 @@ function QuickActions() {
               </span>
               <span className="text-xs font-medium text-[#555]">{label}</span>
             </span>
-            <ArrowRight
-              size={12}
-              className="text-[#aaa] transition group-hover:translate-x-0.5"
-            />
+            <ArrowRight size={12} className="text-[#aaa] transition group-hover:translate-x-0.5" />
           </button>
         ))}
       </div>
@@ -782,35 +602,21 @@ function SkeletonRows({ count, height }: { count: number; height: string }) {
   return (
     <div className="mt-3 space-y-2">
       {Array.from({ length: count }, (_, i) => (
-        <div
-          key={i}
-          className={`${height} w-full animate-pulse rounded bg-[#f2f2f0]`}
-        />
+        <div key={i} className={`${height} w-full animate-pulse rounded bg-[#f2f2f0]`} />
       ))}
     </div>
   );
 }
 
-function RecentOrdersPanel({
-  orders,
-  loading,
-}: {
-  orders: Order[];
-  loading: boolean;
-}) {
+function RecentOrdersPanel({ orders, loading }: { orders: Order[]; loading: boolean }) {
   return (
     <div className={`${CARD} p-4`}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h2 className="text-sm font-semibold">Recent Orders</h2>
-          <p className="mt-0.5 text-xs text-[#777]">
-            Latest customer activity across the storefront
-          </p>
+          <p className="mt-0.5 text-xs text-[#777]">Latest customer activity across the storefront</p>
         </div>
-        <Link
-          href="/admin/orders"
-          className="shrink-0 text-xs font-medium text-[#f26422]"
-        >
+        <Link href="/admin/orders" className="shrink-0 text-xs font-medium text-[#f26422]">
           View all →
         </Link>
       </div>
@@ -825,28 +631,19 @@ function RecentOrdersPanel({
       ) : (
         <ul className="mt-3 divide-y divide-[#f2f2f0]">
           {orders.map((order, index) => (
-            <li
-              key={order.id}
-              className="grid grid-cols-[24px_minmax(0,1fr)_auto] items-center gap-3 py-2.5 sm:grid-cols-[24px_minmax(0,1.2fr)_minmax(0,1fr)_auto]"
-            >
-              <span className="flex h-6 w-6 items-center justify-center rounded-md bg-[#f5f5f4] text-[11px] font-semibold text-[#888]">
-                {index + 1}
-              </span>
+            <li key={order.id} className="grid grid-cols-[24px_minmax(0,1fr)_auto] items-center gap-3 py-2.5 sm:grid-cols-[24px_minmax(0,1.2fr)_minmax(0,1fr)_auto]">
+              <span className="flex h-6 w-6 items-center justify-center rounded-md bg-[#f5f5f4] text-[11px] font-semibold text-[#888]">{index + 1}</span>
 
               <div className="min-w-0">
                 <p className="truncate text-xs font-medium">{order.customerName}</p>
                 <p className="truncate text-[11px] text-[#aaa]">{order.id}</p>
               </div>
 
-              <p className="hidden truncate text-[11px] text-[#888] sm:block">
-                {order.status}
-              </p>
+              <p className="hidden truncate text-[11px] text-[#888] sm:block">{order.status}</p>
 
               <div className="text-right">
                 <p className="text-xs font-semibold">{naira(order.total)}</p>
-                <p className="text-[11px] text-[#aaa]">
-                  {relativeTime(order.createdAt as unknown as string)}
-                </p>
+                <p className="text-[11px] text-[#aaa]">{relativeTime(order.createdAt as unknown as string)}</p>
               </div>
             </li>
           ))}
@@ -856,19 +653,11 @@ function RecentOrdersPanel({
   );
 }
 
-function RecentActivity({
-  orders,
-  loading,
-}: {
-  orders: Order[];
-  loading: boolean;
-}) {
+function RecentActivity({ orders, loading }: { orders: Order[]; loading: boolean }) {
   return (
     <div className={`${CARD} p-4`}>
       <h2 className="text-sm font-semibold">Recent Customer Activity</h2>
-      <p className="mt-0.5 text-xs text-[#777]">
-        Live feed across storefront and support
-      </p>
+      <p className="mt-0.5 text-xs text-[#777]">Live feed across storefront and support</p>
 
       {loading ? (
         <SkeletonRows count={4} height="h-8" />
@@ -878,19 +667,15 @@ function RecentActivity({
         <ul className="mt-3 space-y-3">
           {orders.slice(0, 6).map((order, i) => (
             <li key={order.id} className="flex items-center gap-3">
-              <span
-                className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold text-white ${AVATAR_COLORS[i % AVATAR_COLORS.length]}`}
-              >
+              <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold text-white ${AVATAR_COLORS[i % AVATAR_COLORS.length]}`}>
                 {order.customerName?.charAt(0).toUpperCase() ?? "?"}
               </span>
               <div className="min-w-0">
                 <p className="truncate text-xs text-[#444]">
-                  <span className="font-medium">{order.customerName}</span>{" "}
-                  {STATUS_COPY[order.status] ?? "updated an order"}
+                  <span className="font-medium">{order.customerName}</span> {STATUS_COPY[order.status] ?? "updated an order"}
                 </p>
                 <p className="truncate text-[11px] text-[#aaa]">
-                  {order.id} · {naira(order.total)} ·{" "}
-                  {relativeTime(order.createdAt as unknown as string)}
+                  {order.id} · {naira(order.total)} · {relativeTime(order.createdAt as unknown as string)}
                 </p>
               </div>
             </li>
@@ -908,10 +693,7 @@ function TopCategories() {
       <p className="mt-0.5 text-xs text-[#777]">Revenue share, last 30 days</p>
 
       <div className="mt-4 flex flex-col items-center gap-5 sm:flex-row">
-        <div
-          className="relative h-24 w-24 shrink-0 rounded-full"
-          style={{ background: CATEGORY_GRADIENT }}
-        >
+        <div className="relative h-24 w-24 shrink-0 rounded-full" style={{ background: CATEGORY_GRADIENT }}>
           <div className="absolute inset-5 flex items-center justify-center rounded-full bg-white">
             <div className="text-center leading-tight">
               <p className="text-sm font-semibold">100%</p>
@@ -924,10 +706,7 @@ function TopCategories() {
           {CATEGORIES.map(({ name, share, color }) => (
             <li key={name} className="flex items-center justify-between gap-2">
               <span className="flex items-center gap-2 text-xs text-[#555]">
-                <span
-                  className="h-2.5 w-2.5 rounded-xs"
-                  style={{ backgroundColor: color }}
-                />
+                <span className="h-2.5 w-2.5 rounded-xs" style={{ backgroundColor: color }} />
                 {name}
               </span>
               <span className="text-xs font-semibold">{share}%</span>

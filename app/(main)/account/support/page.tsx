@@ -108,42 +108,25 @@ export default function SupportPage() {
   };
 
   return (
-    <div className="bg-background min-h-screen">
+    <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-4xl px-4 py-8">
         <div className="mb-8 flex items-center justify-between">
           <h1 className="text-3xl font-bold">Support Center</h1>
-          <Button
-            onClick={() => setShowForm(!showForm)}
-            className="bg-accent text-accent-foreground hover:bg-accent/90"
-          >
+          <Button onClick={() => setShowForm(!showForm)} className="bg-accent text-accent-foreground hover:bg-accent/90">
             <Plus className="mr-2 h-4 w-4" />
             New Ticket
           </Button>
         </div>
 
         {showForm && (
-          <form
-            onSubmit={handleSubmit}
-            className="bg-card border-border mb-8 space-y-4 rounded-lg border p-6"
-          >
+          <form onSubmit={handleSubmit} className="mb-8 space-y-4 rounded-lg border border-border bg-card p-6">
             <div>
-              <label className="mb-2 block text-sm font-medium">
-                Subject *
-              </label>
-              <Input
-                value={formData.subject}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, subject: e.target.value }))
-                }
-                placeholder="Brief description of your issue"
-                required
-              />
+              <label className="mb-2 block text-sm font-medium">Subject *</label>
+              <Input value={formData.subject} onChange={(e) => setFormData((prev) => ({ ...prev, subject: e.target.value }))} placeholder="Brief description of your issue" required />
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-medium">
-                Description *
-              </label>
+              <label className="mb-2 block text-sm font-medium">Description *</label>
               <textarea
                 value={formData.description}
                 onChange={(e) =>
@@ -153,7 +136,7 @@ export default function SupportPage() {
                   }))
                 }
                 placeholder="Please provide as much detail as possible..."
-                className="border-border bg-background text-foreground w-full rounded-md border px-3 py-2"
+                className="w-full rounded-md border border-border bg-background px-3 py-2 text-foreground"
                 rows={5}
                 required
               />
@@ -161,9 +144,7 @@ export default function SupportPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="mb-2 block text-sm font-medium">
-                  Category
-                </label>
+                <label className="mb-2 block text-sm font-medium">Category</label>
                 <select
                   value={formData.category}
                   onChange={(e) =>
@@ -172,7 +153,7 @@ export default function SupportPage() {
                       category: e.target.value,
                     }))
                   }
-                  className="border-border bg-background text-foreground w-full rounded-md border px-3 py-2"
+                  className="w-full rounded-md border border-border bg-background px-3 py-2 text-foreground"
                 >
                   <option value="GENERAL">General</option>
                   <option value="ORDER">Order Issue</option>
@@ -183,9 +164,7 @@ export default function SupportPage() {
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-medium">
-                  Priority
-                </label>
+                <label className="mb-2 block text-sm font-medium">Priority</label>
                 <select
                   value={formData.priority}
                   onChange={(e) =>
@@ -194,7 +173,7 @@ export default function SupportPage() {
                       priority: e.target.value,
                     }))
                   }
-                  className="border-border bg-background text-foreground w-full rounded-md border px-3 py-2"
+                  className="w-full rounded-md border border-border bg-background px-3 py-2 text-foreground"
                 >
                   <option value="LOW">Low</option>
                   <option value="NORMAL">Normal</option>
@@ -204,17 +183,10 @@ export default function SupportPage() {
             </div>
 
             <div className="flex gap-2">
-              <Button
-                type="submit"
-                className="bg-accent text-accent-foreground hover:bg-accent/90"
-              >
+              <Button type="submit" className="bg-accent text-accent-foreground hover:bg-accent/90">
                 Submit Ticket
               </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setShowForm(false)}
-              >
+              <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
                 Cancel
               </Button>
             </div>
@@ -223,45 +195,29 @@ export default function SupportPage() {
 
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
         ) : tickets.length === 0 ? (
-          <div className="bg-card border-border rounded-lg border py-12 text-center">
-            <p className="text-muted-foreground mb-4">No support tickets yet</p>
-            <Button onClick={() => setShowForm(true)}>
-              Create First Ticket
-            </Button>
+          <div className="rounded-lg border border-border bg-card py-12 text-center">
+            <p className="mb-4 text-muted-foreground">No support tickets yet</p>
+            <Button onClick={() => setShowForm(true)}>Create First Ticket</Button>
           </div>
         ) : (
           <div className="space-y-3">
             {tickets.map((ticket) => (
-              <Link
-                key={ticket.id}
-                href={`/account/support/${ticket.id}`}
-                className="block"
-              >
-                <div className="bg-card border-border hover:bg-muted rounded-lg border p-4 transition">
+              <Link key={ticket.id} href={`/account/support/${ticket.id}`} className="block">
+                <div className="rounded-lg border border-border bg-card p-4 transition hover:bg-muted">
                   <div className="mb-2 flex items-start justify-between">
                     <div>
-                      <p className="text-muted-foreground text-sm">
-                        {ticket.ticketNumber}
-                      </p>
+                      <p className="text-sm text-muted-foreground">{ticket.ticketNumber}</p>
                       <p className="font-medium">{ticket.subject}</p>
                     </div>
                     <div className="text-right">
-                      <p
-                        className={`text-sm font-medium ${getPriorityColor(ticket.priority)}`}
-                      >
-                        {ticket.priority}
-                      </p>
-                      <p className="text-muted-foreground text-sm">
-                        {ticket.status}
-                      </p>
+                      <p className={`text-sm font-medium ${getPriorityColor(ticket.priority)}`}>{ticket.priority}</p>
+                      <p className="text-sm text-muted-foreground">{ticket.status}</p>
                     </div>
                   </div>
-                  <p className="text-muted-foreground text-xs">
-                    {new Date(ticket.createdAt).toLocaleDateString()}
-                  </p>
+                  <p className="text-xs text-muted-foreground">{new Date(ticket.createdAt).toLocaleDateString()}</p>
                 </div>
               </Link>
             ))}

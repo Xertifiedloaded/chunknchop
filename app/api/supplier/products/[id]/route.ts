@@ -3,10 +3,7 @@ import { getUserFromRequest } from "@/lib/http/request";
 import prisma from "@/lib/db";
 import { uploadProductImage } from "@/lib/storage";
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const user = getUserFromRequest(request);
 
@@ -52,7 +49,6 @@ export async function GET(
       },
     });
 
-    // Supplier can only access their own product
     if (!product || product.supplierId !== user.id) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
@@ -78,10 +74,7 @@ export async function GET(
   }
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const user = getUserFromRequest(request);
 
@@ -91,7 +84,6 @@ export async function PUT(
 
     const { id } = await params;
 
-    // Make sure the product exists and belongs to this supplier
     const existing = await prisma.product.findUnique({
       where: {
         id,
@@ -169,9 +161,7 @@ export async function PUT(
 
       preparations = JSON.parse(String(formData.get("preparations") ?? "[]"));
 
-      existingImages = JSON.parse(
-        String(formData.get("existingImages") ?? "[]"),
-      );
+      existingImages = JSON.parse(String(formData.get("existingImages") ?? "[]"));
     } catch {
       return NextResponse.json(
         {
@@ -183,9 +173,7 @@ export async function PUT(
       );
     }
 
-    const imageFiles = formData
-      .getAll("images")
-      .filter((value): value is File => value instanceof File);
+    const imageFiles = formData.getAll("images").filter((value): value is File => value instanceof File);
 
     const uploadedUrls: string[] = [];
 
@@ -197,8 +185,7 @@ export async function PUT(
       } catch (error) {
         return NextResponse.json(
           {
-            error:
-              error instanceof Error ? error.message : "Image upload failed",
+            error: error instanceof Error ? error.message : "Image upload failed",
           },
           {
             status: 400,
@@ -207,8 +194,6 @@ export async function PUT(
       }
     }
 
-    // Accept categoryId when editing so the product's categoryId and
-    // legacy category string remain in sync with the selected Category.
     const categoryId = String(formData.get("categoryId") ?? "").trim();
     let categoryName: string | undefined = undefined;
 
@@ -217,10 +202,7 @@ export async function PUT(
         where: { id: categoryId },
       });
       if (!found || !found.isActive) {
-        return NextResponse.json(
-          { error: "Selected category is invalid or not visible" },
-          { status: 400 },
-        );
+        return NextResponse.json({ error: "Selected category is invalid or not visible" }, { status: 400 });
       }
       categoryName = found.name;
     }
@@ -237,10 +219,7 @@ export async function PUT(
       isNewArrival: formData.get("isNewArrival") === "true",
       isBestSeller: formData.get("isBestSeller") === "true",
       sameDayDelivery: formData.get("sameDayDelivery") === "true",
-      images: [
-        ...(Array.isArray(existingImages) ? existingImages : []),
-        ...uploadedUrls,
-      ],
+      images: [...(Array.isArray(existingImages) ? existingImages : []), ...uploadedUrls],
     };
 
     if (categoryId) {
@@ -280,10 +259,7 @@ export async function PUT(
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const user = getUserFromRequest(request);
 
@@ -293,7 +269,6 @@ export async function DELETE(
 
     const { id } = await params;
 
-    // Make sure the product exists and belongs to this supplier
     const existing = await prisma.product.findUnique({
       where: {
         id,

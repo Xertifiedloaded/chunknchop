@@ -13,18 +13,9 @@ interface ProductModalProps {
   onSaved: () => void;
 }
 
-export default function ProductModal({
-  mode,
-  productId,
-  onClose,
-  onSaved,
-}: ProductModalProps) {
-  const [initial, setInitial] = useState<Partial<ProductFormData> | undefined>(
-    undefined,
-  );
-  const [initialImages, setInitialImages] = useState<string[] | undefined>(
-    undefined,
-  );
+export default function ProductModal({ mode, productId, onClose, onSaved }: ProductModalProps) {
+  const [initial, setInitial] = useState<Partial<ProductFormData> | undefined>(undefined);
+  const [initialImages, setInitialImages] = useState<string[] | undefined>(undefined);
   const [loading, setLoading] = useState(mode === "edit");
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -36,16 +27,11 @@ export default function ProductModal({
       setLoading(true);
       setLoadError(null);
       try {
-        const response = await fetchWithAuth(
-          `/api/admin/products/${productId}`,
-        );
+        const response = await fetchWithAuth(`/api/admin/products/${productId}`);
         const data = await response.json();
-        if (!response.ok)
-          throw new Error(data.error || "Could not load this product.");
+        if (!response.ok) throw new Error(data.error || "Could not load this product.");
         if (cancelled) return;
 
-        // `category` is a plain string (the name); the relation lives in `categoryRef`.
-        // The storage location comes from the product's inventory record.
         const inventoryRecord = data.inventoryRecords?.[0];
 
         setInitial({
@@ -56,8 +42,7 @@ export default function ProductModal({
           basePrice: data.basePrice != null ? String(data.basePrice) : "",
           stock: data.stock != null ? String(data.stock) : "",
           unit: data.unit ?? "kg",
-          reorderPoint:
-            data.reorderPoint != null ? String(data.reorderPoint) : "",
+          reorderPoint: data.reorderPoint != null ? String(data.reorderPoint) : "",
           locationId: inventoryRecord?.location?.id ?? "",
           tags: toCsv(data.tags),
           preparations: toCsv(data.preparations),
@@ -67,10 +52,7 @@ export default function ProductModal({
         });
         setInitialImages(data.images ?? []);
       } catch (err) {
-        if (!cancelled)
-          setLoadError(
-            err instanceof Error ? err.message : "Could not load this product.",
-          );
+        if (!cancelled) setLoadError(err instanceof Error ? err.message : "Could not load this product.");
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -99,15 +81,8 @@ export default function ProductModal({
     >
       <div className="max-h-[calc(100vh-3rem)] w-full max-w-[640px] overflow-y-auto rounded-[14px] bg-white shadow-[0_12px_40px_rgba(0,0,0,0.18)]">
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[#eceae7] bg-white px-4 py-3">
-          <h2 className="text-[13px] leading-4 font-semibold tracking-[-0.2px] text-[#292929]">
-            {mode === "create" ? "Add product" : "Edit product"}
-          </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            className="flex h-6 w-6 items-center justify-center rounded-md text-[#8c8984] transition hover:bg-[#f4f3f1] hover:text-[#333]"
-          >
+          <h2 className="text-[13px] leading-4 font-semibold tracking-[-0.2px] text-[#292929]">{mode === "create" ? "Add product" : "Edit product"}</h2>
+          <button type="button" onClick={onClose} aria-label="Close" className="flex h-6 w-6 items-center justify-center rounded-md text-[#8c8984] transition hover:bg-[#f4f3f1] hover:text-[#333]">
             <X size={14} strokeWidth={1.8} />
           </button>
         </div>
@@ -118,18 +93,9 @@ export default function ProductModal({
               <Loader2 size={20} className="animate-spin text-[#99958f]" />
             </div>
           ) : mode === "edit" && loadError ? (
-            <div className="rounded-[10px] border border-[#f2652a4d] bg-[#fff4ee] px-3 py-2 text-[11px] text-[#c4491d]">
-              {loadError}
-            </div>
+            <div className="rounded-[10px] border border-[#f2652a4d] bg-[#fff4ee] px-3 py-2 text-[11px] text-[#c4491d]">{loadError}</div>
           ) : (
-            <ProductForm
-              mode={mode}
-              productId={productId}
-              initial={initial}
-              initialImages={initialImages}
-              onSuccess={onSaved}
-              onCancel={onClose}
-            />
+            <ProductForm mode={mode} productId={productId} initial={initial} initialImages={initialImages} onSuccess={onSaved} onCancel={onClose} />
           )}
         </div>
       </div>

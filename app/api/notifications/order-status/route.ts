@@ -13,26 +13,20 @@ export async function POST(request: NextRequest) {
     const { orderId, status } = await request.json();
 
     if (!orderId || !status) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    // Update order in database
     const order = await prisma.order.update({
       where: { id: orderId },
       data: { status },
     });
 
-    // Send real-time notification via Pusher
     await pusher.trigger(`order-${orderId}`, "status-update", {
       orderId,
       status,
       timestamp: new Date().toISOString(),
     });
 
-    // Broadcast to all user's orders channel
     await pusher.trigger(`user-${order.customerId}-orders`, "order-updated", {
       orderId,
       status,
@@ -42,9 +36,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, order });
   } catch (error) {
     console.error("Error updating order status:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

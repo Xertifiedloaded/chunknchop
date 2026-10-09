@@ -8,7 +8,6 @@ interface RouteContext {
   }>;
 }
 
-// GET /api/admin/orders/[id]
 export async function GET(request: NextRequest, { params }: RouteContext) {
   try {
     const user = getUserFromRequest(request);
@@ -20,10 +19,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
     const { id } = await params;
 
     if (!id) {
-      return NextResponse.json(
-        { error: "Order ID is required" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Order ID is required" }, { status: 400 });
     }
 
     const order = await prisma.order.findUnique({
@@ -67,53 +63,34 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
-    const itemsCount = order.items.reduce(
-      (sum, item) => sum + item.quantity,
-      0,
-    );
+    const itemsCount = order.items.reduce((sum, item) => sum + item.quantity, 0);
 
-    const productSummary = order.items
-      .map((item) => item.product.name)
-      .join(", ");
+    const productSummary = order.items.map((item) => item.product.name).join(", ");
 
     const formattedOrder = {
       id: order.id,
 
       orderNumber: `CNC-${order.id.slice(-6).toUpperCase()}`,
 
-      // --------------------------------------------------
-      // ORDER INFORMATION
-      // --------------------------------------------------
       status: order.status,
       paymentStatus: order.paymentStatus,
 
       createdAt: order.createdAt.toISOString(),
 
-      // --------------------------------------------------
-      // FINANCIALS
-      // --------------------------------------------------
       total: order.total,
       subtotal: order.subtotal,
       tax: order.tax,
       shipping: order.shipping,
 
-      // --------------------------------------------------
-      // CUSTOMER
-      // --------------------------------------------------
       customer: {
         id: order.customer.id,
         name: order.customer.name || "Unknown",
         email: order.customer.email,
       },
 
-      // Also expose these directly if your frontend
-      // already uses the list API structure.
       customerName: order.customer.name || "Unknown",
       customerEmail: order.customer.email,
 
-      // --------------------------------------------------
-      // ITEMS
-      // --------------------------------------------------
       itemsCount,
       productSummary,
 
@@ -133,9 +110,6 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
         tier: item.tier,
       })),
 
-      // --------------------------------------------------
-      // DELIVERY ADDRESS
-      // --------------------------------------------------
       location: `${order.shippingCity}, ${order.shippingState}`,
 
       customerAddress: {
@@ -165,9 +139,6 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
           : null,
       },
 
-      // --------------------------------------------------
-      // RIDER
-      // --------------------------------------------------
       rider: order.rider
         ? {
             id: order.rider.id,
@@ -177,9 +148,6 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
           }
         : null,
 
-      // --------------------------------------------------
-      // TRACKING / DELIVERY
-      // --------------------------------------------------
       trackingNumber: order.trackingNumber,
 
       estimatedDelivery: order.estimatedDelivery?.toISOString() ?? null,

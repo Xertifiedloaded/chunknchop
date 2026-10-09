@@ -34,7 +34,6 @@ export async function fetchWithAuth(input: RequestInfo, init?: RequestInit) {
       return res;
     }
 
-    // After refresh, accessToken cookie should be updated server-side. Retry original request once.
     const retryRes = await fetch(input, reqInit);
     if (retryRes.status === 401) {
       useAuthStore.getState().logout();

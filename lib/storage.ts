@@ -10,14 +10,8 @@ export async function uploadProductImage(file: File): Promise<string> {
     throw new Error(`"${file.name}" is over the 20MB limit.`);
   }
 
-  if (
-    !process.env.CLOUDINARY_CLOUD_NAME ||
-    !process.env.CLOUDINARY_API_KEY ||
-    !process.env.CLOUDINARY_API_SECRET
-  ) {
-    throw new Error(
-      "Cloudinary credentials are not set in environment variables",
-    );
+  if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+    throw new Error("Cloudinary credentials are not set in environment variables");
   }
 
   cloudinary.config({

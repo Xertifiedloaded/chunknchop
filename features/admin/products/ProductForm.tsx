@@ -80,28 +80,17 @@ function formatLocationType(type: string): string {
   return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
-export default function ProductForm({
-  mode,
-  productId,
-  initial,
-  initialImages,
-  onSuccess,
-  onCancel,
-}: ProductFormProps) {
+export default function ProductForm({ mode, productId, initial, initialImages, onSuccess, onCancel }: ProductFormProps) {
   const router = useRouter();
   const [form, setForm] = useState<ProductFormData>({
     ...EMPTY_FORM,
     ...initial,
   });
-  const [images, setImages] = useState<ImageItem[]>(() =>
-    (initialImages ?? []).map((url) => ({ id: url, url })),
-  );
+  const [images, setImages] = useState<ImageItem[]>(() => (initialImages ?? []).map((url) => ({ id: url, url })));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [newCategoryName, setNewCategoryName] = useState("");
-  const [newCategoryColor, setNewCategoryColor] = useState(
-    DEFAULT_CATEGORY_COLOR,
-  );
+  const [newCategoryColor, setNewCategoryColor] = useState(DEFAULT_CATEGORY_COLOR);
   const [newLocationName, setNewLocationName] = useState("");
   const [newLocationType, setNewLocationType] = useState("");
   const [locations, setLocations] = useState<StorageLocationOption[]>([]);
@@ -117,9 +106,7 @@ export default function ProductForm({
   imagesRef.current = images;
   useEffect(() => {
     return () => {
-      imagesRef.current.forEach(
-        (img) => img.file && URL.revokeObjectURL(img.url),
-      );
+      imagesRef.current.forEach((img) => img.file && URL.revokeObjectURL(img.url));
     };
   }, []);
 
@@ -142,8 +129,7 @@ export default function ProductForm({
 
       try {
         const response = await fetchWithAuth("/api/admin/product-form-options");
-        if (!response.ok)
-          throw new Error("Failed to load categories and storage locations.");
+        if (!response.ok) throw new Error("Failed to load categories and storage locations.");
 
         const data: FormOptionsResponse = await response.json();
         if (cancelled) return;
@@ -156,17 +142,12 @@ export default function ProductForm({
         if (mode === "create") {
           setForm((prev) => ({
             ...prev,
-            locationId:
-              prev.locationId || data.locations[0]?.id || NEW_LOCATION,
-            categoryId:
-              prev.categoryId || data.categories[0]?.id || NEW_CATEGORY,
+            locationId: prev.locationId || data.locations[0]?.id || NEW_LOCATION,
+            categoryId: prev.categoryId || data.categories[0]?.id || NEW_CATEGORY,
           }));
         }
       } catch (err) {
-        if (!cancelled)
-          setOptionsError(
-            err instanceof Error ? err.message : "Failed to load form options.",
-          );
+        if (!cancelled) setOptionsError(err instanceof Error ? err.message : "Failed to load form options.");
       } finally {
         if (!cancelled) setOptionsLoading(false);
       }
@@ -179,10 +160,7 @@ export default function ProductForm({
     };
   }, [mode]);
 
-  const update = <K extends keyof ProductFormData>(
-    key: K,
-    value: ProductFormData[K],
-  ) => {
+  const update = <K extends keyof ProductFormData>(key: K, value: ProductFormData[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
@@ -197,8 +175,7 @@ export default function ProductForm({
         url: URL.createObjectURL(file),
         file,
       };
-      if (!file.type.startsWith("image/"))
-        return { ...base, error: "Not an image" };
+      if (!file.type.startsWith("image/")) return { ...base, error: "Not an image" };
       if (file.size > MAX_FILE_SIZE) return { ...base, error: "Over 5MB" };
       return base;
     });
@@ -227,29 +204,22 @@ export default function ProductForm({
 
     const basePrice = Number(form.basePrice);
     const stock = Number(form.stock);
-    const reorderPoint =
-      form.reorderPoint.trim() === "" ? 0 : Number(form.reorderPoint);
+    const reorderPoint = form.reorderPoint.trim() === "" ? 0 : Number(form.reorderPoint);
 
-    if (!Number.isFinite(basePrice) || basePrice < 0)
-      return "Base price needs to be a valid number.";
-    if (!Number.isInteger(stock) || stock < 0)
-      return "Stock needs to be a whole number.";
-    if (!Number.isInteger(reorderPoint) || reorderPoint < 0)
-      return "Reorder point needs to be a whole number.";
+    if (!Number.isFinite(basePrice) || basePrice < 0) return "Base price needs to be a valid number.";
+    if (!Number.isInteger(stock) || stock < 0) return "Stock needs to be a whole number.";
+    if (!Number.isInteger(reorderPoint) || reorderPoint < 0) return "Reorder point needs to be a whole number.";
 
     if (mode === "create") {
       if (isNewLocation) {
-        if (!newLocationName.trim())
-          return "Enter a name for the new storage location.";
-        if (!newLocationType)
-          return "Choose a type for the new storage location.";
+        if (!newLocationName.trim()) return "Enter a name for the new storage location.";
+        if (!newLocationType) return "Choose a type for the new storage location.";
       } else if (!form.locationId) {
         return "Choose a storage location to stock this product in.";
       }
     }
 
-    if (images.some((img) => img.error))
-      return "Remove the images marked as failed before saving.";
+    if (images.some((img) => img.error)) return "Remove the images marked as failed before saving.";
 
     return null;
   };
@@ -288,37 +258,24 @@ export default function ProductForm({
       body.append("basePrice", String(Number(form.basePrice)));
       body.append("stock", String(Number(form.stock)));
       body.append("unit", form.unit || "kg");
-      body.append(
-        "reorderPoint",
-        String(form.reorderPoint.trim() === "" ? 0 : Number(form.reorderPoint)),
-      );
+      body.append("reorderPoint", String(form.reorderPoint.trim() === "" ? 0 : Number(form.reorderPoint)));
       body.append("tags", JSON.stringify(fromCsv(form.tags)));
       body.append("preparations", JSON.stringify(fromCsv(form.preparations)));
       body.append("isNewArrival", String(form.isNewArrival));
       body.append("isBestSeller", String(form.isBestSeller));
       body.append("sameDayDelivery", String(form.sameDayDelivery));
-      body.append(
-        "existingImages",
-        JSON.stringify(images.filter((img) => !img.file).map((img) => img.url)),
-      );
+      body.append("existingImages", JSON.stringify(images.filter((img) => !img.file).map((img) => img.url)));
 
-      images
-        .filter((img): img is ImageItem & { file: File } => Boolean(img.file))
-        .forEach((img) => body.append("images", img.file));
+      images.filter((img): img is ImageItem & { file: File } => Boolean(img.file)).forEach((img) => body.append("images", img.file));
 
-      const url =
-        mode === "create"
-          ? "/api/admin/products"
-          : `/api/admin/products/${productId}`;
+      const url = mode === "create" ? "/api/admin/products" : `/api/admin/products/${productId}`;
       const method = mode === "create" ? "POST" : "PUT";
 
       const response = await fetch(url, { method, body });
 
       if (!response.ok) {
         const responseBody = await response.json().catch(() => ({}));
-        throw new Error(
-          responseBody.error || "Something went wrong saving the product.",
-        );
+        throw new Error(responseBody.error || "Something went wrong saving the product.");
       }
 
       if (onSuccess) {
@@ -328,45 +285,28 @@ export default function ProductForm({
         router.refresh();
       }
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Something went wrong saving the product.",
-      );
+      setError(err instanceof Error ? err.message : "Something went wrong saving the product.");
       setSaving(false);
     }
   };
 
   const hasNewFiles = images.some((img) => img.file && !img.error);
-  const inputClass =
-    "h-8 w-full rounded-[8px] border border-[#dedbd7] bg-white px-2.5 text-[11px] text-[#333] outline-none placeholder:text-[#a7a7b0] focus:border-[#c8c5c1]";
-  const textareaClass =
-    "w-full rounded-[8px] border border-[#dedbd7] bg-white px-2.5 py-2 text-[11px] text-[#333] outline-none placeholder:text-[#a7a7b0] focus:border-[#c8c5c1]";
+  const inputClass = "h-8 w-full rounded-[8px] border border-[#dedbd7] bg-white px-2.5 text-[11px] text-[#333] outline-none placeholder:text-[#a7a7b0] focus:border-[#c8c5c1]";
+  const textareaClass = "w-full rounded-[8px] border border-[#dedbd7] bg-white px-2.5 py-2 text-[11px] text-[#333] outline-none placeholder:text-[#a7a7b0] focus:border-[#c8c5c1]";
   const labelClass = "mb-1 block text-[10px] font-medium text-[#55514c]";
   const hintClass = "mt-1 text-[9px] text-[#99958f]";
   const errorHintClass = "mt-1 text-[9px] text-[#c4491d]";
 
   return (
     <form onSubmit={handleSubmit}>
-      {error && (
-        <div className="mb-4 rounded-[10px] border border-[#f2652a4d] bg-[#fff4ee] px-3 py-2 text-[11px] leading-3.5 text-[#c4491d]">
-          {error}
-        </div>
-      )}
+      {error && <div className="mb-4 rounded-[10px] border border-[#f2652a4d] bg-[#fff4ee] px-3 py-2 text-[11px] leading-3.5 text-[#c4491d]">{error}</div>}
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="sm:col-span-2">
           <label htmlFor="name" className={labelClass}>
             Product name
           </label>
-          <input
-            id="name"
-            type="text"
-            value={form.name}
-            onChange={(e) => update("name", e.target.value)}
-            placeholder="Dry-Aged Ribeye Steak"
-            className={inputClass}
-          />
+          <input id="name" type="text" value={form.name} onChange={(e) => update("name", e.target.value)} placeholder="Dry-Aged Ribeye Steak" className={inputClass} />
         </div>
 
         <div className="sm:col-span-2">
@@ -387,16 +327,8 @@ export default function ProductForm({
           <label htmlFor="categoryId" className={labelClass}>
             Category
           </label>
-          <select
-            id="categoryId"
-            value={form.categoryId}
-            onChange={(e) => update("categoryId", e.target.value)}
-            disabled={optionsLoading}
-            className={inputClass}
-          >
-            <option value="">
-              {optionsLoading ? "Loading categories…" : "Select a category"}
-            </option>
+          <select id="categoryId" value={form.categoryId} onChange={(e) => update("categoryId", e.target.value)} disabled={optionsLoading} className={inputClass}>
+            <option value="">{optionsLoading ? "Loading categories…" : "Select a category"}</option>
             {categories.map((cat) => (
               <option key={cat.id} value={cat.id}>
                 {cat.name}
@@ -407,14 +339,7 @@ export default function ProductForm({
 
           {isNewCategory && (
             <div className="mt-2 flex items-center gap-2">
-              <input
-                type="text"
-                value={newCategoryName}
-                onChange={(e) => setNewCategoryName(e.target.value)}
-                placeholder="New category name, e.g. Turkey"
-                className={inputClass}
-                autoFocus
-              />
+              <input type="text" value={newCategoryName} onChange={(e) => setNewCategoryName(e.target.value)} placeholder="New category name, e.g. Turkey" className={inputClass} autoFocus />
               <input
                 type="color"
                 value={newCategoryColor}
@@ -425,9 +350,7 @@ export default function ProductForm({
             </div>
           )}
 
-          <p className={hintClass}>
-            The category is also used as the product&apos;s meat type.
-          </p>
+          <p className={hintClass}>The category is also used as the product&apos;s meat type.</p>
           {optionsError && <p className={errorHintClass}>{optionsError}</p>}
         </div>
 
@@ -435,44 +358,21 @@ export default function ProductForm({
           <label htmlFor="basePrice" className={labelClass}>
             Base price (₦)
           </label>
-          <input
-            id="basePrice"
-            type="number"
-            min="0"
-            step="0.01"
-            value={form.basePrice}
-            onChange={(e) => update("basePrice", e.target.value)}
-            placeholder="24.99"
-            className={inputClass}
-          />
+          <input id="basePrice" type="number" min="0" step="0.01" value={form.basePrice} onChange={(e) => update("basePrice", e.target.value)} placeholder="24.99" className={inputClass} />
         </div>
 
         <div>
           <label htmlFor="stock" className={labelClass}>
             Stock quantity
           </label>
-          <input
-            id="stock"
-            type="number"
-            min="0"
-            step="1"
-            value={form.stock}
-            onChange={(e) => update("stock", e.target.value)}
-            placeholder="50"
-            className={inputClass}
-          />
+          <input id="stock" type="number" min="0" step="1" value={form.stock} onChange={(e) => update("stock", e.target.value)} placeholder="50" className={inputClass} />
         </div>
 
         <div>
           <label htmlFor="unit" className={labelClass}>
             Unit
           </label>
-          <select
-            id="unit"
-            value={form.unit}
-            onChange={(e) => update("unit", e.target.value)}
-            className={inputClass}
-          >
+          <select id="unit" value={form.unit} onChange={(e) => update("unit", e.target.value)} className={inputClass}>
             {UNITS.map((u) => (
               <option key={u} value={u}>
                 {u}
@@ -483,62 +383,29 @@ export default function ProductForm({
 
         <div>
           <label htmlFor="reorderPoint" className={labelClass}>
-            Reorder point{" "}
-            <span className="font-normal text-[#99958f]">(optional)</span>
+            Reorder point <span className="font-normal text-[#99958f]">(optional)</span>
           </label>
-          <input
-            id="reorderPoint"
-            type="number"
-            min="0"
-            step="1"
-            value={form.reorderPoint}
-            onChange={(e) => update("reorderPoint", e.target.value)}
-            placeholder="60"
-            className={inputClass}
-          />
+          <input id="reorderPoint" type="number" min="0" step="1" value={form.reorderPoint} onChange={(e) => update("reorderPoint", e.target.value)} placeholder="60" className={inputClass} />
         </div>
 
         <div className="sm:col-span-2">
           <label htmlFor="locationId" className={labelClass}>
-            Storage location{" "}
-            {mode === "create" && <span className="text-[#f2652a]">*</span>}
+            Storage location {mode === "create" && <span className="text-[#f2652a]">*</span>}
           </label>
-          <select
-            id="locationId"
-            value={form.locationId}
-            onChange={(e) => update("locationId", e.target.value)}
-            disabled={optionsLoading}
-            className={inputClass}
-          >
-            <option value="">
-              {optionsLoading ? "Loading locations…" : "Select a location"}
-            </option>
+          <select id="locationId" value={form.locationId} onChange={(e) => update("locationId", e.target.value)} disabled={optionsLoading} className={inputClass}>
+            <option value="">{optionsLoading ? "Loading locations…" : "Select a location"}</option>
             {locations.map((loc) => (
               <option key={loc.id} value={loc.id}>
                 {loc.name} ({formatLocationType(loc.type)})
               </option>
             ))}
-            {mode === "create" && (
-              <option value={NEW_LOCATION}>+ Add new storage location</option>
-            )}
+            {mode === "create" && <option value={NEW_LOCATION}>+ Add new storage location</option>}
           </select>
 
           {isNewLocation && (
             <div className="mt-2 grid gap-2 sm:grid-cols-[1fr_160px]">
-              <input
-                type="text"
-                value={newLocationName}
-                onChange={(e) => setNewLocationName(e.target.value)}
-                placeholder="New location name, e.g. Freezer 2"
-                className={inputClass}
-                autoFocus
-              />
-              <select
-                value={newLocationType}
-                onChange={(e) => setNewLocationType(e.target.value)}
-                aria-label="Location type"
-                className={inputClass}
-              >
+              <input type="text" value={newLocationName} onChange={(e) => setNewLocationName(e.target.value)} placeholder="New location name, e.g. Freezer 2" className={inputClass} autoFocus />
+              <select value={newLocationType} onChange={(e) => setNewLocationType(e.target.value)} aria-label="Location type" className={inputClass}>
                 {locationTypes.map((type) => (
                   <option key={type} value={type}>
                     {formatLocationType(type)}
@@ -548,45 +415,20 @@ export default function ProductForm({
             </div>
           )}
 
-          {!optionsLoading &&
-            !optionsError &&
-            locations.length === 0 &&
-            mode === "create" && (
-              <p className={hintClass}>
-                No storage locations yet — name your first one above.
-              </p>
-            )}
-          {mode === "edit" && (
-            <p className={hintClass}>
-              Editing doesn&apos;t move existing stock between locations — use
-              the Inventory page to transfer or adjust stock.
-            </p>
-          )}
+          {!optionsLoading && !optionsError && locations.length === 0 && mode === "create" && <p className={hintClass}>No storage locations yet — name your first one above.</p>}
+          {mode === "edit" && <p className={hintClass}>Editing doesn&apos;t move existing stock between locations — use the Inventory page to transfer or adjust stock.</p>}
         </div>
 
         <div className="sm:col-span-2">
           <label htmlFor="tags" className={labelClass}>
-            Tags{" "}
-            <span className="font-normal text-[#99958f]">
-              (comma-separated)
-            </span>
+            Tags <span className="font-normal text-[#99958f]">(comma-separated)</span>
           </label>
-          <input
-            id="tags"
-            type="text"
-            value={form.tags}
-            onChange={(e) => update("tags", e.target.value)}
-            placeholder="grass-fed, premium, grilling"
-            className={inputClass}
-          />
+          <input id="tags" type="text" value={form.tags} onChange={(e) => update("tags", e.target.value)} placeholder="grass-fed, premium, grilling" className={inputClass} />
         </div>
 
         <div className="sm:col-span-2">
           <label htmlFor="preparations" className={labelClass}>
-            Preparations{" "}
-            <span className="font-normal text-[#99958f]">
-              (comma-separated)
-            </span>
+            Preparations <span className="font-normal text-[#99958f]">(comma-separated)</span>
           </label>
           <input
             id="preparations"
@@ -609,21 +451,10 @@ export default function ProductForm({
           <label className={labelClass}>Product images</label>
           <div className="flex flex-wrap gap-2">
             {images.map((img) => (
-              <div
-                key={img.id}
-                className="group relative h-16 w-16 shrink-0 overflow-hidden rounded-[8px] border border-[#dedbd7] bg-[#f7f8fa]"
-              >
+              <div key={img.id} className="group relative h-16 w-16 shrink-0 overflow-hidden rounded-[8px] border border-[#dedbd7] bg-[#f7f8fa]">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={img.url}
-                  alt=""
-                  className="h-full w-full object-cover"
-                />
-                {img.error && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-[#ed3b3b]/85 p-1 text-center text-[8px] font-medium text-white">
-                    {img.error}
-                  </div>
-                )}
+                <img src={img.url} alt="" className="h-full w-full object-cover" />
+                {img.error && <div className="absolute inset-0 flex items-center justify-center bg-[#ed3b3b]/85 p-1 text-center text-[8px] font-medium text-white">{img.error}</div>}
                 <button
                   type="button"
                   onClick={() => removeImage(img.id)}
@@ -638,18 +469,10 @@ export default function ProductForm({
             <label className="flex h-16 w-16 shrink-0 cursor-pointer flex-col items-center justify-center gap-0.5 rounded-[8px] border border-dashed border-[#dedbd7] text-[#99958f] transition hover:border-[#f2652a] hover:text-[#f2652a]">
               <ImagePlus size={16} strokeWidth={1.6} />
               <span className="text-[8px]">Add</span>
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                className="hidden"
-                onChange={handleFileSelect}
-              />
+              <input type="file" accept="image/*" multiple className="hidden" onChange={handleFileSelect} />
             </label>
           </div>
-          <p className={hintClass}>
-            PNG or JPG, up to 5MB each. Uploaded when you save.
-          </p>
+          <p className={hintClass}>PNG or JPG, up to 5MB each. Uploaded when you save.</p>
         </div>
       </div>
 
@@ -694,16 +517,10 @@ export default function ProductForm({
         <button
           type="submit"
           disabled={saving || optionsLoading}
-          className="bg-brand hover:bg-brand flex h-[29px] items-center justify-center gap-1.5 rounded-[8px] px-3.5 text-[11px] font-medium whitespace-nowrap text-white shadow-[0_2px_4px_rgba(242,101,42,0.2)] transition disabled:opacity-60"
+          className="flex h-[29px] items-center justify-center gap-1.5 rounded-[8px] bg-brand px-3.5 text-[11px] font-medium whitespace-nowrap text-white shadow-[0_2px_4px_rgba(242,101,42,0.2)] transition hover:bg-brand disabled:opacity-60"
         >
           {saving && <Loader2 size={12} className="animate-spin" />}
-          {saving
-            ? hasNewFiles
-              ? "Uploading & saving…"
-              : "Saving…"
-            : mode === "create"
-              ? "Add product"
-              : "Save changes"}
+          {saving ? (hasNewFiles ? "Uploading & saving…" : "Saving…") : mode === "create" ? "Add product" : "Save changes"}
         </button>
       </div>
     </form>

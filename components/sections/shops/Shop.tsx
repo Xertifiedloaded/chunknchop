@@ -5,20 +5,12 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ArrowUpDown, SlidersHorizontal, Search } from "lucide-react";
 
 import { useProductStore } from "@/store/productStore";
-import {
-  DEFAULT_FILTERS,
-  FilterState,
-  SORT_OPTIONS,
-  countActiveFilters,
-  filterProducts,
-} from "@/features/catalog/filters";
+import { DEFAULT_FILTERS, FilterState, SORT_OPTIONS, countActiveFilters, filterProducts } from "@/features/catalog/filters";
 
 import CategoryPills from "@/features/catalog/components/CategoryPills";
 import EmptyState from "@/components/feedback/EmptyState";
 import ProductCard from "@/features/catalog/components/ProductCard";
-import FilterSidebar, {
-  MobileFilterDrawer,
-} from "@/features/catalog/components/FilterSidebar";
+import FilterSidebar, { MobileFilterDrawer } from "@/features/catalog/components/FilterSidebar";
 import LoadingState from "@/components/feedback/LoadingState";
 
 const PAGE_SIZE = 8;
@@ -39,32 +31,21 @@ interface CategorizedProduct {
 
 const normalize = (value?: string | null) => (value ?? "").trim().toLowerCase();
 
-function matchesCategory(
-  product: unknown,
-  category: CategoryOption | null,
-): boolean {
+function matchesCategory(product: unknown, category: CategoryOption | null): boolean {
   if (!category) return true;
 
   const item = product as CategorizedProduct;
 
-  if (
-    category.id &&
-    (item.categoryId === category.id || item.categoryRef?.id === category.id)
-  ) {
+  if (category.id && (item.categoryId === category.id || item.categoryRef?.id === category.id)) {
     return true;
   }
 
   const target = normalize(category.name);
 
-  return [item.category, item.categoryRef?.name, item.meatType].some(
-    (value) => normalize(value).replace(/_/g, " ") === target,
-  );
+  return [item.category, item.categoryRef?.name, item.meatType].some((value) => normalize(value).replace(/_/g, " ") === target);
 }
 
-function applySectionParam(
-  base: FilterState,
-  section: string | null,
-): FilterState {
+function applySectionParam(base: FilterState, section: string | null): FilterState {
   switch (section) {
     case "best-sellers":
       return { ...base, bestSeller: true };
@@ -86,19 +67,13 @@ export default function Shop() {
   const [categories, setCategories] = useState<CategoryOption[]>([]);
   const [categoriesLoaded, setCategoriesLoaded] = useState(false);
 
-  const [filters, setFilters] = useState<FilterState>(() =>
-    applySectionParam(
-      { ...DEFAULT_FILTERS, category: ALL },
-      searchParams.get("section"),
-    ),
-  );
+  const [filters, setFilters] = useState<FilterState>(() => applySectionParam({ ...DEFAULT_FILTERS, category: ALL }, searchParams.get("section")));
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   const categorySlug = searchParams.get("category");
-  const hasCategoryParam =
-    Boolean(categorySlug) && normalize(categorySlug) !== "all";
+  const hasCategoryParam = Boolean(categorySlug) && normalize(categorySlug) !== "all";
 
   useEffect(() => {
     let cancelled = false;
@@ -140,13 +115,11 @@ export default function Shop() {
         if (cancelled) return;
 
         setCategories(
-          (Array.isArray(data) ? data : []).map(
-            (c: { id?: string; name: string; slug: string }) => ({
-              id: c.id,
-              name: c.name,
-              slug: c.slug,
-            }),
-          ),
+          (Array.isArray(data) ? data : []).map((c: { id?: string; name: string; slug: string }) => ({
+            id: c.id,
+            name: c.name,
+            slug: c.slug,
+          })),
         );
       } catch (error) {
         console.error("Failed to load categories:", error);
@@ -167,9 +140,7 @@ export default function Shop() {
 
     setFilters((current) => {
       const next = applySectionParam(current, section);
-      const unchanged =
-        next.bestSeller === current.bestSeller &&
-        next.newArrival === current.newArrival;
+      const unchanged = next.bestSeller === current.bestSeller && next.newArrival === current.newArrival;
       return unchanged ? current : next;
     });
 
@@ -178,18 +149,12 @@ export default function Shop() {
 
   const selectedCategory = useMemo<CategoryOption | null>(() => {
     if (!hasCategoryParam) return null;
-    return (
-      categories.find((c) => normalize(c.slug) === normalize(categorySlug)) ??
-      null
-    );
+    return categories.find((c) => normalize(c.slug) === normalize(categorySlug)) ?? null;
   }, [categories, categorySlug, hasCategoryParam]);
 
   const categoryLabel = selectedCategory?.name ?? ALL;
 
-  const activeFilters = useMemo<FilterState>(
-    () => ({ ...filters, category: categoryLabel as FilterState["category"] }),
-    [filters, categoryLabel],
-  );
+  const activeFilters = useMemo<FilterState>(() => ({ ...filters, category: categoryLabel as FilterState["category"] }), [filters, categoryLabel]);
 
   const filtered = useMemo(() => {
     const base = filterProducts(products, {
@@ -201,8 +166,7 @@ export default function Shop() {
 
   const visibleProducts = filtered.slice(0, visibleCount);
   const activeCount = countActiveFilters(activeFilters);
-  const isLoading =
-    isLoadingProducts || (hasCategoryParam && !categoriesLoaded);
+  const isLoading = isLoadingProducts || (hasCategoryParam && !categoriesLoaded);
 
   const setCategoryInUrl = (slug: string | null) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -222,10 +186,7 @@ export default function Shop() {
 
   const applyFilters = (next: FilterState) => {
     if (next.category !== categoryLabel) {
-      const match =
-        next.category === ALL
-          ? null
-          : categories.find((c) => c.name === next.category);
+      const match = next.category === ALL ? null : categories.find((c) => c.name === next.category);
       setCategoryInUrl(match?.slug ?? null);
     }
 
@@ -243,20 +204,18 @@ export default function Shop() {
   };
 
   return (
-    <main className="text-charcoal min-h-screen bg-white">
+    <main className="min-h-screen bg-white text-charcoal">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="relative w-full sm:max-w-md">
-            <Search className="text-charcoal pointer-events-none absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2" />
+            <Search className="pointer-events-none absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2 text-charcoal" />
 
             <input
               type="search"
               value={filters.search}
-              onChange={(e) =>
-                applyFilters({ ...activeFilters, search: e.target.value })
-              }
+              onChange={(e) => applyFilters({ ...activeFilters, search: e.target.value })}
               placeholder="Search premium meat..."
-              className="text-ink-900 placeholder:text-charcoal w-full rounded-full border border-[#E5E7EB] bg-white py-3 pr-4 pl-11 text-sm shadow-sm transition outline-none"
+              className="text-ink-900 w-full rounded-full border border-[#E5E7EB] bg-white py-3 pr-4 pl-11 text-sm shadow-sm transition outline-none placeholder:text-charcoal"
             />
           </div>
 
@@ -264,19 +223,15 @@ export default function Shop() {
             <button
               type="button"
               onClick={() => setDrawerOpen(true)}
-              className="text-ink hover:bg-ember-50 flex items-center gap-2 rounded-full border border-[#E5E7EB] bg-white px-4 py-3 text-sm font-semibold shadow-sm transition lg:hidden"
+              className="hover:bg-ember-50 flex items-center gap-2 rounded-full border border-[#E5E7EB] bg-white px-4 py-3 text-sm font-semibold text-ink shadow-sm transition lg:hidden"
             >
               <SlidersHorizontal className="h-4 w-4" />
               Filters
-              {activeCount > 0 && (
-                <span className="bg-ember-500 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[11px] font-bold text-white">
-                  {activeCount}
-                </span>
-              )}
+              {activeCount > 0 && <span className="bg-ember-500 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[11px] font-bold text-white">{activeCount}</span>}
             </button>
 
             <div className="relative">
-              <ArrowUpDown className="text-charcoal pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2" />
+              <ArrowUpDown className="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-charcoal" />
 
               <select
                 value={filters.sort}
@@ -287,7 +242,7 @@ export default function Shop() {
                   })
                 }
                 aria-label="Sort products"
-                className="text-ink focus:ring-ember-100 appearance-none rounded-full border border-[#E5E7EB] bg-white py-3 pr-8 pl-9 text-sm font-medium shadow-sm transition outline-none focus:ring-2"
+                className="focus:ring-ember-100 appearance-none rounded-full border border-[#E5E7EB] bg-white py-3 pr-8 pl-9 text-sm font-medium text-ink shadow-sm transition outline-none focus:ring-2"
               >
                 {SORT_OPTIONS.map((opt) => (
                   <option key={opt} value={opt}>
@@ -300,31 +255,19 @@ export default function Shop() {
         </div>
 
         <div className="mt-5">
-          <CategoryPills
-            active={categoryLabel}
-            onSelect={(slug) => setCategoryInUrl(slug)}
-          />
+          <CategoryPills active={categoryLabel} onSelect={(slug) => setCategoryInUrl(slug)} />
         </div>
 
         <div className="mt-6 flex gap-8">
-          <FilterSidebar
-            filters={activeFilters}
-            onChange={applyFilters}
-            onClearAll={clearAll}
-            className="hidden w-64 shrink-0 lg:flex"
-          />
+          <FilterSidebar filters={activeFilters} onChange={applyFilters} onClearAll={clearAll} className="hidden w-64 shrink-0 lg:flex" />
 
           <div className="min-w-0 flex-1">
             {isLoading ? (
               <LoadingState />
             ) : (
               <>
-                <p className="text-charcoal mb-4 text-sm">
-                  Showing{" "}
-                  <span className="text-ink-900 font-semibold">
-                    {filtered.length}
-                  </span>{" "}
-                  product
+                <p className="mb-4 text-sm text-charcoal">
+                  Showing <span className="text-ink-900 font-semibold">{filtered.length}</span> product
                   {filtered.length === 1 ? "" : "s"}
                 </p>
 
@@ -342,9 +285,7 @@ export default function Shop() {
                       <div className="mt-10 flex justify-center">
                         <button
                           type="button"
-                          onClick={() =>
-                            setVisibleCount((count) => count + PAGE_SIZE)
-                          }
+                          onClick={() => setVisibleCount((count) => count + PAGE_SIZE)}
                           className="rounded-full border border-[#E5E7EB] bg-white px-8 py-3 text-sm font-semibold text-gray-900 shadow-sm transition-colors hover:bg-gray-100"
                         >
                           Load More
@@ -359,13 +300,7 @@ export default function Shop() {
         </div>
       </div>
 
-      <MobileFilterDrawer
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        filters={activeFilters}
-        onChange={applyFilters}
-        onClearAll={clearAll}
-      />
+      <MobileFilterDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} filters={activeFilters} onChange={applyFilters} onClearAll={clearAll} />
     </main>
   );
 }

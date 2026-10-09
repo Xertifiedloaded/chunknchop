@@ -38,20 +38,14 @@ function OtpForm() {
     }
   }
 
-  function handleKeyDown(
-    index: number,
-    e: React.KeyboardEvent<HTMLInputElement>,
-  ) {
+  function handleKeyDown(index: number, e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === "Backspace" && !digits[index] && index > 0) {
       inputRefs.current[index - 1]?.focus();
     }
   }
 
   function handlePaste(e: React.ClipboardEvent<HTMLInputElement>) {
-    const pasted = e.clipboardData
-      .getData("text")
-      .replace(/\D/g, "")
-      .slice(0, OTP_LENGTH);
+    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, OTP_LENGTH);
     if (!pasted) return;
 
     e.preventDefault();
@@ -85,7 +79,6 @@ function OtpForm() {
   async function handleResend() {
     if (secondsLeft > 0) return;
 
-    // TODO: replace with the actual "resend code" API call
     setDigits(Array(OTP_LENGTH).fill(""));
     setSecondsLeft(RESEND_SECONDS);
     inputRefs.current[0]?.focus();
@@ -94,26 +87,13 @@ function OtpForm() {
   return (
     <div className="space-y-6">
       <div>
-        <Link
-          href="/forget-password"
-          className="text-muted-foreground mb-4 inline-flex items-center gap-1.5 text-sm hover:text-black"
-        >
+        <Link href="/forget-password" className="mb-4 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-black">
           <ArrowLeft size={16} />
           Back
         </Link>
 
-        <h2 className="text-2xl font-bold text-black">
-          Enter verification code
-        </h2>
-        <p className="text-muted-foreground mt-2 text-sm">
-          We sent a 6-digit code to{" "}
-          {email ? (
-            <span className="font-medium text-black">{email}</span>
-          ) : (
-            "your email"
-          )}
-          .
-        </p>
+        <h2 className="text-2xl font-bold text-black">Enter verification code</h2>
+        <p className="mt-2 text-sm text-muted-foreground">We sent a 6-digit code to {email ? <span className="font-medium text-black">{email}</span> : "your email"}.</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -131,7 +111,7 @@ function OtpForm() {
               onChange={(e) => updateDigit(index, e.target.value)}
               onKeyDown={(e) => handleKeyDown(index, e)}
               onPaste={handlePaste}
-              className="focus:border-brand focus:ring-brand/20 h-12 w-full rounded-xl border border-[#E5E7EB] text-center text-lg font-semibold text-black focus:ring-2 focus:outline-none"
+              className="h-12 w-full rounded-xl border border-[#E5E7EB] text-center text-lg font-semibold text-black focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none"
             />
           ))}
         </div>
@@ -140,22 +120,18 @@ function OtpForm() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="bg-brand w-full rounded-xl py-3 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+          className="w-full rounded-xl bg-brand py-3 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isSubmitting ? "Verifying…" : "Verify code"}
         </button>
       </form>
 
-      <p className="text-muted-foreground text-center text-sm">
+      <p className="text-center text-sm text-muted-foreground">
         Didn&apos;t get the code?{" "}
         {secondsLeft > 0 ? (
           <span>Resend in {secondsLeft}s</span>
         ) : (
-          <button
-            type="button"
-            onClick={handleResend}
-            className="text-brand font-medium"
-          >
+          <button type="button" onClick={handleResend} className="font-medium text-brand">
             Resend code
           </button>
         )}

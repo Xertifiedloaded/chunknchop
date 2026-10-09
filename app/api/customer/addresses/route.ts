@@ -41,10 +41,7 @@ export async function GET(request: Request) {
   } catch (error) {
     console.error("GET /api/customer/addresses:", error);
 
-    return NextResponse.json(
-      { error: "Failed to load addresses" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed to load addresses" }, { status: 500 });
   }
 }
 
@@ -58,31 +55,12 @@ export async function POST(request: Request) {
 
     const body = await request.json();
 
-    const {
-      label,
-      fullName,
-      address,
-      city,
-      state,
-      zipCode,
-      phone,
-      country = "Nigeria",
-      isDefault = false,
-    } = body;
+    const { label, fullName, address, city, state, zipCode, phone, country = "Nigeria", isDefault = false } = body;
 
-    if (
-      !label?.trim() ||
-      !fullName?.trim() ||
-      !address?.trim() ||
-      !city?.trim() ||
-      !state?.trim() ||
-      !zipCode?.trim() ||
-      !phone?.trim()
-    ) {
+    if (!label?.trim() || !fullName?.trim() || !address?.trim() || !city?.trim() || !state?.trim() || !zipCode?.trim() || !phone?.trim()) {
       return NextResponse.json(
         {
-          error:
-            "Label, full name, address, city, state, ZIP code and phone are required",
+          error: "Label, full name, address, city, state, ZIP code and phone are required",
         },
         { status: 400 },
       );
@@ -102,10 +80,6 @@ export async function POST(request: Request) {
     };
 
     const createdAddress = await prisma.$transaction(async (tx) => {
-      /*
-       * If this address is going to be the default address,
-       * remove default from the user's existing addresses first.
-       */
       if (addressData.isDefault) {
         await tx.address.updateMany({
           where: {
@@ -118,10 +92,6 @@ export async function POST(request: Request) {
         });
       }
 
-      /*
-       * If this is the user's first address, automatically
-       * make it the default.
-       */
       const addressCount = await tx.address.count({
         where: {
           userId: authUser.id,
@@ -156,9 +126,6 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("POST /api/customer/addresses:", error);
 
-    return NextResponse.json(
-      { error: "Failed to create address" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed to create address" }, { status: 500 });
   }
 }

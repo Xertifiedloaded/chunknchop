@@ -8,19 +8,16 @@ import { ACTIVE_PRODUCT_FILTER, isValidObjectId } from "@/features/catalog/serve
 
 type RouteContext = { params: Promise<{ id: string }> };
 
-const text = (formData: FormData, key: string) =>
-  String(formData.get(key) ?? "").trim();
+const text = (formData: FormData, key: string) => String(formData.get(key) ?? "").trim();
 
 const parseJsonArray = (value: FormDataEntryValue | null): string[] => {
   const parsed = JSON.parse(String(value ?? "[]"));
   return Array.isArray(parsed) ? parsed.map(String) : [];
 };
 
-const isNonNegativeInt = (value: number) =>
-  Number.isInteger(value) && value >= 0;
+const isNonNegativeInt = (value: number) => Number.isInteger(value) && value >= 0;
 
-const badRequest = (error: string) =>
-  NextResponse.json({ error }, { status: 400 });
+const badRequest = (error: string) => NextResponse.json({ error }, { status: 400 });
 
 const toMeatType = (name: string): MeatType | null => {
   const key = name
@@ -35,10 +32,7 @@ export async function GET(_request: NextRequest, { params }: RouteContext) {
     const { id } = await params;
 
     if (!id) {
-      return NextResponse.json(
-        { error: "Product ID is required" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Product ID is required" }, { status: 400 });
     }
 
     if (!isValidObjectId(id)) {
@@ -94,10 +88,7 @@ export async function GET(_request: NextRequest, { params }: RouteContext) {
     return NextResponse.json(product);
   } catch (error) {
     console.error("Error fetching product:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
@@ -139,8 +130,7 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
       data.name = name;
     }
 
-    if (formData.has("description"))
-      data.description = text(formData, "description");
+    if (formData.has("description")) data.description = text(formData, "description");
     if (formData.has("unit")) data.unit = text(formData, "unit") || "kg";
 
     if (formData.has("basePrice")) {
@@ -154,8 +144,7 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
     let nextStock = current.stock;
     if (formData.has("stock")) {
       const stock = Number(formData.get("stock"));
-      if (!isNonNegativeInt(stock))
-        return badRequest("Stock must be a valid non-negative whole number");
+      if (!isNonNegativeInt(stock)) return badRequest("Stock must be a valid non-negative whole number");
       nextStock = stock;
       data.stock = stock;
       data.inStock = stock > 0;
@@ -163,35 +152,22 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
 
     let nextReorderPoint = current.reorderPoint ?? 0;
     if (formData.has("reorderPoint")) {
-      const reorderPoint =
-        text(formData, "reorderPoint") === ""
-          ? 0
-          : Number(formData.get("reorderPoint"));
-      if (!isNonNegativeInt(reorderPoint))
-        return badRequest(
-          "Reorder point must be a valid non-negative whole number",
-        );
+      const reorderPoint = text(formData, "reorderPoint") === "" ? 0 : Number(formData.get("reorderPoint"));
+      if (!isNonNegativeInt(reorderPoint)) return badRequest("Reorder point must be a valid non-negative whole number");
       nextReorderPoint = reorderPoint;
       data.reorderPoint = reorderPoint;
     }
 
-    for (const flag of [
-      "isNewArrival",
-      "isBestSeller",
-      "sameDayDelivery",
-    ] as const) {
+    for (const flag of ["isNewArrival", "isBestSeller", "sameDayDelivery"] as const) {
       if (formData.has(flag)) data[flag] = formData.get(flag) === "true";
     }
 
     let existingImages: string[] | null = null;
 
     try {
-      if (formData.has("tags"))
-        data.tags = parseJsonArray(formData.get("tags"));
-      if (formData.has("preparations"))
-        data.preparations = parseJsonArray(formData.get("preparations"));
-      if (formData.has("existingImages"))
-        existingImages = parseJsonArray(formData.get("existingImages"));
+      if (formData.has("tags")) data.tags = parseJsonArray(formData.get("tags"));
+      if (formData.has("preparations")) data.preparations = parseJsonArray(formData.get("preparations"));
+      if (formData.has("existingImages")) existingImages = parseJsonArray(formData.get("existingImages"));
     } catch {
       return badRequest("Malformed tags, preparations, or images data");
     }
@@ -210,13 +186,10 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
       category = await resolveCategory(categoryInput);
       if (category.error) return badRequest(category.error);
 
-      const categoryName =
-        category.existing?.name ?? category.create?.name ?? "";
+      const categoryName = category.existing?.name ?? category.create?.name ?? "";
       meatType = toMeatType(categoryName);
       if (!meatType) {
-        return badRequest(
-          `Category "${categoryName}" does not map to a supported meat type`,
-        );
+        return badRequest(`Category "${categoryName}" does not map to a supported meat type`);
       }
     }
 
@@ -234,21 +207,15 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
       if (location.error) return badRequest(location.error);
     }
 
-    const imageFiles = formData
-      .getAll("images")
-      .filter((value): value is File => value instanceof File);
+    const imageFiles = formData.getAll("images").filter((value): value is File => value instanceof File);
 
     if (existingImages !== null || imageFiles.length > 0) {
       let uploadedUrls: string[];
 
       try {
-        uploadedUrls = await Promise.all(
-          imageFiles.map((file) => uploadProductImage(file)),
-        );
+        uploadedUrls = await Promise.all(imageFiles.map((file) => uploadProductImage(file)));
       } catch (error) {
-        return badRequest(
-          error instanceof Error ? error.message : "Image upload failed",
-        );
+        return badRequest(error instanceof Error ? error.message : "Image upload failed");
       }
 
       data.images = [...(existingImages ?? current.images), ...uploadedUrls];
@@ -259,9 +226,7 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
       let locationCreated = false;
 
       if (category && meatType) {
-        const resolvedCategory =
-          category.existing ??
-          (await tx.category.create({ data: category.create }));
+        const resolvedCategory = category.existing ?? (await tx.category.create({ data: category.create }));
         categoryCreated = !category.existing;
 
         data.categoryId = resolvedCategory.id;
@@ -271,26 +236,20 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
 
       let resolvedLocationId: string | null = null;
       if (location) {
-        const resolvedLocation =
-          location.existing ??
-          (await tx.storageLocation.create({ data: location.create }));
+        const resolvedLocation = location.existing ?? (await tx.storageLocation.create({ data: location.create }));
         locationCreated = !location.existing;
         resolvedLocationId = resolvedLocation.id;
       }
 
       const product = await tx.product.update({ where: { id }, data });
 
-      const inventoryChanged =
-        formData.has("stock") ||
-        formData.has("reorderPoint") ||
-        resolvedLocationId !== null;
+      const inventoryChanged = formData.has("stock") || formData.has("reorderPoint") || resolvedLocationId !== null;
 
       if (inventoryChanged) {
         const record = await tx.inventoryRecord.findFirst({
           where: { productId: id },
         });
-        const targetLocationId =
-          resolvedLocationId ?? record?.locationId ?? null;
+        const targetLocationId = resolvedLocationId ?? record?.locationId ?? null;
 
         let recordId: string | null = null;
         let previousOnHand = record?.onHand ?? 0;
@@ -325,9 +284,7 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
               productName: product.name,
               previousStock: previousOnHand,
               newStock: nextStock,
-              // NOTE: confirm this value exists in your changeReason enum.
-              changeReason:
-                nextStock > previousOnHand ? "RESTOCK" : "ADJUSTMENT",
+              changeReason: nextStock > previousOnHand ? "RESTOCK" : "ADJUSTMENT",
               notes: "Stock updated via product edit",
               inventoryRecordId: recordId,
               performedById: user.id,
@@ -345,26 +302,17 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
       locationCreated: result.locationCreated,
     });
   } catch (error: unknown) {
-    if (
-      error &&
-      typeof error === "object" &&
-      "code" in error &&
-      error.code === "P2002"
-    ) {
+    if (error && typeof error === "object" && "code" in error && error.code === "P2002") {
       return NextResponse.json(
         {
-          error:
-            "A category, location or product with these details already exists",
+          error: "A category, location or product with these details already exists",
         },
         { status: 409 },
       );
     }
 
     console.error("Error updating product:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
@@ -427,9 +375,6 @@ export async function DELETE(request: NextRequest, { params }: RouteContext) {
     });
   } catch (error) {
     console.error("Error deleting product:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

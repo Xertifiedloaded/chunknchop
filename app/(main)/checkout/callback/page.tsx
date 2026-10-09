@@ -32,14 +32,11 @@ function CheckoutCallbackContent() {
       try {
         setLoading(true);
 
-        const res = await fetchWithAuth(
-          `/api/customer/orders/verify?reference=${encodeURIComponent(reference)}`,
-          {
-            method: "GET",
-            credentials: "include",
-            cache: "no-store",
-          },
-        );
+        const res = await fetchWithAuth(`/api/customer/orders/verify?reference=${encodeURIComponent(reference)}`, {
+          method: "GET",
+          credentials: "include",
+          cache: "no-store",
+        });
 
         const data = await res.json();
 
@@ -50,8 +47,7 @@ function CheckoutCallbackContent() {
         if (!res.ok) {
           setResult({
             status: "error",
-            message:
-              data?.message || data?.error || "Payment verification failed.",
+            message: data?.message || data?.error || "Payment verification failed.",
           });
 
           return;

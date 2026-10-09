@@ -54,9 +54,7 @@ async function main() {
       },
     });
 
-    console.log(
-      `Created staff: ${user.name} (${user.email}) — ${staff.staffRole}`,
-    );
+    console.log(`Created staff: ${user.name} (${user.email}) — ${staff.staffRole}`);
   }
 }
 

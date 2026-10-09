@@ -2,11 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { prisma } from "@/lib/db";
-import {
-  generateAccessToken,
-  generateRefreshToken,
-  hashPassword,
-} from "@/lib/auth";
+import { generateAccessToken, generateRefreshToken, hashPassword } from "@/lib/auth";
 import { setAuthCookies } from "@/lib/auth/cookies";
 import { storeRefreshToken } from "@/lib/auth/tokens";
 
@@ -24,16 +20,11 @@ const signupSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, password, name, role } = signupSchema.parse(
-      await req.json(),
-    );
+    const { email, password, name, role } = signupSchema.parse(await req.json());
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
-      return NextResponse.json(
-        { error: "User already exists" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "User already exists" }, { status: 400 });
     }
 
     const user = await prisma.user.create({
@@ -67,23 +58,14 @@ export async function POST(req: NextRequest) {
     return response;
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: "Invalid input", details: error.issues },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Invalid input", details: error.issues }, { status: 400 });
     }
 
     if ((error as { code?: string })?.code === "P2002") {
-      return NextResponse.json(
-        { error: "User already exists" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "User already exists" }, { status: 400 });
     }
 
     console.error("Signup error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

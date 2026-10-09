@@ -21,14 +21,7 @@ async function paystackFetch(path: string, options: RequestInit = {}) {
 }
 
 export const paystack = {
-  initializeTransaction: (params: {
-    email: string;
-    amount: number;
-    currency?: string;
-    reference?: string;
-    callback_url?: string;
-    metadata?: Record<string, unknown>;
-  }) =>
+  initializeTransaction: (params: { email: string; amount: number; currency?: string; reference?: string; callback_url?: string; metadata?: Record<string, unknown> }) =>
     paystackFetch("/transaction/initialize", {
       method: "POST",
       body: JSON.stringify(params),

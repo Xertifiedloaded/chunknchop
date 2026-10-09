@@ -9,18 +9,15 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Total orders
     const totalOrders = await prisma.order.count({
       where: { customerId: user.id },
     });
 
-    // Total spent
     const orderStats = await prisma.order.aggregate({
       where: { customerId: user.id },
       _sum: { total: true },
     });
 
-    // Active subscriptions
     const activeSubscriptions = await prisma.subscription.count({
       where: {
         customerId: user.id,
@@ -28,7 +25,6 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Recent orders
     const recentOrders = await prisma.order.findMany({
       where: { customerId: user.id },
       select: {
@@ -53,9 +49,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error("Dashboard error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

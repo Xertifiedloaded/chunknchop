@@ -49,17 +49,11 @@ export async function PATCH(req: NextRequest, { params }: RouteContext) {
     });
 
     if (!cartItem || cartItem.userId !== user.id) {
-      return NextResponse.json(
-        { error: "Cart item not found" },
-        { status: 404 },
-      );
+      return NextResponse.json({ error: "Cart item not found" }, { status: 404 });
     }
 
     if (quantity > cartItem.product.stock) {
-      return NextResponse.json(
-        { error: `Only ${cartItem.product.stock} items available` },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: `Only ${cartItem.product.stock} items available` }, { status: 400 });
     }
 
     const updated = await prisma.cartItem.update({
@@ -72,10 +66,7 @@ export async function PATCH(req: NextRequest, { params }: RouteContext) {
   } catch (error) {
     console.error("[cart PATCH] Failed:", error);
 
-    return NextResponse.json(
-      { error: "Failed to update quantity" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed to update quantity" }, { status: 500 });
   }
 }
 
@@ -94,10 +85,7 @@ export async function DELETE(req: NextRequest, { params }: RouteContext) {
     });
 
     if (count === 0) {
-      return NextResponse.json(
-        { error: "Cart item not found" },
-        { status: 404 },
-      );
+      return NextResponse.json({ error: "Cart item not found" }, { status: 404 });
     }
 
     return NextResponse.json({
@@ -107,9 +95,6 @@ export async function DELETE(req: NextRequest, { params }: RouteContext) {
   } catch (error) {
     console.error("[cart DELETE] Failed:", error);
 
-    return NextResponse.json(
-      { error: "Failed to remove item from cart" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed to remove item from cart" }, { status: 500 });
   }
 }

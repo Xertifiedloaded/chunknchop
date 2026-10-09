@@ -58,20 +58,14 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    /*
-     * Verify the transaction directly with Paystack.
-     */
-    const paystackResponse = await fetch(
-      `https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
-          "Content-Type": "application/json",
-        },
-        cache: "no-store",
+    const paystackResponse = await fetch(`https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+        "Content-Type": "application/json",
       },
-    );
+      cache: "no-store",
+    });
 
     const paystackData = await paystackResponse.json();
 
@@ -81,9 +75,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(
         {
           status: "error",
-          message:
-            paystackData.message ||
-            "Unable to verify the payment with Paystack.",
+          message: paystackData.message || "Unable to verify the payment with Paystack.",
         },
         { status: 400 },
       );
@@ -127,15 +119,11 @@ export async function GET(req: NextRequest) {
         try {
           await deductStockForOrder(order.id);
         } catch (stockError) {
-          console.error(
-            "STOCK_ALERT: payment confirmed but inventory deduction failed",
-            {
-              orderId: order.id,
-              reference,
-              error:
-                stockError instanceof Error ? stockError.message : stockError,
-            },
-          );
+          console.error("STOCK_ALERT: payment confirmed but inventory deduction failed", {
+            orderId: order.id,
+            reference,
+            error: stockError instanceof Error ? stockError.message : stockError,
+          });
         }
       }
 
@@ -157,10 +145,7 @@ export async function GET(req: NextRequest) {
         status: "failed",
         reference: transaction.reference,
         orderId: order.id,
-        message:
-          transaction.gateway_response ||
-          transaction.message ||
-          "The payment was not successful.",
+        message: transaction.gateway_response || transaction.message || "The payment was not successful.",
       },
       { status: 200 },
     );

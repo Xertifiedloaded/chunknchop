@@ -1,12 +1,3 @@
-#!/usr/bin/env bash
-# ChunkNChop restructure: creates folders, moves files, rewrites imports.
-# Run from the PROJECT ROOT (where package.json is).
-#
-#   ./migrate.sh           dry run: prints everything, changes nothing
-#   ./migrate.sh --apply   does it
-#
-# Safe to re-run: files already moved are detected, and import rewriting works
-# whether the files were moved by this script, an older version, or by hand.
 
 APPLY=0; [ "${1:-}" = "--apply" ] && APPLY=1
 [ -f package.json ] || { echo "Run this from the project root (package.json not found)."; exit 1; }
@@ -16,10 +7,6 @@ USE_GIT=0; git rev-parse --is-inside-work-tree >/dev/null 2>&1 && USE_GIT=1
 TMP="$(mktemp -d)"; MAP="$TMP/map.txt"; FIXER="$TMP/fix-imports.mjs"
 trap 'rm -rf "$TMP"' EXIT
 
-# ---------------------------------------------------------------------------
-# 1. THE MAP: one source of truth. "old-path new-path" per line.
-#    Entries without a file extension are whole-folder moves.
-# ---------------------------------------------------------------------------
 cat > "$MAP" <<'MAP_EOF'
 # root
 middlware.ts middleware.ts
@@ -99,11 +86,6 @@ lib/types types
 app/rider app/(rider)/rider
 MAP_EOF
 
-# ---------------------------------------------------------------------------
-# 2. IMPORT FIXER (Node). Rewrites imports for every moved file/folder.
-#    Relative imports in moved files are resolved from the file's OLD
-#    location, then written as "@/..." so they can't break again.
-# ---------------------------------------------------------------------------
 cat > "$FIXER" <<'JS_EOF'
 import fs from 'node:fs';
 import path from 'node:path';
@@ -231,10 +213,6 @@ if (WRITE) {
   } else console.log('All local imports resolve.');
 }
 JS_EOF
-
-# ---------------------------------------------------------------------------
-# 3. FOLDERS
-# ---------------------------------------------------------------------------
 echo "== Folders =="
 DIRS=(
   features/catalog/{components,hooks,server}
@@ -253,9 +231,6 @@ for d in "${DIRS[@]}"; do
   if [ $APPLY -eq 1 ]; then mkdir -p "$d"; else echo "mkdir -p $d"; fi
 done
 
-# ---------------------------------------------------------------------------
-# 4. MOVES
-# ---------------------------------------------------------------------------
 do_mv() {
   if [ $USE_GIT -eq 1 ] && git ls-files --error-unmatch "$1" >/dev/null 2>&1; then
     git mv "$1" "$2"
@@ -285,15 +260,11 @@ while read -r src dst; do
   mv_ "$src" "$dst"
 done < "$MAP"
 
-# ---------------------------------------------------------------------------
-# 5. IMPORTS
-# ---------------------------------------------------------------------------
+
 echo; echo "== Imports =="
 if [ $APPLY -eq 1 ]; then node "$FIXER" "$MAP" --write; else node "$FIXER" "$MAP" --dry; fi
 
-# ---------------------------------------------------------------------------
-# 6. TIDY UP + CHECKS
-# ---------------------------------------------------------------------------
+
 echo; echo "== Tidy up =="
 if [ -d "app/(rider)/rider" ] && [ ! -f "app/(rider)/rider/layout.tsx" ]; then
   echo "add app/(rider)/rider/layout.tsx (rider had no layout of its own)"

@@ -60,12 +60,9 @@ export default function SubscriptionsPage() {
     if (!confirm("Are you sure you want to cancel this subscription?")) return;
 
     try {
-      const response = await fetchWithAuth(
-        `/api/customer/subscriptions/${subscriptionId}`,
-        {
-          method: "DELETE",
-        },
-      );
+      const response = await fetchWithAuth(`/api/customer/subscriptions/${subscriptionId}`, {
+        method: "DELETE",
+      });
 
       if (!response.ok) throw new Error("Failed to cancel subscription");
 
@@ -82,19 +79,17 @@ export default function SubscriptionsPage() {
   }
 
   return (
-    <div className="bg-background min-h-screen">
+    <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-4xl px-4 py-8">
         <h1 className="mb-8 text-3xl font-bold">My Subscriptions</h1>
 
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
         ) : subscriptions.length === 0 ? (
-          <div className="bg-card border-border rounded-lg border py-12 text-center">
-            <p className="text-muted-foreground mb-4">
-              No active subscriptions
-            </p>
+          <div className="rounded-lg border border-border bg-card py-12 text-center">
+            <p className="mb-4 text-muted-foreground">No active subscriptions</p>
             <Link href="/">
               <Button>Browse Subscription Products</Button>
             </Link>
@@ -102,44 +97,24 @@ export default function SubscriptionsPage() {
         ) : (
           <div className="space-y-4">
             {subscriptions.map((subscription) => (
-              <div
-                key={subscription.id}
-                className="bg-card border-border rounded-lg border p-6"
-              >
+              <div key={subscription.id} className="rounded-lg border border-border bg-card p-6">
                 <div className="mb-4 flex items-start justify-between">
                   <div>
-                    <h3 className="text-lg font-bold">
-                      {subscription.productTier.product.name}
-                    </h3>
-                    <p className="text-muted-foreground text-sm">
-                      {subscription.productTier.name} Tier
-                    </p>
+                    <h3 className="text-lg font-bold">{subscription.productTier.product.name}</h3>
+                    <p className="text-sm text-muted-foreground">{subscription.productTier.name} Tier</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-2xl font-bold">
-                      ${subscription.productTier.price.toFixed(2)}
-                    </p>
-                    <p className="text-muted-foreground text-sm capitalize">
-                      {subscription.frequency}
-                    </p>
+                    <p className="text-2xl font-bold">${subscription.productTier.price.toFixed(2)}</p>
+                    <p className="text-sm text-muted-foreground capitalize">{subscription.frequency}</p>
                   </div>
                 </div>
 
-                <div className="border-border mb-4 border-t pt-4">
+                <div className="mb-4 border-t border-border pt-4">
                   <div className="mb-2 flex items-center gap-2 text-sm">
-                    <Calendar className="text-muted-foreground h-4 w-4" />
-                    <span className="text-muted-foreground">
-                      Next delivery:{" "}
-                      {new Date(
-                        subscription.nextDeliveryDate,
-                      ).toLocaleDateString()}
-                    </span>
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">Next delivery: {new Date(subscription.nextDeliveryDate).toLocaleDateString()}</span>
                   </div>
-                  <p
-                    className={`text-sm font-medium ${subscription.status === "ACTIVE" ? "text-green-600" : "text-yellow-600"}`}
-                  >
-                    Status: {subscription.status}
-                  </p>
+                  <p className={`text-sm font-medium ${subscription.status === "ACTIVE" ? "text-green-600" : "text-yellow-600"}`}>Status: {subscription.status}</p>
                 </div>
 
                 <div className="flex gap-2">
@@ -147,11 +122,7 @@ export default function SubscriptionsPage() {
                     <Pause className="mr-2 h-4 w-4" />
                     Pause
                   </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleCancelSubscription(subscription.id)}
-                  >
+                  <Button variant="ghost" size="sm" onClick={() => handleCancelSubscription(subscription.id)}>
                     <Trash2 className="mr-2 h-4 w-4 text-red-500" />
                     Cancel
                   </Button>

@@ -1,16 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserFromRequest } from "@/lib/http/request";
 import { prisma } from "@/lib/db";
-import {
-  LOCATION_TYPES,
-  findLocationByName,
-  isLocationType,
-} from "@/features/catalog/server/catalog";
+import { LOCATION_TYPES, findLocationByName, isLocationType } from "@/features/catalog/server/catalog";
 
-/**
- * GET /api/admin/locations?includeInactive=true
- * Response: [{ id, name, type, isActive }]
- */
 export async function GET(request: NextRequest) {
   try {
     const user = getUserFromRequest(request);
@@ -19,8 +11,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const includeInactive =
-      request.nextUrl.searchParams.get("includeInactive") === "true";
+    const includeInactive = request.nextUrl.searchParams.get("includeInactive") === "true";
 
     const locations = await prisma.storageLocation.findMany({
       where: includeInactive ? undefined : { isActive: true },
@@ -31,18 +22,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(locations);
   } catch (error) {
     console.error("Error fetching locations:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
-/**
- * POST /api/admin/locations
- * Body (JSON): { name: string (required), type: LocationType (required) }
- * 201 -> created location, 409 -> a location with that name already exists
- */
+
 export async function POST(request: NextRequest) {
   try {
     const user = getUserFromRequest(request);
@@ -59,10 +43,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!isLocationType(body?.type)) {
-      return NextResponse.json(
-        { error: `type must be one of: ${LOCATION_TYPES.join(", ")}` },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: `type must be one of: ${LOCATION_TYPES.join(", ")}` }, { status: 400 });
     }
 
     const existing = await findLocationByName(name);
@@ -83,22 +64,11 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(location, { status: 201 });
   } catch (error: unknown) {
-    if (
-      error &&
-      typeof error === "object" &&
-      "code" in error &&
-      error.code === "P2002"
-    ) {
-      return NextResponse.json(
-        { error: "A location with this name already exists" },
-        { status: 409 },
-      );
+    if (error && typeof error === "object" && "code" in error && error.code === "P2002") {
+      return NextResponse.json({ error: "A location with this name already exists" }, { status: 409 });
     }
 
     console.error("Error creating location:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

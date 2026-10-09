@@ -10,20 +10,7 @@ interface AuthInputProps extends AuthField {
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-export default function AuthInput({
-  name,
-  label,
-  type,
-  icon: Icon,
-  placeholder,
-  autoComplete,
-  hint,
-  linkLabel,
-  linkHref,
-  value,
-  error,
-  onChange,
-}: AuthInputProps) {
+export default function AuthInput({ name, label, type, icon: Icon, placeholder, autoComplete, hint, linkLabel, linkHref, value, error, onChange }: AuthInputProps) {
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between">
@@ -32,19 +19,14 @@ export default function AuthInput({
         </label>
 
         {linkLabel && linkHref && (
-          <Link
-            href={linkHref}
-            className="text-primary text-xs font-medium hover:underline"
-          >
+          <Link href={linkHref} className="text-xs font-medium text-primary hover:underline">
             {linkLabel}
           </Link>
         )}
       </div>
 
       <div className="relative rounded-md border border-[#E5E7EB] bg-[#F9FAFB]">
-        {Icon && (
-          <Icon className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-        )}
+        {Icon && <Icon className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />}
         <Input
           id={name}
           name={name}
@@ -58,9 +40,9 @@ export default function AuthInput({
         />
       </div>
 
-      {hint && !error && <p className="text-brand text-xs">{hint}</p>}
+      {hint && !error && <p className="text-xs text-brand">{hint}</p>}
 
-      {error && <p className="text-destructive text-sm">{error}</p>}
+      {error && <p className="text-sm text-destructive">{error}</p>}
     </div>
   );
 }

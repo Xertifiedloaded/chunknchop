@@ -17,8 +17,7 @@ export async function POST(req: NextRequest) {
     const { orderId, latitude, longitude, bearing, speed } = schema.parse(body);
 
     const order = await prisma.order.findUnique({ where: { id: orderId } });
-    if (!order)
-      return NextResponse.json({ error: "Order not found" }, { status: 404 });
+    if (!order) return NextResponse.json({ error: "Order not found" }, { status: 404 });
 
     const payload = {
       orderId,
@@ -30,35 +29,19 @@ export async function POST(req: NextRequest) {
       riderId: order.riderId ?? null,
     };
 
-    // Broadcast live location to order-{orderId} and to the customer's orders channel
-    await pusher.trigger(
-      `private-order-${orderId}`,
-      "location-update",
-      payload,
-    );
+    await pusher.trigger(`private-order-${orderId}`, "location-update", payload);
     if (order.customerId) {
-      await pusher.trigger(
-        `private-user-${order.customerId}-orders`,
-        "order-location",
-        payload,
-      );
+      await pusher.trigger(`private-user-${order.customerId}-orders`, "order-location", payload);
     }
 
-    // Also broadcast to admin channel for monitoring
     await pusher.trigger("private-admin-orders", "order-location", payload);
 
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Order location error:", error);
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: "Invalid input", details: error.errors },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Invalid input", details: error.errors }, { status: 400 });
     }
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

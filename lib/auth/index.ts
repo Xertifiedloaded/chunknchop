@@ -7,10 +7,8 @@ import type { TokenPayload } from "@/types";
 
 export { ACCESS_TOKEN_MAX_AGE_SECONDS } from "@/lib/auth/cookies";
 
-const ACCESS_EXPIRY = (process.env.ACCESS_TOKEN_EXPIRY ||
-  "15m") as SignOptions["expiresIn"];
-const REFRESH_EXPIRY = (process.env.REFRESH_TOKEN_EXPIRY ||
-  "7d") as SignOptions["expiresIn"];
+const ACCESS_EXPIRY = (process.env.ACCESS_TOKEN_EXPIRY || "15m") as SignOptions["expiresIn"];
+const REFRESH_EXPIRY = (process.env.REFRESH_TOKEN_EXPIRY || "7d") as SignOptions["expiresIn"];
 
 export interface RefreshPayload {
   id: string;
@@ -34,11 +32,7 @@ export function verifyPassword(password: string, hash: string): boolean {
   return bcryptjs.compareSync(password, hash);
 }
 
-export function generateAccessToken(
-  userId: string,
-  email: string,
-  role: string,
-): string {
+export function generateAccessToken(userId: string, email: string, role: string): string {
   return jwt.sign({ id: userId, email, role }, getSecret("JWT_SECRET"), {
     algorithm: "HS256",
     expiresIn: ACCESS_EXPIRY,
@@ -46,14 +40,10 @@ export function generateAccessToken(
 }
 
 export function generateRefreshToken(userId: string): string {
-  return jwt.sign(
-    { id: userId, jti: randomUUID() },
-    getSecret("REFRESH_TOKEN_SECRET"),
-    {
-      algorithm: "HS256",
-      expiresIn: REFRESH_EXPIRY,
-    },
-  );
+  return jwt.sign({ id: userId, jti: randomUUID() }, getSecret("REFRESH_TOKEN_SECRET"), {
+    algorithm: "HS256",
+    expiresIn: REFRESH_EXPIRY,
+  });
 }
 
 export function verifyToken(token: string): TokenPayload | null {

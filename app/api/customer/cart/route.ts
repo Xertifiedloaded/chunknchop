@@ -35,17 +35,11 @@ export async function GET(req: NextRequest) {
       orderBy: { id: "desc" },
     });
 
-    return NextResponse.json(
-      { cartItems },
-      { headers: { "Cache-Control": "no-store" } },
-    );
+    return NextResponse.json({ cartItems }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     console.error("[cart GET] Failed:", error);
 
-    return NextResponse.json(
-      { error: "Failed to fetch cart" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed to fetch cart" }, { status: 500 });
   }
 }
 
@@ -63,15 +57,10 @@ export async function POST(req: NextRequest) {
     const quantity = Number(body?.quantity);
     const selectedTier: string | null = body?.selectedTier || null;
     const selectedPreparation: string | null = body?.selectedPreparation || null;
-    const selectedVariants = Array.isArray(body?.selectedVariants)
-      ? body.selectedVariants
-      : [];
+    const selectedVariants = Array.isArray(body?.selectedVariants) ? body.selectedVariants : [];
 
     if (!productId) {
-      return NextResponse.json(
-        { error: "Product ID is required" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Product ID is required" }, { status: 400 });
     }
 
     if (!Number.isInteger(quantity) || quantity < 1) {
@@ -96,10 +85,7 @@ export async function POST(req: NextRequest) {
     const nextQuantity = (existing?.quantity ?? 0) + quantity;
 
     if (nextQuantity > product.stock) {
-      return NextResponse.json(
-        { error: `Only ${product.stock} items available` },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: `Only ${product.stock} items available` }, { status: 400 });
     }
 
     const cartItem = await prisma.cartItem.upsert({
@@ -125,9 +111,6 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("[cart POST] Failed:", error);
 
-    return NextResponse.json(
-      { error: "Failed to update cart" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed to update cart" }, { status: 500 });
   }
 }

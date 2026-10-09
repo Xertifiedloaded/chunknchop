@@ -3,12 +3,7 @@ import { getUserFromRequest } from "@/lib/http/request";
 
 import { hashPassword } from "@/lib/auth";
 import { z } from "zod";
-import {
-  STAFF_ROLES,
-  ROLE_META,
-  ROLE_PERMISSIONS,
-  permissionCount,
-} from "@/lib/auth/permissions";
+import { STAFF_ROLES, ROLE_META, ROLE_PERMISSIONS, permissionCount } from "@/lib/auth/permissions";
 import prisma from "@/lib/db";
 
 const staffSchema = z.object({
@@ -40,13 +35,9 @@ export async function GET(req: NextRequest) {
     const formatted = staff.map((s) => {
       const staffRole = s.staffRole;
 
-      const roleMeta = staffRole
-        ? ROLE_META[staffRole as keyof typeof ROLE_META]
-        : null;
+      const roleMeta = staffRole ? ROLE_META[staffRole as keyof typeof ROLE_META] : null;
 
-      const rolePermissions = staffRole
-        ? ROLE_PERMISSIONS[staffRole as keyof typeof ROLE_PERMISSIONS]
-        : {};
+      const rolePermissions = staffRole ? ROLE_PERMISSIONS[staffRole as keyof typeof ROLE_PERMISSIONS] : {};
 
       const permissions = Object.entries(rolePermissions || {})
         .filter(([, level]) => level !== "None")
@@ -66,9 +57,7 @@ export async function GET(req: NextRequest) {
         description: roleMeta?.description ?? null,
         color: roleMeta?.color ?? null,
         permissions,
-        permissionCount: staffRole
-          ? permissionCount(staffRole as keyof typeof ROLE_PERMISSIONS)
-          : 0,
+        permissionCount: staffRole ? permissionCount(staffRole as keyof typeof ROLE_PERMISSIONS) : 0,
         shift: s.shift,
       };
     });
@@ -77,10 +66,7 @@ export async function GET(req: NextRequest) {
   } catch (error) {
     console.error("Error listing staff:", error);
 
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
@@ -103,10 +89,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (exists) {
-      return NextResponse.json(
-        { error: "User already exists" },
-        { status: 409 },
-      );
+      return NextResponse.json({ error: "User already exists" }, { status: 409 });
     }
 
     const hashed = hashPassword(password);
@@ -152,9 +135,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

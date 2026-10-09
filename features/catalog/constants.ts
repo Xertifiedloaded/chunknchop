@@ -1,23 +1,9 @@
-// Must match the Prisma `MeatType` enum exactly.
-export const MEAT_TYPES = [
-  "BEEF",
-  "CHICKEN",
-  "SEAFOOD",
-  "GOAT",
-  "PORK",
-  "TURKEY",
-  "BBQ",
-  "SAUSAGE",
-  "SPICE",
-] as const;
+export const MEAT_TYPES = ["BEEF", "CHICKEN", "SEAFOOD", "GOAT", "PORK", "TURKEY", "BBQ", "SAUSAGE", "SPICE"] as const;
 
 export type MeatTypeValue = (typeof MEAT_TYPES)[number];
 
 export function isMeatType(value: unknown): value is MeatTypeValue {
-  return (
-    typeof value === "string" &&
-    (MEAT_TYPES as readonly string[]).includes(value)
-  );
+  return typeof value === "string" && (MEAT_TYPES as readonly string[]).includes(value);
 }
 
 export function formatMeatType(value: string): string {
@@ -30,14 +16,10 @@ export function meatTypeFromDisplay(name: string): MeatTypeValue | null {
   if (exact) return exact;
 
   const lowerName = name.toLowerCase();
-  const contains = MEAT_TYPES.find((t) =>
-    lowerName.includes(formatMeatType(t).toLowerCase()),
-  );
+  const contains = MEAT_TYPES.find((t) => lowerName.includes(formatMeatType(t).toLowerCase()));
   if (contains) return contains;
   const normalized = name.toUpperCase().replace(/[^A-Z]/g, "");
-  const byNormalized = MEAT_TYPES.find(
-    (t) => t.replace(/[^A-Z]/g, "") === normalized,
-  );
+  const byNormalized = MEAT_TYPES.find((t) => t.replace(/[^A-Z]/g, "") === normalized);
   if (byNormalized) return byNormalized;
 
   return null;

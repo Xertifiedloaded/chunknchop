@@ -2,10 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getUserFromRequest } from "@/lib/http/request";
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     let user;
     try {
@@ -22,10 +19,7 @@ export async function GET(
     const { id } = await params;
 
     if (!id) {
-      return NextResponse.json(
-        { error: "Order id is required" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Order id is required" }, { status: 400 });
     }
 
     const order = await prisma.order.findUnique({
@@ -61,12 +55,7 @@ export async function GET(
     return NextResponse.json(
       {
         error: "Failed to fetch order",
-        details:
-          process.env.NODE_ENV === "development"
-            ? error instanceof Error
-              ? error.message
-              : String(error)
-            : undefined,
+        details: process.env.NODE_ENV === "development" ? (error instanceof Error ? error.message : String(error)) : undefined,
       },
       { status: 500 },
     );

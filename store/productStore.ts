@@ -16,9 +16,7 @@ interface ProductState {
 
 const normalizeProduct = (product: Product): Product => ({
   ...product,
-  preparations: Array.isArray(product.preparations)
-    ? product.preparations
-    : [],
+  preparations: Array.isArray(product.preparations) ? product.preparations : [],
 });
 
 export const useProductStore = create<ProductState>((set) => ({
@@ -27,10 +25,8 @@ export const useProductStore = create<ProductState>((set) => ({
   isLoading: false,
   error: null,
 
-  setProducts: (products) =>
-    set({ products: (products ?? []).map(normalizeProduct) }),
-  setSelectedProduct: (product) =>
-    set({ selectedProduct: product ? normalizeProduct(product) : null }),
+  setProducts: (products) => set({ products: (products ?? []).map(normalizeProduct) }),
+  setSelectedProduct: (product) => set({ selectedProduct: product ? normalizeProduct(product) : null }),
   setLoading: (isLoading) => set({ isLoading }),
   setError: (error) => set({ error }),
 }));

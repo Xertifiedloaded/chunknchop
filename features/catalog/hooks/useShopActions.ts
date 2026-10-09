@@ -31,16 +31,9 @@ const normalizeItem = (item: any) => ({
   },
 });
 
-const isPlainLine = (item: any, productId: string) =>
-  item.product?.id === productId &&
-  !item.selectedVariants?.length &&
-  !item.selectedTier;
+const isPlainLine = (item: any, productId: string) => item.product?.id === productId && !item.selectedVariants?.length && !item.selectedTier;
 
-const isInCart = (productId: string) =>
-  pendingAdds.has(productId) ||
-  useCartStore
-    .getState()
-    .items.some((i: any) => (i.product?.id ?? i.productId) === productId);
+const isInCart = (productId: string) => pendingAdds.has(productId) || useCartStore.getState().items.some((i: any) => (i.product?.id ?? i.productId) === productId);
 
 function adjustCart(product: any, delta: number) {
   const { items, setItems } = useCartStore.getState();
@@ -48,11 +41,7 @@ function adjustCart(product: any, delta: number) {
 
   if (existing) {
     const quantity = existing.quantity + delta;
-    setItems(
-      quantity > 0
-        ? items.map((i: any) => (i === existing ? { ...i, quantity } : i))
-        : items.filter((i: any) => i !== existing),
-    );
+    setItems(quantity > 0 ? items.map((i: any) => (i === existing ? { ...i, quantity } : i)) : items.filter((i: any) => i !== existing));
     return;
   }
 
@@ -117,9 +106,7 @@ async function flushAdd(productId: string) {
   } catch (error) {
     console.error("failed to add item:", error);
     adjustCart(entry.product, -entry.qty);
-    toast.error(
-      error instanceof Error ? error.message : "Failed to add item to cart",
-    );
+    toast.error(error instanceof Error ? error.message : "Failed to add item to cart");
   } finally {
     inFlight--;
     if (inFlight === 0 && pendingAdds.size === 0) refreshCart();
@@ -201,11 +188,7 @@ export function useShopActions() {
         const data = await res.json().catch(() => ({}));
 
         if (!res.ok) {
-          if (
-            add &&
-            res.status === 400 &&
-            data?.error === "Already in wishlist"
-          ) {
+          if (add && res.status === 400 && data?.error === "Already in wishlist") {
             toast.success("Already in favorites");
             return true;
           }
@@ -216,9 +199,7 @@ export function useShopActions() {
         return true;
       } catch (error) {
         console.error("failed to toggle wishlist:", error);
-        toast.error(
-          error instanceof Error ? error.message : "Failed to update favorites",
-        );
+        toast.error(error instanceof Error ? error.message : "Failed to update favorites");
         return false;
       }
     },

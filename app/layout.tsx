@@ -33,8 +33,7 @@ const workSans = Work_Sans({
 
 export const metadata: Metadata = {
   title: "ChunkNChop | Premium Meat Delivery in Lagos",
-  description:
-    "Certified, hygienically processed livestock products delivered fresh across Lagos.",
+  description: "Certified, hygienically processed livestock products delivered fresh across Lagos.",
   icons: {
     icon: "./chunkNchop.png",
   },
@@ -58,10 +57,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={` ${sora.variable} ${inter.variable} ${workSans.variable} ${anton.variable}  `}
-    >
+    <html lang="en" className={` ${sora.variable} ${inter.variable} ${workSans.variable} ${anton.variable} `}>
       <body className="antialiased">
         <Toaster />
         <ScrollToTop />

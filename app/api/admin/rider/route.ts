@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { getUserFromRequest } from "@/lib/http/request";
 import { prisma } from "@/lib/db";
 
-// GET /api/admin/riders — list riders with their current active-delivery count
 export async function GET(req: NextRequest) {
   try {
     const user = getUserFromRequest(req);
@@ -36,14 +35,10 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(formatted);
   } catch (error) {
     console.error("Error fetching riders:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
-// POST /api/admin/riders — add a new rider
 export async function POST(req: NextRequest) {
   try {
     const user = getUserFromRequest(req);
@@ -55,10 +50,7 @@ export async function POST(req: NextRequest) {
     const { name, phone, email, vehicleType, licensePlate } = body;
 
     if (!name || !phone) {
-      return NextResponse.json(
-        { error: "name and phone are required" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "name and phone are required" }, { status: 400 });
     }
 
     const rider = await prisma.rider.create({
@@ -68,15 +60,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(rider, { status: 201 });
   } catch (error: any) {
     if (error.code === "P2002") {
-      return NextResponse.json(
-        { error: "A rider with that phone or email already exists" },
-        { status: 409 },
-      );
+      return NextResponse.json({ error: "A rider with that phone or email already exists" }, { status: 409 });
     }
     console.error("Error creating rider:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

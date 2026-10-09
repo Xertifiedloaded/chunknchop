@@ -3,11 +3,7 @@
 import React, { useEffect } from "react";
 import { useAuthStore, hydrateSession } from "@/store/authStore";
 
-export default function AdminAuthProvider({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function AdminAuthProvider({ children }: { children: React.ReactNode }) {
   const isHydrated = useAuthStore((s) => s.isHydrated);
 
   useEffect(() => {

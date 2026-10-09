@@ -14,8 +14,7 @@ const confirmedQty = new Map<string, number>();
 
 export const isTempItem = (id: string) => id.startsWith("temp-");
 
-export const maxQuantityFor = (stock?: number | null) =>
-  Math.min(MAX_QTY, typeof stock === "number" && stock > 0 ? stock : MAX_QTY);
+export const maxQuantityFor = (stock?: number | null) => Math.min(MAX_QTY, typeof stock === "number" && stock > 0 ? stock : MAX_QTY);
 
 async function syncQuantity(itemId: string) {
   timers.delete(itemId);
@@ -47,9 +46,7 @@ async function syncQuantity(itemId: string) {
       useCartStore.getState().updateQuantity(itemId, previous);
     }
 
-    toast.error(
-      error instanceof Error ? error.message : "Failed to update quantity",
-    );
+    toast.error(error instanceof Error ? error.message : "Failed to update quantity");
   }
 }
 
@@ -83,11 +80,7 @@ export function useCartActions() {
   const removeItem = useCallback(async (itemId: string) => {
     if (isTempItem(itemId)) return;
 
-    const {
-      items,
-      removeItem: removeFromStore,
-      addItem,
-    } = useCartStore.getState();
+    const { items, removeItem: removeFromStore, addItem } = useCartStore.getState();
     const item = items.find((i) => i.id === itemId);
     if (!item) return;
 
@@ -108,9 +101,7 @@ export function useCartActions() {
       }
     } catch (error) {
       addItem(item);
-      toast.error(
-        error instanceof Error ? error.message : "Failed to remove item",
-      );
+      toast.error(error instanceof Error ? error.message : "Failed to remove item");
     }
   }, []);
 

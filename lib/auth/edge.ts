@@ -13,19 +13,13 @@ function getKey() {
   return cachedKey;
 }
 
-export async function verifyTokenEdge(
-  token: string,
-): Promise<TokenPayload | null> {
+export async function verifyTokenEdge(token: string): Promise<TokenPayload | null> {
   try {
     const { payload } = await jwtVerify(token, getKey(), {
       algorithms: ["HS256"],
     });
 
-    if (
-      typeof payload.id !== "string" ||
-      typeof payload.email !== "string" ||
-      typeof payload.role !== "string"
-    ) {
+    if (typeof payload.id !== "string" || typeof payload.email !== "string" || typeof payload.role !== "string") {
       return null;
     }
 

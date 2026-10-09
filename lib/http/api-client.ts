@@ -7,9 +7,7 @@ export function onSessionExpired(handler: () => void) {
 
 export function getCsrfToken(): string | null {
   if (typeof document === "undefined") return null;
-  const entry = document.cookie
-    .split("; ")
-    .find((cookie) => cookie.startsWith("csrfToken="));
+  const entry = document.cookie.split("; ").find((cookie) => cookie.startsWith("csrfToken="));
   return entry ? decodeURIComponent(entry.slice("csrfToken=".length)) : null;
 }
 
@@ -30,17 +28,13 @@ export function refreshSession(): Promise<boolean> {
   return refreshPromise;
 }
 
-export async function apiFetch(
-  input: RequestInfo | URL,
-  init: RequestInit = {},
-): Promise<Response> {
+export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {}): Promise<Response> {
   const method = (init.method ?? "GET").toUpperCase();
 
   const send = () => {
     const headers = new Headers(init.headers);
     const csrf = getCsrfToken();
-    if (csrf && method !== "GET" && method !== "HEAD")
-      headers.set("X-CSRF-Token", csrf);
+    if (csrf && method !== "GET" && method !== "HEAD") headers.set("X-CSRF-Token", csrf);
     return fetch(input, { ...init, headers, credentials: "include" });
   };
 

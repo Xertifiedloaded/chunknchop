@@ -2,14 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { getUserFromRequest } from "@/lib/http/request";
 import { prisma } from "@/lib/db";
 
-// POST /api/admin/orders/assign-rider
-// body: { orderIds: string[], riderId: string }
-//
-// Guards enforced server-side (not just in the UI):
-//   - every order must exist and be READY_FOR_DISPATCH
-//   - rider must exist and be active
-// On success: orders move to OUT_FOR_DELIVERY, riderId is set,
-// shippedAt is stamped, and the rider flips to ON_DELIVERY.
 export async function POST(req: NextRequest) {
   try {
     const user = getUserFromRequest(req);
@@ -21,10 +13,7 @@ export async function POST(req: NextRequest) {
     const { orderIds, riderId } = body;
 
     if (!riderId || !Array.isArray(orderIds) || orderIds.length === 0) {
-      return NextResponse.json(
-        { error: "riderId and orderIds are required" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "riderId and orderIds are required" }, { status: 400 });
     }
 
     const assignedCount = await prisma.$transaction(async (tx) => {
@@ -43,9 +32,7 @@ export async function POST(req: NextRequest) {
 
       const notReady = orders.filter((o) => o.status !== "READY_FOR_DISPATCH");
       if (notReady.length > 0) {
-        throw new Error(
-          `Orders not ready for dispatch: ${notReady.map((o) => o.id).join(", ")}`,
-        );
+        throw new Error(`Orders not ready for dispatch: ${notReady.map((o) => o.id).join(", ")}`);
       }
 
       await tx.order.updateMany({
@@ -68,15 +55,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ assigned: assignedCount, riderId });
   } catch (error) {
     console.error("Error assigning rider:", error);
-    const message =
-      error instanceof Error ? error.message : "Failed to assign rider";
-    const isClientError =
-      message.includes("not ready") ||
-      message.includes("not found") ||
-      message.includes("inactive");
-    return NextResponse.json(
-      { error: message },
-      { status: isClientError ? 400 : 500 },
-    );
+    const message = error instanceof Error ? error.message : "Failed to assign rider";
+    const isClientError = message.includes("not ready") || message.includes("not found") || message.includes("inactive");
+    return NextResponse.json({ error: message }, { status: isClientError ? 400 : 500 });
   }
 }

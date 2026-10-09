@@ -29,10 +29,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(wishlist);
   } catch (error) {
     console.error("Wishlist error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
@@ -55,10 +52,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (existingWishlistItem) {
-      return NextResponse.json(
-        { error: "Already in wishlist" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Already in wishlist" }, { status: 400 });
     }
 
     const wishlistItem = await prisma.wishlist.create({
@@ -71,9 +65,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(wishlistItem);
   } catch (error) {
     console.error("Wishlist POST error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

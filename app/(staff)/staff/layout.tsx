@@ -11,21 +11,13 @@ export const metadata: Metadata = {
   description: "Manage products, orders, and customers",
 };
 
-export default async function StaffLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function StaffLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies();
   const accessToken = cookieStore.get("accessToken")?.value;
   const payload = accessToken ? verifyToken(accessToken) : null;
 
   if (!payload) {
-    redirect(
-      cookieStore.has("refreshToken")
-        ? "/api/auth/refresh?next=/staff/dashboard"
-        : "/auth/login",
-    );
+    redirect(cookieStore.has("refreshToken") ? "/api/auth/refresh?next=/staff/dashboard" : "/auth/login");
   }
 
   let role: string | null = null;

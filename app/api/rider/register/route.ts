@@ -10,20 +10,14 @@ const schema = z.object({
   licensePlate: z.string().optional(),
 });
 
-// Public endpoint for riders to register themselves (creates Rider record)
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { name, phone, email, vehicleType, licensePlate } =
-      schema.parse(body);
+    const { name, phone, email, vehicleType, licensePlate } = schema.parse(body);
 
-    // ensure unique phone
     const existing = await prisma.rider.findUnique({ where: { phone } });
     if (existing) {
-      return NextResponse.json(
-        { error: "Rider with that phone already exists" },
-        { status: 409 },
-      );
+      return NextResponse.json({ error: "Rider with that phone already exists" }, { status: 409 });
     }
 
     const rider = await prisma.rider.create({
@@ -40,14 +34,8 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("Rider register error:", error);
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: "Invalid input", details: error.errors },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Invalid input", details: error.errors }, { status: 400 });
     }
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

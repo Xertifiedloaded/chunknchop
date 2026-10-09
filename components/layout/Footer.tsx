@@ -10,9 +10,7 @@ export default function Footer() {
             ChunkN <span className="text-[#b9aaa0]">CHOP</span>
           </div>
 
-          <p className="mt-3 max-w-[220px] text-sm leading-relaxed text-[#9b8e83]">
-            Fresh meat, cut to order and delivered cold.
-          </p>
+          <p className="mt-3 max-w-[220px] text-sm leading-relaxed text-[#9b8e83]">Fresh meat, cut to order and delivered cold.</p>
         </div>
 
         <div>
@@ -42,14 +40,12 @@ export default function Footer() {
           <div className="mt-3 space-y-2 text-sm text-[#9b8e83]">
             <div>[PHONE]</div>
             <div>[EMAIL]</div>
-            <div>[HOURS]</div>
+            <div>24/7 Support</div>
           </div>
         </div>
       </div>
 
-      <div className="mx-auto mt-12 max-w-271 border-t border-white/5 pt-5 text-center text-sm text-[#6c615a]">
-        © ChunNchop. All rights reserved.
-      </div>
+      <div className="mx-auto mt-12 max-w-271 border-t border-white/5 pt-5 text-center text-sm text-[#6c615a]">© ChunNchop. All rights reserved.</div>
     </footer>
   );
 }

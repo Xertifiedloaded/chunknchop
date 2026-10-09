@@ -14,10 +14,7 @@ const updateSchema = z.object({
   shift: z.string().optional(),
 });
 
-export async function PUT(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const current = await getUserFromRequest(req);
@@ -32,10 +29,7 @@ export async function PUT(
     const existing = await prisma.user.findUnique({ where: { id } });
 
     if (!existing || existing.role !== "STAFF") {
-      return NextResponse.json(
-        { error: "Staff member not found" },
-        { status: 404 },
-      );
+      return NextResponse.json({ error: "Staff member not found" }, { status: 404 });
     }
 
     if (data.email && data.email !== existing.email) {
@@ -44,10 +38,7 @@ export async function PUT(
       });
 
       if (emailTaken) {
-        return NextResponse.json(
-          { error: "Email already in use" },
-          { status: 409 },
-        );
+        return NextResponse.json({ error: "Email already in use" }, { status: 409 });
       }
     }
 
@@ -76,23 +67,14 @@ export async function PUT(
     console.error("Error updating staff:", error);
 
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: "Invalid input", details: error.errors },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Invalid input", details: error.errors }, { status: 400 });
     }
 
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const current = await getUserFromRequest(req);
@@ -104,10 +86,7 @@ export async function DELETE(
     const existing = await prisma.user.findUnique({ where: { id } });
 
     if (!existing || existing.role !== "STAFF") {
-      return NextResponse.json(
-        { error: "Staff member not found" },
-        { status: 404 },
-      );
+      return NextResponse.json({ error: "Staff member not found" }, { status: 404 });
     }
 
     await prisma.user.delete({ where: { id } });
@@ -116,9 +95,6 @@ export async function DELETE(
   } catch (error) {
     console.error("Error deleting staff:", error);
 
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

@@ -53,16 +53,8 @@ export default function RiderPage() {
       {!rider && (
         <form onSubmit={login} className="mb-4">
           <label className="mb-2 block text-sm font-medium">Phone</label>
-          <input
-            className="mb-2 w-full rounded border px-3 py-2"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="e.g. 08012345678"
-          />
-          <button
-            type="submit"
-            className="rounded bg-[#f15b2a] px-4 py-2 text-white"
-          >
+          <input className="mb-2 w-full rounded border px-3 py-2" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="e.g. 08012345678" />
+          <button type="submit" className="rounded bg-[#f15b2a] px-4 py-2 text-white">
             Login
           </button>
         </form>
@@ -74,23 +66,14 @@ export default function RiderPage() {
             Signed in as <strong>{rider.name || rider.phone}</strong>
           </p>
           <div className="mb-2">
-            <button
-              onClick={sendCurrentLocation}
-              className="rounded bg-[#0b9762] px-4 py-2 text-white"
-            >
+            <button onClick={sendCurrentLocation} className="rounded bg-[#0b9762] px-4 py-2 text-white">
               Send sample location
             </button>
           </div>
 
           <div className="mt-4">
             <h4 className="text-lg font-semibold">Latest live location</h4>
-            {location ? (
-              <pre className="mt-2 rounded bg-[#f7f7f7] p-3 text-sm">
-                {JSON.stringify(location, null, 2)}
-              </pre>
-            ) : (
-              <p className="mt-2 text-sm text-[#8c857f]">No live updates yet</p>
-            )}
+            {location ? <pre className="mt-2 rounded bg-[#f7f7f7] p-3 text-sm">{JSON.stringify(location, null, 2)}</pre> : <p className="mt-2 text-sm text-[#8c857f]">No live updates yet</p>}
           </div>
         </div>
       )}

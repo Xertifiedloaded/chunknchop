@@ -1,56 +1,19 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-  type Dispatch,
-  type SetStateAction,
-} from "react";
+import { useCallback, useEffect, useMemo, useState, type Dispatch, type SetStateAction } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import {
-  ArrowLeft,
-  ArrowRight,
-  Check,
-  Clock3,
-  Edit3,
-  LockKeyhole,
-  Minus,
-  Plus,
-  ShoppingBag,
-  Store,
-  Trash2,
-  Truck,
-} from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Clock3, Edit3, LockKeyhole, Minus, Plus, ShoppingBag, Store, Trash2, Truck } from "lucide-react";
 
-import type {
-  Address,
-  CartItem,
-  DeliveryDate,
-  DeliveryMethod,
-  DeliverySlot,
-} from "@/types";
+import type { Address, CartItem, DeliveryDate, DeliveryMethod, DeliverySlot } from "@/types";
 import { fetchWithAuth } from "@/lib/http/fetchClient";
 import { formatNaira } from "@/lib/utils/format";
 import { useAuthStore } from "@/store/authStore";
 import { useCartStore } from "@/store/cartStore";
-import {
-  isTempItem,
-  maxQuantityFor,
-  useCartActions,
-} from "@/features/cart/hooks/useCartActions";
+import { isTempItem, maxQuantityFor, useCartActions } from "@/features/cart/hooks/useCartActions";
 
-const STEPS = [
-  "Cart Review",
-  "Delivery Method",
-  "Delivery Address",
-  "Delivery Schedule",
-  "Review Order",
-  "Payments",
-];
+const STEPS = ["Cart Review", "Delivery Method", "Delivery Address", "Delivery Schedule", "Review Order", "Payments"];
 
 const LAST_STEP = STEPS.length;
 
@@ -80,8 +43,7 @@ const DELIVERY_METHODS = [
     title: "Home Delivery",
     icon: Truck,
     price: formatNaira(HOME_DELIVERY_FEE),
-    description:
-      "Collect from a ChunkNChop rider. Kept chilled until you pickup.",
+    description: "Collect from a ChunkNChop rider. Kept chilled until you pickup.",
     meta: "Arrives in a 2-hour window",
   },
   {
@@ -89,8 +51,7 @@ const DELIVERY_METHODS = [
     title: "Store Pickup",
     icon: Store,
     price: "Free",
-    description:
-      "Collect from a ChunkNChop counter. Kept fresh until you arrive.",
+    description: "Collect from a ChunkNChop counter. Kept fresh until you arrive.",
     meta: "Ready the same day",
   },
 ];
@@ -176,9 +137,7 @@ export default function CheckoutPage() {
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>("home");
   const [selectedAddressId, setSelectedAddressId] = useState("");
   const dateOptions = useMemo(getDeliveryDates, []);
-  const [selectedDate, setSelectedDate] = useState(
-    () => dateOptions[0]?.value ?? "",
-  );
+  const [selectedDate, setSelectedDate] = useState(() => dateOptions[0]?.value ?? "");
   const [selectedSlot, setSelectedSlot] = useState("10-12");
   const [notes, setNotes] = useState("");
   const [showNewAddressForm, setShowNewAddressForm] = useState(false);
@@ -188,26 +147,15 @@ export default function CheckoutPage() {
   const cartItems = items as CartItem[];
   const hasPendingItems = cartItems.some((item) => isTempItem(item.id));
 
-  const subtotal = useMemo(
-    () =>
-      cartItems.reduce(
-        (sum, item) => sum + getItemPrice(item) * item.quantity,
-        0,
-      ),
-    [cartItems],
-  );
+  const subtotal = useMemo(() => cartItems.reduce((sum, item) => sum + getItemPrice(item) * item.quantity, 0), [cartItems]);
 
-  const selectedSlotData =
-    DELIVERY_SLOTS.find((slot) => slot.id === selectedSlot) ??
-    DELIVERY_SLOTS[1];
-  const deliveryFee =
-    deliveryMethod === "home" ? HOME_DELIVERY_FEE + selectedSlotData.price : 0;
+  const selectedSlotData = DELIVERY_SLOTS.find((slot) => slot.id === selectedSlot) ?? DELIVERY_SLOTS[1];
+  const deliveryFee = deliveryMethod === "home" ? HOME_DELIVERY_FEE + selectedSlotData.price : 0;
   const discount = subtotal * DISCOUNT_RATE;
   const taxes = Math.max(0, subtotal - discount) * TAX_RATE;
   const total = subtotal + deliveryFee - discount + taxes;
 
-  const selectedAddress =
-    addresses.find((address) => address.id === selectedAddressId) ?? null;
+  const selectedAddress = addresses.find((address) => address.id === selectedAddressId) ?? null;
 
   useEffect(() => {
     if (!isHydrated || user) return;
@@ -246,11 +194,7 @@ export default function CheckoutPage() {
         console.error("Address loading error:", error);
         setAddresses([]);
         setShowNewAddressForm(true);
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : "Could not load your saved addresses. Please enter your delivery address below.",
-        );
+        toast.error(error instanceof Error ? error.message : "Could not load your saved addresses. Please enter your delivery address below.");
       } finally {
         if (!cancelled) setAddressesLoading(false);
       }
@@ -267,15 +211,7 @@ export default function CheckoutPage() {
       return;
     }
 
-    const required: (keyof NewAddress)[] = [
-      "fullName",
-      "address",
-      "city",
-      "state",
-      "zipCode",
-      "country",
-      "phone",
-    ];
+    const required: (keyof NewAddress)[] = ["fullName", "address", "city", "state", "zipCode", "country", "phone"];
 
     if (required.some((key) => !String(newAddress[key]).trim())) {
       toast.error("Please complete all address fields.");
@@ -298,19 +234,14 @@ export default function CheckoutPage() {
 
       const created: Address = data.address;
 
-      setAddresses((previous) => [
-        created,
-        ...previous.filter((address) => address.id !== created.id),
-      ]);
+      setAddresses((previous) => [created, ...previous.filter((address) => address.id !== created.id)]);
       setSelectedAddressId(created.id);
       setShowNewAddressForm(false);
       setNewAddress(EMPTY_ADDRESS);
       toast.success("Address saved");
     } catch (error) {
       console.error("Create address error:", error);
-      toast.error(
-        error instanceof Error ? error.message : "Failed to create address",
-      );
+      toast.error(error instanceof Error ? error.message : "Failed to create address");
     } finally {
       setAddressSaving(false);
     }
@@ -371,9 +302,7 @@ export default function CheckoutPage() {
       window.location.href = data.authorizationUrl;
     } catch (error) {
       console.error("Checkout error:", error);
-      toast.error(
-        error instanceof Error ? error.message : "Failed to process checkout",
-      );
+      toast.error(error instanceof Error ? error.message : "Failed to process checkout");
       setLoading(false);
     }
   };
@@ -397,13 +326,9 @@ export default function CheckoutPage() {
     return (
       <main className="min-h-screen bg-[#F8F6F2] px-4 py-16">
         <div className="mx-auto max-w-2xl text-center">
-          <ShoppingBag className="text-brand mx-auto mb-5 h-12 w-12" />
-          <h1 className="text-2xl font-bold text-[#2A2521] sm:text-3xl">
-            Your cart is empty
-          </h1>
-          <p className="mt-3 text-sm text-[#7E746A]">
-            Add some cuts to your cart before proceeding to checkout.
-          </p>
+          <ShoppingBag className="mx-auto mb-5 h-12 w-12 text-brand" />
+          <h1 className="text-2xl font-bold text-[#2A2521] sm:text-3xl">Your cart is empty</h1>
+          <p className="mt-3 text-sm text-[#7E746A]">Add some cuts to your cart before proceeding to checkout.</p>
           <Link href="/shop" className={`${PRIMARY_BUTTON} mt-8 px-6`}>
             Continue Shopping
           </Link>
@@ -419,20 +344,9 @@ export default function CheckoutPage() {
 
         <div className="mt-8 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-8">
           <section className="min-w-0">
-            {step === 1 && (
-              <CartReview
-                items={cartItems}
-                onQuantityChange={setQuantity}
-                onRemove={removeItem}
-              />
-            )}
+            {step === 1 && <CartReview items={cartItems} onQuantityChange={setQuantity} onRemove={removeItem} />}
 
-            {step === 2 && (
-              <DeliveryMethodStep
-                value={deliveryMethod}
-                onChange={setDeliveryMethod}
-              />
-            )}
+            {step === 2 && <DeliveryMethodStep value={deliveryMethod} onChange={setDeliveryMethod} />}
 
             {step === 3 && (
               <DeliveryAddressStep
@@ -462,33 +376,12 @@ export default function CheckoutPage() {
               />
             )}
 
-            {step === 5 && (
-              <ReviewOrder
-                items={cartItems}
-                address={selectedAddress}
-                deliveryMethod={deliveryMethod}
-                slot={selectedSlotData}
-                selectedDate={selectedDate}
-                onEdit={setStep}
-              />
-            )}
+            {step === 5 && <ReviewOrder items={cartItems} address={selectedAddress} deliveryMethod={deliveryMethod} slot={selectedSlotData} selectedDate={selectedDate} onEdit={setStep} />}
 
-            {step === 6 && (
-              <PaymentStep
-                total={total}
-                email={user.email || ""}
-                loading={loading}
-                onPay={handleSubmit}
-              />
-            )}
+            {step === 6 && <PaymentStep total={total} email={user.email || ""} loading={loading} onPay={handleSubmit} />}
 
             <div className="mt-7 flex items-center justify-between border-t border-[#E7DED3] pt-5">
-              <button
-                type="button"
-                onClick={previousStep}
-                disabled={step === 1 || loading}
-                className="inline-flex h-10 items-center gap-2 text-sm font-medium text-[#776E65] disabled:invisible"
-              >
+              <button type="button" onClick={previousStep} disabled={step === 1 || loading} className="inline-flex h-10 items-center gap-2 text-sm font-medium text-[#776E65] disabled:invisible">
                 <ArrowLeft className="h-4 w-4" />
                 Back
               </button>
@@ -498,11 +391,7 @@ export default function CheckoutPage() {
               </span>
 
               {step < LAST_STEP ? (
-                <button
-                  type="button"
-                  onClick={nextStep}
-                  className={PRIMARY_BUTTON}
-                >
+                <button type="button" onClick={nextStep} className={PRIMARY_BUTTON}>
                   {step === 5 ? "Continue to Payment" : "Continue"}
                   <ArrowRight className="h-4 w-4" />
                 </button>
@@ -541,87 +430,42 @@ function CheckoutProgress({ step }: { step: number }) {
           const active = number === step;
 
           return (
-            <div
-              key={label}
-              className="relative z-10 flex flex-1 flex-col items-center gap-2"
-            >
+            <div key={label} className="relative z-10 flex flex-1 flex-col items-center gap-2">
               <div
                 className={[
                   "flex h-6 w-6 items-center justify-center rounded-full border text-[11px] font-medium",
-                  completed
-                    ? "border-brand bg-brand text-white"
-                    : active
-                      ? "border-brand text-brand bg-[#FFF9F5]"
-                      : "border-[#E7DED3] bg-[#FCFBF8] text-[#B7ADA2]",
+                  completed ? "border-brand bg-brand text-white" : active ? "border-brand bg-[#FFF9F5] text-brand" : "border-[#E7DED3] bg-[#FCFBF8] text-[#B7ADA2]",
                 ].join(" ")}
               >
                 {completed ? <Check className="h-3.5 w-3.5" /> : number}
               </div>
 
-              <span
-                className={[
-                  "hidden text-center text-xs sm:block",
-                  active || completed
-                    ? "font-medium text-[#403832]"
-                    : "text-[#AAA096]",
-                ].join(" ")}
-              >
-                {label}
-              </span>
+              <span className={["hidden text-center text-xs sm:block", active || completed ? "font-medium text-[#403832]" : "text-[#AAA096]"].join(" ")}>{label}</span>
             </div>
           );
         })}
       </div>
 
-      <p className="mt-3 text-center text-xs font-medium text-[#403832] sm:hidden">
-        {STEPS[step - 1]}
-      </p>
+      <p className="mt-3 text-center text-xs font-medium text-[#403832] sm:hidden">{STEPS[step - 1]}</p>
     </div>
   );
 }
 
-function PageHeading({
-  eyebrow,
-  title,
-  description,
-}: {
-  eyebrow: string;
-  title: string;
-  description: string;
-}) {
+function PageHeading({ eyebrow, title, description }: { eyebrow: string; title: string; description: string }) {
   return (
     <header className="mb-6">
-      <p className={`${EYEBROW} text-brand mb-1.5`}>{eyebrow}</p>
-      <h1 className="text-2xl leading-tight font-bold tracking-tight">
-        {title}
-      </h1>
-      <p className="mt-2 max-w-xl text-sm leading-6 text-[#857B71]">
-        {description}
-      </p>
+      <p className={`${EYEBROW} mb-1.5 text-brand`}>{eyebrow}</p>
+      <h1 className="text-2xl leading-tight font-bold tracking-tight">{title}</h1>
+      <p className="mt-2 max-w-xl text-sm leading-6 text-[#857B71]">{description}</p>
     </header>
   );
 }
 
-function ProductImage({
-  item,
-  small = false,
-}: {
-  item: CartItem;
-  small?: boolean;
-}) {
+function ProductImage({ item, small = false }: { item: CartItem; small?: boolean }) {
   return (
-    <div
-      className={[
-        "shrink-0 overflow-hidden rounded-xl border border-[#E9E0D7] bg-[#F2ECE5]",
-        small ? "h-10 w-10" : "h-14 w-14",
-      ].join(" ")}
-    >
+    <div className={["shrink-0 overflow-hidden rounded-xl border border-[#E9E0D7] bg-[#F2ECE5]", small ? "h-10 w-10" : "h-14 w-14"].join(" ")}>
       {item.product.images?.[0] ? (
-        <img
-          src={item.product.images[0]}
-          alt={item.product.name}
-          className="h-full w-full object-cover"
-        />
+        <img src={item.product.images[0]} alt={item.product.name} className="h-full w-full object-cover" />
       ) : (
         <div className="flex h-full w-full items-center justify-center">
           <ShoppingBag className="h-4 w-4 text-[#B0A59A]" />
@@ -633,33 +477,16 @@ function ProductImage({
 
 function RadioDot({ selected }: { selected: boolean }) {
   return (
-    <span
-      className={[
-        "mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border",
-        selected ? "border-brand bg-brand" : "border-[#E2D8CD]",
-      ].join(" ")}
-    >
+    <span className={["mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border", selected ? "border-brand bg-brand" : "border-[#E2D8CD]"].join(" ")}>
       {selected && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
     </span>
   );
 }
 
-function CartReview({
-  items,
-  onQuantityChange,
-  onRemove,
-}: {
-  items: CartItem[];
-  onQuantityChange: (itemId: string, quantity: number) => void;
-  onRemove: (itemId: string) => void;
-}) {
+function CartReview({ items, onQuantityChange, onRemove }: { items: CartItem[]; onQuantityChange: (itemId: string, quantity: number) => void; onRemove: (itemId: string) => void }) {
   return (
     <>
-      <PageHeading
-        eyebrow="Step 1 of 6"
-        title="Review your cuts"
-        description="Everything is butchered to order the morning of delivery. Adjust quantities before you continue."
-      />
+      <PageHeading eyebrow="Step 1 of 6" title="Review your cuts" description="Everything is butchered to order the morning of delivery. Adjust quantities before you continue." />
 
       <div className={`${CARD} overflow-hidden`}>
         {items.map((item, index) => {
@@ -667,36 +494,21 @@ function CartReview({
           const max = maxQuantityFor(item.product.stock);
 
           return (
-            <div
-              key={item.id}
-              className={[
-                "flex flex-wrap items-center gap-x-4 gap-y-3 px-4 py-4 sm:flex-nowrap sm:px-5",
-                index < items.length - 1 ? "border-b border-[#EEE7DE]" : "",
-              ].join(" ")}
-            >
+            <div key={item.id} className={["flex flex-wrap items-center gap-x-4 gap-y-3 px-4 py-4 sm:flex-nowrap sm:px-5", index < items.length - 1 ? "border-b border-[#EEE7DE]" : ""].join(" ")}>
               <ProductImage item={item} />
 
               <div className="min-w-0 flex-1 basis-40">
-                <h3 className="truncate text-sm font-semibold">
-                  {item.product.name}
-                </h3>
+                <h3 className="truncate text-sm font-semibold">{item.product.name}</h3>
 
                 <p className="mt-1 text-xs text-[#8B8177]">
                   {item.selectedPreparation}
                   {item.selectedTier ? ` · ${item.selectedTier}` : ""}
                 </p>
 
-                <p className="mt-1.5 text-xs text-[#6E655C]">
-                  {formatNaira(getItemPrice(item))}
-                </p>
+                <p className="mt-1.5 text-xs text-[#6E655C]">{formatNaira(getItemPrice(item))}</p>
               </div>
 
-              <div
-                className={[
-                  "flex items-center rounded-full border border-[#E8DED4] bg-[#FCFAF7]",
-                  syncing ? "opacity-50" : "",
-                ].join(" ")}
-              >
+              <div className={["flex items-center rounded-full border border-[#E8DED4] bg-[#FCFAF7]", syncing ? "opacity-50" : ""].join(" ")}>
                 <button
                   type="button"
                   aria-label={`Decrease quantity of ${item.product.name}`}
@@ -707,10 +519,7 @@ function CartReview({
                   <Minus className="h-3.5 w-3.5" />
                 </button>
 
-                <span
-                  className="w-7 text-center text-sm font-medium tabular-nums"
-                  aria-live="polite"
-                >
+                <span className="w-7 text-center text-sm font-medium tabular-nums" aria-live="polite">
                   {item.quantity}
                 </span>
 
@@ -725,16 +534,14 @@ function CartReview({
                 </button>
               </div>
 
-              <div className="text-brand ml-auto w-24 text-right text-sm font-bold tabular-nums">
-                {formatNaira(getItemPrice(item) * item.quantity)}
-              </div>
+              <div className="ml-auto w-24 text-right text-sm font-bold text-brand tabular-nums">{formatNaira(getItemPrice(item) * item.quantity)}</div>
 
               <button
                 type="button"
                 aria-label={`Remove ${item.product.name}`}
                 disabled={syncing}
                 onClick={() => onRemove(item.id)}
-                className="text-brand flex h-8 w-8 items-center justify-center rounded-full transition hover:bg-[#FFF0E9] disabled:cursor-not-allowed disabled:opacity-40"
+                className="flex h-8 w-8 items-center justify-center rounded-full text-brand transition hover:bg-[#FFF0E9] disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <Trash2 className="h-4 w-4" />
               </button>
@@ -746,64 +553,41 @@ function CartReview({
   );
 }
 
-function DeliveryMethodStep({
-  value,
-  onChange,
-}: {
-  value: DeliveryMethod;
-  onChange: (value: DeliveryMethod) => void;
-}) {
+function DeliveryMethodStep({ value, onChange }: { value: DeliveryMethod; onChange: (value: DeliveryMethod) => void }) {
   return (
     <>
-      <PageHeading
-        eyebrow="Step 2 of 6"
-        title="How would you like it?"
-        description="Both options keep your order under 4°C from our counter to your kitchen."
-      />
+      <PageHeading eyebrow="Step 2 of 6" title="How would you like it?" description="Both options keep your order under 4°C from our counter to your kitchen." />
 
       <div className="space-y-3">
-        {DELIVERY_METHODS.map(
-          ({ id, title, icon: Icon, price, description, meta }) => {
-            const selected = value === id;
+        {DELIVERY_METHODS.map(({ id, title, icon: Icon, price, description, meta }) => {
+          const selected = value === id;
 
-            return (
-              <button
-                key={id}
-                type="button"
-                onClick={() => onChange(id)}
-                aria-pressed={selected}
-                className={[
-                  `${CARD} block w-full p-4 text-left transition`,
-                  selected ? "border-brand" : "",
-                ].join(" ")}
-              >
-                <div className="flex gap-3">
-                  <RadioDot selected={selected} />
+          return (
+            <button key={id} type="button" onClick={() => onChange(id)} aria-pressed={selected} className={[`${CARD} block w-full p-4 text-left transition`, selected ? "border-brand" : ""].join(" ")}>
+              <div className="flex gap-3">
+                <RadioDot selected={selected} />
 
-                  <span className="text-brand flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[#FFF0E9]">
-                    <Icon className="h-4 w-4" />
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[#FFF0E9] text-brand">
+                  <Icon className="h-4 w-4" />
+                </span>
+
+                <span className="min-w-0 flex-1">
+                  <span className="flex justify-between gap-3">
+                    <span className="text-sm font-semibold">{title}</span>
+                    <span className="text-sm font-semibold">{price}</span>
                   </span>
 
-                  <span className="min-w-0 flex-1">
-                    <span className="flex justify-between gap-3">
-                      <span className="text-sm font-semibold">{title}</span>
-                      <span className="text-sm font-semibold">{price}</span>
-                    </span>
+                  <span className="mt-1.5 block text-xs leading-5 text-[#8B8177]">{description}</span>
 
-                    <span className="mt-1.5 block text-xs leading-5 text-[#8B8177]">
-                      {description}
-                    </span>
-
-                    <span className="mt-1.5 flex items-center gap-1.5 text-xs text-[#8B8177]">
-                      <Clock3 className="h-3 w-3" />
-                      {meta}
-                    </span>
+                  <span className="mt-1.5 flex items-center gap-1.5 text-xs text-[#8B8177]">
+                    <Clock3 className="h-3 w-3" />
+                    {meta}
                   </span>
-                </div>
-              </button>
-            );
-          },
-        )}
+                </span>
+              </div>
+            </button>
+          );
+        })}
       </div>
     </>
   );
@@ -836,16 +620,10 @@ function DeliveryAddressStep({
 }) {
   return (
     <>
-      <PageHeading
-        eyebrow="Step 3 of 6"
-        title="Where should we deliver?"
-        description="Pick a saved address or add a new one. We'll text you when the driver is 15 minutes away."
-      />
+      <PageHeading eyebrow="Step 3 of 6" title="Where should we deliver?" description="Pick a saved address or add a new one. We'll text you when the driver is 15 minutes away." />
 
       {loading ? (
-        <div className={`${CARD} p-8 text-center text-sm text-[#8B8177]`}>
-          Loading your saved addresses…
-        </div>
+        <div className={`${CARD} p-8 text-center text-sm text-[#8B8177]`}>Loading your saved addresses…</div>
       ) : (
         <>
           {addresses.length > 0 && (
@@ -859,12 +637,7 @@ function DeliveryAddressStep({
                     type="button"
                     onClick={() => onSelect(address.id)}
                     aria-pressed={selected}
-                    className={[
-                      `${CARD} p-4 text-left transition`,
-                      selected
-                        ? "border-brand shadow-[0_8px_24px_rgba(62,43,30,0.05)]"
-                        : "",
-                    ].join(" ")}
+                    className={[`${CARD} p-4 text-left transition`, selected ? "border-brand shadow-[0_8px_24px_rgba(62,43,30,0.05)]" : ""].join(" ")}
                   >
                     <div className="flex gap-3">
                       <RadioDot selected={selected} />
@@ -873,11 +646,7 @@ function DeliveryAddressStep({
                         <span className="flex items-center gap-2 text-sm font-semibold">
                           {address.label}
 
-                          {address.isDefault && (
-                            <span className="rounded bg-[#F3EEE8] px-1.5 py-0.5 text-[11px] font-medium text-[#8C8177]">
-                              Default
-                            </span>
-                          )}
+                          {address.isDefault && <span className="rounded bg-[#F3EEE8] px-1.5 py-0.5 text-[11px] font-medium text-[#8C8177]">Default</span>}
                         </span>
 
                         <span className="mt-2 block text-xs leading-5 text-[#857B71]">
@@ -898,22 +667,14 @@ function DeliveryAddressStep({
           )}
 
           {!showNewAddressForm && (
-            <button
-              type="button"
-              onClick={onShowNewAddressForm}
-              className={`${CARD} mt-3 flex w-full items-center gap-3 p-4 text-left`}
-            >
-              <span className="bg-brand flex h-8 w-8 items-center justify-center rounded-full text-white">
+            <button type="button" onClick={onShowNewAddressForm} className={`${CARD} mt-3 flex w-full items-center gap-3 p-4 text-left`}>
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand text-white">
                 <Plus className="h-4 w-4" />
               </span>
 
               <span>
-                <span className="block text-sm font-semibold">
-                  Add a new address
-                </span>
-                <span className="block text-xs text-[#8B8177]">
-                  Deliver this order somewhere else
-                </span>
+                <span className="block text-sm font-semibold">Add a new address</span>
+                <span className="block text-xs text-[#8B8177]">Deliver this order somewhere else</span>
               </span>
             </button>
           )}
@@ -922,17 +683,13 @@ function DeliveryAddressStep({
             <div className={`${CARD} mt-3 p-4`}>
               <div className="mb-4">
                 <h3 className="text-sm font-semibold">Add a new address</h3>
-                <p className="mt-1 text-xs text-[#8B8177]">
-                  This address will be saved to your account.
-                </p>
+                <p className="mt-1 text-xs text-[#8B8177]">This address will be saved to your account.</p>
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2">
                 {ADDRESS_FIELDS.map(([name, label]) => (
                   <label key={name} className="block">
-                    <span className="mb-1.5 block text-xs font-medium text-[#655C54]">
-                      {label}
-                    </span>
+                    <span className="mb-1.5 block text-xs font-medium text-[#655C54]">{label}</span>
 
                     <input
                       value={newAddress[name]}
@@ -942,7 +699,7 @@ function DeliveryAddressStep({
                           [name]: event.target.value,
                         }))
                       }
-                      className="focus:border-brand h-10 w-full rounded-lg border border-[#E6DDD2] bg-[#FCFBF9] px-3 text-sm outline-none"
+                      className="h-10 w-full rounded-lg border border-[#E6DDD2] bg-[#FCFBF9] px-3 text-sm outline-none focus:border-brand"
                     />
                   </label>
                 ))}
@@ -950,21 +707,12 @@ function DeliveryAddressStep({
 
               <div className="mt-4 flex justify-end gap-2">
                 {addresses.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={onHideNewAddressForm}
-                    className="h-10 rounded-lg border border-[#E7DED3] px-4 text-sm font-medium"
-                  >
+                  <button type="button" onClick={onHideNewAddressForm} className="h-10 rounded-lg border border-[#E7DED3] px-4 text-sm font-medium">
                     Cancel
                   </button>
                 )}
 
-                <button
-                  type="button"
-                  onClick={onCreateAddress}
-                  disabled={addressSaving}
-                  className={PRIMARY_BUTTON}
-                >
+                <button type="button" onClick={onCreateAddress} disabled={addressSaving} className={PRIMARY_BUTTON}>
                   {addressSaving ? "Saving…" : "Save Address"}
                 </button>
               </div>
@@ -995,11 +743,7 @@ function DeliveryScheduleStep({
 }) {
   return (
     <>
-      <PageHeading
-        eyebrow="Step 4 of 6"
-        title="Pick a delivery window"
-        description="Choose the day and two-hour window that suits you. You can reschedule up to 12 hours before."
-      />
+      <PageHeading eyebrow="Step 4 of 6" title="Pick a delivery window" description="Choose the day and two-hour window that suits you. You can reschedule up to 12 hours before." />
 
       <p className={`${EYEBROW} mb-2 text-[#8B8177]`}>Date</p>
 
@@ -1013,17 +757,10 @@ function DeliveryScheduleStep({
               type="button"
               onClick={() => onDateChange(date.value)}
               aria-pressed={selected}
-              className={[
-                "rounded-xl border px-2 py-2.5 text-center transition",
-                selected
-                  ? "border-brand bg-brand text-white"
-                  : "border-[#E7DED3] bg-white text-[#4A423B]",
-              ].join(" ")}
+              className={["rounded-xl border px-2 py-2.5 text-center transition", selected ? "border-brand bg-brand text-white" : "border-[#E7DED3] bg-white text-[#4A423B]"].join(" ")}
             >
               <span className="block text-[11px]">{date.day}</span>
-              <strong className="mt-0.5 block text-base leading-none">
-                {date.date}
-              </strong>
+              <strong className="mt-0.5 block text-base leading-none">{date.date}</strong>
               <span className="mt-1 block text-[11px]">{date.month}</span>
             </button>
           );
@@ -1046,29 +783,15 @@ function DeliveryScheduleStep({
                 aria-pressed={selected}
                 className={[
                   "flex min-h-14 items-center justify-between gap-3 rounded-xl border px-3.5 text-left transition",
-                  slot.disabled
-                    ? "cursor-not-allowed border-[#EEE8E0] bg-[#FAF8F5] text-[#B8AEA4]"
-                    : selected
-                      ? "border-brand bg-white"
-                      : "border-[#E7DED3] bg-white",
+                  slot.disabled ? "cursor-not-allowed border-[#EEE8E0] bg-[#FAF8F5] text-[#B8AEA4]" : selected ? "border-brand bg-white" : "border-[#E7DED3] bg-white",
                 ].join(" ")}
               >
                 <span>
-                  <span className="block text-sm font-semibold">
-                    {slot.label}
-                  </span>
-                  <span className="mt-0.5 block text-xs text-[#8B8177]">
-                    {slot.subtitle}
-                  </span>
+                  <span className="block text-sm font-semibold">{slot.label}</span>
+                  <span className="mt-0.5 block text-xs text-[#8B8177]">{slot.subtitle}</span>
                 </span>
 
-                <span className="text-brand shrink-0 text-xs font-semibold">
-                  {slot.disabled
-                    ? "Fully booked"
-                    : slot.price
-                      ? `+${formatNaira(slot.price)}`
-                      : "Free"}
-                </span>
+                <span className="shrink-0 text-xs font-semibold text-brand">{slot.disabled ? "Fully booked" : slot.price ? `+${formatNaira(slot.price)}` : "Free"}</span>
               </button>
             );
           })}
@@ -1077,7 +800,7 @@ function DeliveryScheduleStep({
 
       <label className="mt-6 block">
         <span className={`${EYEBROW} mb-2 flex items-center gap-1.5 text-[#8B8177]`}>
-          <Clock3 className="text-brand h-3.5 w-3.5" />
+          <Clock3 className="h-3.5 w-3.5 text-brand" />
           Notes for the butcher or driver
         </span>
 
@@ -1085,7 +808,7 @@ function DeliveryScheduleStep({
           value={notes}
           onChange={(event) => onNotesChange(event.target.value)}
           rows={3}
-          className="focus:border-brand w-full resize-none rounded-xl border border-[#E7DED3] bg-white px-3 py-3 text-sm outline-none"
+          className="w-full resize-none rounded-xl border border-[#E7DED3] bg-white px-3 py-3 text-sm outline-none focus:border-brand"
           placeholder="Leave with the concierge, chuck it on the..."
         />
       </label>
@@ -1093,27 +816,13 @@ function DeliveryScheduleStep({
   );
 }
 
-function ReviewCard({
-  title,
-  step,
-  onEdit,
-  children,
-}: {
-  title: string;
-  step: number;
-  onEdit: (step: number) => void;
-  children: React.ReactNode;
-}) {
+function ReviewCard({ title, step, onEdit, children }: { title: string; step: number; onEdit: (step: number) => void; children: React.ReactNode }) {
   return (
     <div className={`${CARD} p-4`}>
       <div className="mb-3 flex items-center justify-between">
         <span className={`${EYEBROW} text-[#8B8177]`}>{title}</span>
 
-        <button
-          type="button"
-          onClick={() => onEdit(step)}
-          className="text-brand text-xs font-medium"
-        >
+        <button type="button" onClick={() => onEdit(step)} className="text-xs font-medium text-brand">
           Edit
         </button>
       </div>
@@ -1148,21 +857,13 @@ function ReviewOrder({
 
   return (
     <>
-      <PageHeading
-        eyebrow="Step 5 of 6"
-        title="One last look"
-        description="Confirm the details below, then place your order. You'll get a receipt and live tracking by text."
-      />
+      <PageHeading eyebrow="Step 5 of 6" title="One last look" description="Confirm the details below, then place your order. You'll get a receipt and live tracking by text." />
 
       <div className={`${CARD} p-5`}>
         <div className="mb-4 flex items-center justify-between">
           <span className={`${EYEBROW} text-[#8B8177]`}>Your cuts</span>
 
-          <button
-            type="button"
-            onClick={() => onEdit(1)}
-            className="text-brand flex items-center gap-1 text-xs font-medium"
-          >
+          <button type="button" onClick={() => onEdit(1)} className="flex items-center gap-1 text-xs font-medium text-brand">
             <Edit3 className="h-3 w-3" />
             Edit
           </button>
@@ -1174,17 +875,13 @@ function ReviewOrder({
               <ProductImage item={item} small />
 
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium">
-                  {item.product.name}
-                </p>
+                <p className="truncate text-sm font-medium">{item.product.name}</p>
                 <p className="text-xs text-[#958B80]">
                   {item.quantity} × {formatNaira(getItemPrice(item))}
                 </p>
               </div>
 
-              <span className="text-brand text-sm font-bold">
-                {formatNaira(getItemPrice(item) * item.quantity)}
-              </span>
+              <span className="text-sm font-bold text-brand">{formatNaira(getItemPrice(item) * item.quantity)}</span>
             </div>
           ))}
         </div>
@@ -1206,14 +903,8 @@ function ReviewOrder({
         </ReviewCard>
 
         <ReviewCard title="Delivery method" step={2} onEdit={onEdit}>
-          <p className="text-sm font-medium">
-            {deliveryMethod === "home" ? "Home Delivery" : "Store Pickup"}
-          </p>
-          <p className="mt-1 text-xs text-[#786F66]">
-            {deliveryMethod === "home"
-              ? `${formatNaira(HOME_DELIVERY_FEE)} delivery`
-              : "Free pickup"}
-          </p>
+          <p className="text-sm font-medium">{deliveryMethod === "home" ? "Home Delivery" : "Store Pickup"}</p>
+          <p className="mt-1 text-xs text-[#786F66]">{deliveryMethod === "home" ? `${formatNaira(HOME_DELIVERY_FEE)} delivery` : "Free pickup"}</p>
         </ReviewCard>
 
         <ReviewCard title="Schedule" step={4} onEdit={onEdit}>
@@ -1223,46 +914,27 @@ function ReviewOrder({
 
         <ReviewCard title="Payment" step={6} onEdit={onEdit}>
           <p className="text-sm font-medium">Paystack</p>
-          <p className="mt-1 text-xs text-[#786F66]">
-            Card, bank transfer, USSD & more
-          </p>
+          <p className="mt-1 text-xs text-[#786F66]">Card, bank transfer, USSD & more</p>
         </ReviewCard>
       </div>
     </>
   );
 }
 
-function PaymentStep({
-  total,
-  email,
-  loading,
-  onPay,
-}: {
-  total: number;
-  email: string;
-  loading: boolean;
-  onPay: () => void;
-}) {
+function PaymentStep({ total, email, loading, onPay }: { total: number; email: string; loading: boolean; onPay: () => void }) {
   return (
     <>
-      <PageHeading
-        eyebrow="Step 6 of 6"
-        title="Ready to pay?"
-        description="You'll be securely redirected to Paystack to choose your preferred payment method."
-      />
+      <PageHeading eyebrow="Step 6 of 6" title="Ready to pay?" description="You'll be securely redirected to Paystack to choose your preferred payment method." />
 
       <div className={`${CARD} p-5 sm:p-6`}>
         <div className="mx-auto max-w-md text-center">
-          <div className="text-brand mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#FFF0E9]">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#FFF0E9] text-brand">
             <LockKeyhole className="h-5 w-5" />
           </div>
 
           <h2 className="mt-4 text-lg font-bold">Secure payment</h2>
 
-          <p className="mt-2 text-sm leading-6 text-[#857B71]">
-            Your payment details are entered directly on Paystack&apos;s secure
-            checkout.
-          </p>
+          <p className="mt-2 text-sm leading-6 text-[#857B71]">Your payment details are entered directly on Paystack&apos;s secure checkout.</p>
 
           <div className="mt-6 rounded-xl bg-[#FCFAF7] p-4 text-left">
             <div className="flex justify-between gap-3 text-xs">
@@ -1276,12 +948,7 @@ function PaymentStep({
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={onPay}
-            disabled={loading}
-            className={`${PRIMARY_BUTTON} mt-5 h-12 w-full`}
-          >
+          <button type="button" onClick={onPay} disabled={loading} className={`${PRIMARY_BUTTON} mt-5 h-12 w-full`}>
             {loading ? "Creating order…" : "Proceed to Payment"}
           </button>
         </div>
@@ -1314,9 +981,7 @@ function OrderSummary({
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
-    <aside
-      className={`${CARD} p-4 shadow-[0_8px_28px_rgba(61,45,31,0.08)] sm:p-5 lg:sticky lg:top-6`}
-    >
+    <aside className={`${CARD} p-4 shadow-[0_8px_28px_rgba(61,45,31,0.08)] sm:p-5 lg:sticky lg:top-6`}>
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-base font-bold">Order Summary</h2>
         <span className="text-xs text-[#8B8177]">
@@ -1336,9 +1001,7 @@ function OrderSummary({
               </p>
             </div>
 
-            <span className="text-xs">
-              {formatNaira(getItemPrice(item) * item.quantity)}
-            </span>
+            <span className="text-xs">{formatNaira(getItemPrice(item) * item.quantity)}</span>
           </div>
         ))}
       </div>
@@ -1359,9 +1022,7 @@ function OrderSummary({
         <div className="flex justify-between">
           <span className="flex items-center gap-1.5 text-[#857B71]">
             Discount
-            <span className="text-brand rounded-full bg-[#FFF0E9] px-1.5 py-0.5 text-[11px] font-bold">
-              {DISCOUNT_CODE}
-            </span>
+            <span className="rounded-full bg-[#FFF0E9] px-1.5 py-0.5 text-[11px] font-bold text-brand">{DISCOUNT_CODE}</span>
           </span>
           <span className="text-brand">− {formatNaira(discount)}</span>
         </div>
@@ -1379,17 +1040,8 @@ function OrderSummary({
         <span className="text-xl font-bold">{formatNaira(total)}</span>
       </div>
 
-      <button
-        type="button"
-        onClick={onContinue}
-        disabled={loading}
-        className={`${PRIMARY_BUTTON} mt-4 w-full`}
-      >
-        {loading
-          ? "Processing…"
-          : step >= LAST_STEP
-            ? "Proceed to Payment"
-            : "Continue"}
+      <button type="button" onClick={onContinue} disabled={loading} className={`${PRIMARY_BUTTON} mt-4 w-full`}>
+        {loading ? "Processing…" : step >= LAST_STEP ? "Proceed to Payment" : "Continue"}
       </button>
 
       <div className="mt-3 flex items-center justify-center gap-1.5 text-center text-[11px] text-[#8B8177]">

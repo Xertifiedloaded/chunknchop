@@ -16,10 +16,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(zones);
   } catch (error) {
     console.error("Delivery zones error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
@@ -47,9 +44,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(zone);
   } catch (error) {
     console.error("Delivery zone create error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

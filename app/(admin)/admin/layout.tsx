@@ -22,21 +22,13 @@ export const viewport: Viewport = {
   ],
 };
 
-export default async function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies();
   const accessToken = cookieStore.get("accessToken")?.value;
   const payload = accessToken ? verifyToken(accessToken) : null;
 
   if (!payload) {
-    redirect(
-      cookieStore.has("refreshToken")
-        ? "/api/auth/refresh?next=/admin"
-        : "/auth/login",
-    );
+    redirect(cookieStore.has("refreshToken") ? "/api/auth/refresh?next=/admin" : "/auth/login");
   }
 
   let role: string | null = null;
@@ -61,9 +53,7 @@ export default async function AdminLayout({
       <AdminAuthProvider>
         <AdminNav />
         <AdminTopbar />
-        <main className="min-h-screen pt-14 font-sans lg:pl-64">
-          {children}
-        </main>
+        <main className="min-h-screen pt-14 font-sans lg:pl-64">{children}</main>
       </AdminAuthProvider>
     </div>
   );

@@ -1,11 +1,6 @@
 import { slugify } from "@/lib/utils/slug";
 
-export const SORT_OPTIONS = [
-  "Newest",
-  "Price: Low to High",
-  "Price: High to Low",
-  "Top Rated",
-] as const;
+export const SORT_OPTIONS = ["Newest", "Price: Low to High", "Price: High to Low", "Top Rated"] as const;
 export type SortOption = (typeof SORT_OPTIONS)[number];
 
 export const PRICE_MIN = 0;
@@ -51,29 +46,13 @@ export interface FilterableProduct {
 }
 
 export function countActiveFilters(f: FilterState) {
-  return [
-    f.category !== "All",
-    f.maxPrice < PRICE_MAX,
-    (f.preparations?.length ?? 0) > 0,
-    f.inStock,
-    f.sameDayDelivery,
-    f.newArrival,
-    f.bestSeller,
-  ].filter(Boolean).length;
+  return [f.category !== "All", f.maxPrice < PRICE_MAX, (f.preparations?.length ?? 0) > 0, f.inStock, f.sameDayDelivery, f.newArrival, f.bestSeller].filter(Boolean).length;
 }
 
 function productCategorySlug(p: FilterableProduct): string {
   const ref = p.categoryRef;
 
-  const raw = ref?.slug
-    ? ref.slug.replace(/^\//, "")
-    : typeof p.category === "string" && p.category.trim()
-      ? p.category
-      : ref?.name
-        ? ref.name
-        : p.categoryId
-          ? String(p.categoryId)
-          : "";
+  const raw = ref?.slug ? ref.slug.replace(/^\//, "") : typeof p.category === "string" && p.category.trim() ? p.category : ref?.name ? ref.name : p.categoryId ? String(p.categoryId) : "";
 
   return raw ? slugify(raw) : "";
 }
@@ -83,16 +62,10 @@ function timeOf(value: FilterableProduct["createdAt"]) {
   return Number.isNaN(time) ? 0 : time;
 }
 
-export function filterProducts<T extends FilterableProduct>(
-  products: T[],
-  f: FilterState,
-): T[] {
+export function filterProducts<T extends FilterableProduct>(products: T[], f: FilterState): T[] {
   const query = f.search.trim().toLowerCase();
   const selectedPreparations = f.preparations ?? [];
-  const selectedCategory =
-    f.category !== "All" && typeof f.category === "string"
-      ? slugify(f.category)
-      : null;
+  const selectedCategory = f.category !== "All" && typeof f.category === "string" ? slugify(f.category) : null;
 
   const result = products.filter((p) => {
     if (f.category !== "All") {
@@ -105,8 +78,7 @@ export function filterProducts<T extends FilterableProduct>(
 
     if (selectedPreparations.length) {
       const available = p.preparations ?? [];
-      if (!selectedPreparations.some((prep) => available.includes(prep)))
-        return false;
+      if (!selectedPreparations.some((prep) => available.includes(prep))) return false;
     }
 
     if (f.inStock && !p.inStock) return false;

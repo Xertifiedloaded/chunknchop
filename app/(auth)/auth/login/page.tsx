@@ -41,7 +41,7 @@ export default function LoginPage() {
 
 function Loading() {
   return (
-    <div className="text-muted-foreground flex items-center justify-center gap-2 py-10 text-sm">
+    <div className="flex items-center justify-center gap-2 py-10 text-sm text-muted-foreground">
       <Loader2 className="h-5 w-5 animate-spin" />
       Loading...
     </div>
@@ -88,7 +88,7 @@ function LoginForm() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
-        credentials: "include", // ensure refresh cookie is accepted by the browser
+        credentials: "include",
       });
 
       const data = await response.json();
@@ -102,7 +102,6 @@ function LoginForm() {
 
       setUser(user);
 
-      // Do NOT persist access token to localStorage or sessionStorage. Keep in-memory only.
 
       const redirect = searchParams.get("redirect") || "/";
 
@@ -118,30 +117,18 @@ function LoginForm() {
   return (
     <>
       <div className="mb-8 text-center">
-        <h2 className="font-sora text-2xl font-bold sm:text-2xl">
-          Welcome Back
-        </h2>
-        <p className="text-ink font-worksans mt-2 text-xs">
-          Sign in to your ChunkNChop account
-        </p>
+        <h2 className="font-sora text-2xl font-bold sm:text-2xl">Welcome Back</h2>
+        <p className="mt-2 font-worksans text-xs text-ink">Sign in to your ChunkNChop account</p>
       </div>
       {error && (
-        <div
-          role="alert"
-          className="border-destructive/20 bg-destructive/10 text-destructive mb-5 rounded-lg border px-4 py-3 text-xs"
-        >
+        <div role="alert" className="mb-5 rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-3 text-xs text-destructive">
           {error}
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-5">
         {FIELDS.map((field) => (
-          <AuthInput
-            key={field.name}
-            {...field}
-            value={formData[field.name as keyof typeof formData]}
-            onChange={handleInputChange}
-          />
+          <AuthInput key={field.name} {...field} value={formData[field.name as keyof typeof formData]} onChange={handleInputChange} />
         ))}
         <Button type="submit" disabled={loading} className="h-11 w-full">
           {loading ? (
@@ -155,30 +142,18 @@ function LoginForm() {
         </Button>
       </form>
 
-      <fieldset className="border-sand my-7 border-0 border-t">
-        <legend className="text-ink mx-auto px-3 text-xs font-medium tracking-wide uppercase">
-          Or
-        </legend>
+      <fieldset className="my-7 border-0 border-t border-sand">
+        <legend className="mx-auto px-3 text-xs font-medium tracking-wide text-ink uppercase">Or</legend>
       </fieldset>
 
-      <Button
-        type="button"
-        variant="outline"
-        className="text-charcoal hover:text-charcoal animate-out h-11 w-full border-[#E5E7EB] bg-white text-sm font-bold transition-all hover:bg-gray-50"
-      >
-        <Image
-          src={google}
-          alt="Google"
-          width={18}
-          height={18}
-          className="mr-2"
-        />
+      <Button type="button" variant="outline" className="h-11 w-full animate-out border-[#E5E7EB] bg-white text-sm font-bold text-charcoal transition-all hover:bg-gray-50 hover:text-charcoal">
+        <Image src={google} alt="Google" width={18} height={18} className="mr-2" />
         Continue with Google
       </Button>
       <div className="mt-6 text-center">
-        <p className="text-charcoal font-sora text-xs">
+        <p className="font-sora text-xs text-charcoal">
           New to ChunkNChop?{" "}
-          <Link className="text-brand font-bold" href="/auth/signup">
+          <Link className="font-bold text-brand" href="/auth/signup">
             Create Account
           </Link>
         </p>

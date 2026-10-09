@@ -1,121 +1,72 @@
+
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { getUserFromRequest } from "@/lib/http/request";
 import { prisma } from "@/lib/db";
-import { slugify } from "@/lib/utils/slug";
-import { findCategoryByName, normalizeColor } from "@/features/catalog/server/catalog";
+import { slugify, validateData } from "@/lib/cms/config";
+import { categoryToEntry } from "@/lib/cms/server";
 
-const cleanSlug = (slug: string) => slug.replace(/^\//, "");
+export const dynamic = "force-dynamic";
+
+const refresh = () => ["/", "/shop", "/categories"].forEach((p) => revalidatePath(p));
 
 export async function GET(request: NextRequest) {
+  const user = getUserFromRequest(request);
+
+  if (!user || user.role !== "ADMIN") {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
-    const user = getUserFromRequest(request);
-
-    if (!user || user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const includeInactive =
-      request.nextUrl.searchParams.get("includeInactive") === "true";
-
-    const categories = await prisma.category.findMany({
-      where: includeInactive ? undefined : { isActive: true },
-      orderBy: { name: "asc" },
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        image: true,
-        color: true,
-        isActive: true,
-        _count: {
-          select: { products: { where: { isArchived: false } } },
-        },
-      },
-    });
-
-    return NextResponse.json(
-      categories.map(({ _count, slug, ...category }) => ({
-        ...category,
-        slug: cleanSlug(slug),
-        productCount: _count.products,
-      })),
-    );
+    const rows = await prisma.category.findMany();
+    rows.sort((a: any, b: any) => (a.sortOrder ?? 9999) - (b.sortOrder ?? 9999) || a.createdAt.getTime() - b.createdAt.getTime());
+    return NextResponse.json({ items: rows.map(categoryToEntry) });
   } catch (error) {
-    console.error("Error fetching admin categories:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch categories" },
-      { status: 500 },
-    );
+    console.error("Category list failed:", error);
+    return NextResponse.json({ error: "Failed to load categories" }, { status: 500 });
   }
 }
 
 export async function POST(request: NextRequest) {
+  const user = getUserFromRequest(request);
+
+  if (!user || user.role !== "ADMIN") {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const body = await request.json().catch(() => null);
+  if (!body || typeof body !== "object") return NextResponse.json({ error: "Invalid body" }, { status: 400 });
+
+  const name = typeof body.title === "string" ? body.title.trim() : "";
+  const { data, errors } = validateData("CATEGORY", body.data);
+  const slug = slugify(String(body.slug || name));
+
+  if (!name) errors.title = "Category name is required";
+  if (!slug) errors.slug = "Slug is required";
+
   try {
-    const user = getUserFromRequest(request);
+    if (name && (await prisma.category.findFirst({ where: { name }, select: { id: true } }))) errors.title = "A category with this name already exists";
+    if (slug && (await prisma.category.findUnique({ where: { slug }, select: { id: true } }))) errors.slug = "This slug is already used";
 
-    if (!user || user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (Object.keys(errors).length) {
+      return NextResponse.json({ error: "Validation failed", fieldErrors: errors }, { status: 422 });
     }
 
-    const body = await request.json().catch(() => null);
-    const name = typeof body?.name === "string" ? body.name.trim() : "";
-    const image = typeof body?.image === "string" ? body.image.trim() : "";
-
-    if (!name) {
-      return NextResponse.json({ error: "name is required" }, { status: 400 });
-    }
-
-    const slug = slugify(name);
-
-    if (!slug) {
-      return NextResponse.json(
-        { error: "Could not derive a valid slug from the category name" },
-        { status: 400 },
-      );
-    }
-
-    const existing = await findCategoryByName(name);
-
-    if (existing) {
-      return NextResponse.json(
-        {
-          error: "A category with this name already exists",
-          category: { id: existing.id, name: existing.name },
-        },
-        { status: 409 },
-      );
-    }
-
-    const category = await prisma.category.create({
+    const created = await prisma.category.create({
       data: {
         name,
         slug,
-        color: normalizeColor(body?.color),
-        ...(image ? { image } : {}),
-      },
+        description: (data.description as string) || null,
+        image: (data.image as string) || null,
+        isActive: body.status === "LIVE",
+        sortOrder: Number.isInteger(body.sortOrder) ? body.sortOrder : 0,
+      } as any,
     });
 
-    return NextResponse.json(
-      { ...category, slug: cleanSlug(category.slug), productCount: 0 },
-      { status: 201 },
-    );
-  } catch (error: unknown) {
-    if (
-      error &&
-      typeof error === "object" &&
-      "code" in error &&
-      error.code === "P2002"
-    ) {
-      return NextResponse.json(
-        { error: "A category with this name already exists" },
-        { status: 409 },
-      );
-    }
-
-    console.error("Error creating category:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    refresh();
+    return NextResponse.json({ item: categoryToEntry(created as any) }, { status: 201 });
+  } catch (error) {
+    console.error("Category create failed:", error);
+    return NextResponse.json({ error: "Failed to create category" }, { status: 500 });
   }
 }

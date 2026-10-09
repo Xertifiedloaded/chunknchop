@@ -1,0 +1,4 @@
+{
+  "entry": ["scripts/*.{ts,js,mjs}", "prisma/seed.ts"],
+  "ignore": ["public/**", "next-env.d.ts", "features/**/.gitkeep"]
+}

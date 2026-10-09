@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserFromRequest } from "@/lib/request";
+import { getUserFromRequest } from "@/lib/http/request";
 
 import { hashPassword } from "@/lib/auth";
 import { z } from "zod";
@@ -8,7 +8,7 @@ import {
   ROLE_META,
   ROLE_PERMISSIONS,
   permissionCount,
-} from "@/lib/permission";
+} from "@/lib/auth/permissions";
 import prisma from "@/lib/db";
 
 const staffSchema = z.object({

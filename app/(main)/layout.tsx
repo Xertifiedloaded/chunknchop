@@ -1,8 +1,8 @@
 
 import MobileAppPromo from "@/components/sections/MobileApp";
 
-import Header from "@/components/sections/common/Header";
-import Footer from "@/components/sections/common/Footer";
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
 import ComingSoon from "@/components/ComingSoon";
 
 export default function MainLayout({

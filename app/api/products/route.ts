@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { ACTIVE_PRODUCT_FILTER } from "@/lib/products";
+import { ACTIVE_PRODUCT_FILTER } from "@/features/catalog/server/products";
 
 export async function GET() {
   try {

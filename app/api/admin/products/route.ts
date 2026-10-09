@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { MeatType } from "@prisma/client";
-import { getUserFromRequest } from "@/lib/request";
+import { getUserFromRequest } from "@/lib/http/request";
 import { prisma } from "@/lib/db";
 import { uploadProductImage } from "@/lib/storage";
-import { resolveCategory, resolveLocation } from "@/lib/catalog";
+import { resolveCategory, resolveLocation } from "@/features/catalog/server/catalog";
 
 const text = (formData: FormData, key: string) =>
   String(formData.get(key) ?? "").trim();

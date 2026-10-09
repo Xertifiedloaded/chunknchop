@@ -1,9 +1,9 @@
 "use client";
 
-import { fetchWithAuth } from "@/lib/fetchClient";
+import { fetchWithAuth } from "@/lib/http/fetchClient";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/lib/store/authStore";
+import { useAuthStore } from "@/store/authStore";
 import { Button } from "@/components/ui/button";
 import { Loader2, Calendar, Pause, Trash2 } from "lucide-react";
 import Link from "next/link";

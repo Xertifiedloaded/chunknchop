@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserFromRequest } from "@/lib/request";
-import { STAFF_ROLES, ROLE_META, ROLE_PERMISSIONS } from "@/lib/permission";
+import { getUserFromRequest } from "@/lib/http/request";
+import { STAFF_ROLES, ROLE_META, ROLE_PERMISSIONS } from "@/lib/auth/permissions";
 
 function toCamelCase(value: string) {
   return value

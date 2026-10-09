@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserFromRequest } from "@/lib/request";
+import { getUserFromRequest } from "@/lib/http/request";
 import { prisma } from "@/lib/db";
-import { slugify } from "@/lib/slug";
-import { findCategoryByName, normalizeColor } from "@/lib/catalog";
+import { slugify } from "@/lib/utils/slug";
+import { findCategoryByName, normalizeColor } from "@/features/catalog/server/catalog";
 
 const cleanSlug = (slug: string) => slug.replace(/^\//, "");
 

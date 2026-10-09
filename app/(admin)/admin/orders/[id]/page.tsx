@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { fetchWithAuth } from "@/lib/fetchClient";
+import { fetchWithAuth } from "@/lib/http/fetchClient";
 
 type OrderItem = {
   id: string;

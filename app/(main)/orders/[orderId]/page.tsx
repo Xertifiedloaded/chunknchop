@@ -1,6 +1,6 @@
 "use client";
 
-import { fetchWithAuth } from "@/lib/fetchClient";
+import { fetchWithAuth } from "@/lib/http/fetchClient";
 
 import { use, useEffect, useState } from "react";
 import {
@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/lib/store/authStore";
+import { useAuthStore } from "@/store/authStore";
 
 interface Props {
   params: Promise<{

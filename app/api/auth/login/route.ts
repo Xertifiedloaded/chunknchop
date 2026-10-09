@@ -7,8 +7,8 @@ import {
   generateRefreshToken,
   verifyPassword,
 } from "@/lib/auth";
-import { setAuthCookies } from "@/lib/auth-cookies";
-import { storeRefreshToken } from "@/lib/refresh-tokens";
+import { setAuthCookies } from "@/lib/auth/cookies";
+import { storeRefreshToken } from "@/lib/auth/tokens";
 
 export const runtime = "nodejs";
 

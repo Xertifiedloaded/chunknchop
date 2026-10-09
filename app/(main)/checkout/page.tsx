@@ -32,16 +32,16 @@ import type {
   DeliveryDate,
   DeliveryMethod,
   DeliverySlot,
-} from "@/lib/types";
-import { fetchWithAuth } from "@/lib/fetchClient";
-import { formatNaira } from "@/lib/format";
-import { useAuthStore } from "@/lib/store/authStore";
-import { useCartStore } from "@/lib/store/cartStore";
+} from "@/types";
+import { fetchWithAuth } from "@/lib/http/fetchClient";
+import { formatNaira } from "@/lib/utils/format";
+import { useAuthStore } from "@/store/authStore";
+import { useCartStore } from "@/store/cartStore";
 import {
   isTempItem,
   maxQuantityFor,
   useCartActions,
-} from "@/lib/hooks/useCartActions";
+} from "@/features/cart/hooks/useCartActions";
 
 const STEPS = [
   "Cart Review",

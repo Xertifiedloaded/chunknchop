@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserFromRequest } from "@/lib/request";
+import { getUserFromRequest } from "@/lib/http/request";
 import { prisma } from "@/lib/db";
-import { pusher } from "@/lib/pusher";
+import { pusher } from "@/lib/realtime/pusher";
 
 // POST /api/admin/orders/auto-assign
 // body: { orderIds: string[] }

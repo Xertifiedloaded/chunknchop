@@ -1,5 +1,5 @@
 import { PrismaClient, UserRole } from "@prisma/client";
-import { paystack } from "../lib/paystack";
+import { paystack } from "@/lib/payments/paystack";
 
 const prisma = new PrismaClient();
 

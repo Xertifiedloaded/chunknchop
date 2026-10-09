@@ -1,6 +1,6 @@
 "use client";
 
-import { fetchWithAuth } from "@/lib/fetchClient";
+import { fetchWithAuth } from "@/lib/http/fetchClient";
 
 import { useEffect, useState } from "react";
 import useSWR from "swr";
@@ -22,12 +22,12 @@ import {
 
 import toast from "react-hot-toast";
 
-import { formatNaira } from "@/lib/format";
-import { useAuthStore } from "@/lib/store/authStore";
-import { useCartStore } from "@/lib/store/cartStore";
+import { formatNaira } from "@/lib/utils/format";
+import { useAuthStore } from "@/store/authStore";
+import { useCartStore } from "@/store/cartStore";
 
-import ReviewsSection from "@/components/sections/shops/Rating";
-import LoadingState from "@/components/sections/common/LoadingState";
+import ReviewsSection from "@/features/catalog/components/Rating";
+import LoadingState from "@/components/feedback/LoadingState";
 
 interface ProductTier {
   id: string;

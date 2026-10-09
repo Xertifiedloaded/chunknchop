@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserFromRequest } from "@/lib/request";
+import { getUserFromRequest } from "@/lib/http/request";
 import { prisma } from "@/lib/db";
 import {
   LOCATION_TYPES,
   findLocationByName,
   isLocationType,
-} from "@/lib/catalog";
+} from "@/features/catalog/server/catalog";
 
 /**
  * GET /api/admin/locations?includeInactive=true

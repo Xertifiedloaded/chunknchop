@@ -4,22 +4,22 @@ import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ArrowUpDown, SlidersHorizontal, Search } from "lucide-react";
 
-import { useProductStore } from "@/lib/store/productStore";
+import { useProductStore } from "@/store/productStore";
 import {
   DEFAULT_FILTERS,
   FilterState,
   SORT_OPTIONS,
   countActiveFilters,
   filterProducts,
-} from "@/lib/filters";
+} from "@/features/catalog/filters";
 
-import CategoryPills from "@/components/sections/shops/CategoryPills";
-import EmptyState from "@/components/sections/shops/EmptyState";
-import ProductCard from "@/components/sections/shops/ProductCard";
+import CategoryPills from "@/features/catalog/components/CategoryPills";
+import EmptyState from "@/components/feedback/EmptyState";
+import ProductCard from "@/features/catalog/components/ProductCard";
 import FilterSidebar, {
   MobileFilterDrawer,
-} from "@/components/sections/shops/FilterSidebar";
-import LoadingState from "@/components/sections/common/LoadingState";
+} from "@/features/catalog/components/FilterSidebar";
+import LoadingState from "@/components/feedback/LoadingState";
 
 const PAGE_SIZE = 8;
 const ALL = "All";

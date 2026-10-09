@@ -1,6 +1,6 @@
 "use client";
 
-import { fetchWithAuth } from "@/lib/fetchClient";
+import { fetchWithAuth } from "@/lib/http/fetchClient";
 
 import { useState } from "react";
 import Image from "next/image";
@@ -11,8 +11,8 @@ import toast from "react-hot-toast";
 import WishlistHeader from "@/components/sections/wishlist/WishlistHeader";
 import WishlistProductCard from "@/components/sections/wishlist/WishlistCard";
 import SimilarProducts from "@/components/SimilarProducts";
-import { useAuthStore } from "@/lib/store/authStore";
-import { useCartStore } from "@/lib/store/cartStore";
+import { useAuthStore } from "@/store/authStore";
+import { useCartStore } from "@/store/cartStore";
 
 interface WishlistItem {
   productId: string;

@@ -12,7 +12,7 @@ import {
   Repeat,
   ChevronDown,
 } from "lucide-react";
-import { fetchWithAuth } from "@/lib/fetchClient";
+import { fetchWithAuth } from "@/lib/http/fetchClient";
 
 interface Customer {
   id: string;

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { pusher } from "@/lib/pusher";
+import { pusher } from "@/lib/realtime/pusher";
 import { prisma } from "@/lib/db";
-import { getUserFromRequest } from "@/lib/request";
+import { getUserFromRequest } from "@/lib/http/request";
 
 export async function POST(request: NextRequest) {
   try {

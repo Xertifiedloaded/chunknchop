@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserFromRequest } from "@/lib/request";
+import { getUserFromRequest } from "@/lib/http/request";
 import { prisma } from "@/lib/db";
-import { ACTIVE_PRODUCT_FILTER } from "@/lib/products";
+import { ACTIVE_PRODUCT_FILTER } from "@/features/catalog/server/products";
 
 export async function GET(request: NextRequest) {
   try {

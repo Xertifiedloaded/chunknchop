@@ -4,8 +4,8 @@ import { useState } from "react";
 import useSWR from "swr";
 import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast";
-import { fetchWithAuth } from "@/lib/fetchClient";
-import { useAuthStore } from "@/lib/store/authStore";
+import { fetchWithAuth } from "@/lib/http/fetchClient";
+import { useAuthStore } from "@/store/authStore";
 
 interface PaymentMethod {
   id: string;

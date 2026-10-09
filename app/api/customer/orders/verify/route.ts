@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getUserFromRequest } from "@/lib/request";
-import { deductStockForOrder } from "@/lib/inventory";
+import { getUserFromRequest } from "@/lib/http/request";
+import { deductStockForOrder } from "@/features/catalog/server/inventory";
 
 export async function GET(req: NextRequest) {
   try {

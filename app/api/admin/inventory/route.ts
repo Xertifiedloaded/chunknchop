@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserFromRequest } from "@/lib/request";
+import { getUserFromRequest } from "@/lib/http/request";
 import { prisma } from "@/lib/db";
-import { adjustInventoryRecord, getInventoryStatus } from "@/lib/inventory";
+import { adjustInventoryRecord, getInventoryStatus } from "@/features/catalog/server/inventory";
 import { InventoryChangeReason } from "@prisma/client";
 
 export async function GET(request: NextRequest) {

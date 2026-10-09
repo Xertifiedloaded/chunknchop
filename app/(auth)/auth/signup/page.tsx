@@ -5,10 +5,10 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Loader2, Lock, Mail, StoreIcon, User2 } from "lucide-react";
 
-import { useAuthStore } from "@/lib/store/authStore";
+import { useAuthStore } from "@/store/authStore";
 import { Button } from "@/components/ui/button";
-import AuthInput from "@/components/auth/AuthInput";
-import type { AuthField } from "@/lib/types";
+import AuthInput from "@/features/auth/components/AuthInput";
+import type { AuthField } from "@/types";
 import Image from "next/image";
 import google from "@/assets/google.png";
 const FIELDS: AuthField[] = [

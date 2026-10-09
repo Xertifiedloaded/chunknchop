@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { pusher } from "@/lib/pusher";
+import { pusher } from "@/lib/realtime/pusher";
 import { z } from "zod";
 
 const schema = z.object({

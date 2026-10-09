@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { MeatType, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
-import { getUserFromRequest } from "@/lib/request";
+import { getUserFromRequest } from "@/lib/http/request";
 import { uploadProductImage } from "@/lib/storage";
-import { resolveCategory, resolveLocation } from "@/lib/catalog";
-import { ACTIVE_PRODUCT_FILTER, isValidObjectId } from "@/lib/products";
+import { resolveCategory, resolveLocation } from "@/features/catalog/server/catalog";
+import { ACTIVE_PRODUCT_FILTER, isValidObjectId } from "@/features/catalog/server/products";
 
 type RouteContext = { params: Promise<{ id: string }> };
 

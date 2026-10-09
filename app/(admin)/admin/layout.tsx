@@ -2,8 +2,8 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import type { Metadata, Viewport } from "next";
 
-import AdminNav, { AdminTopbar } from "@/components/admin/AdminNav";
-import AdminAuthProvider from "@/components/admin/AdminAuthProvider";
+import AdminNav, { AdminTopbar } from "@/features/admin/components/AdminNav";
+import AdminAuthProvider from "@/features/admin/components/AdminAuthProvider";
 import { verifyToken } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 

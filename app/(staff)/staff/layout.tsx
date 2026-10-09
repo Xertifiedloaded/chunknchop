@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import type { Metadata } from "next";
 
-import AdminNav, { AdminTopbar } from "@/components/admin/AdminNav";
+import AdminNav, { AdminTopbar } from "@/features/admin/components/AdminNav";
 import { verifyToken } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 

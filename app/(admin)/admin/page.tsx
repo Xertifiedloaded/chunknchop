@@ -31,8 +31,8 @@ import {
   Truck,
   Wallet,
 } from "lucide-react";
-import { useAuthStore } from "@/lib/store/authStore";
-import { fetchWithAuth } from "@/lib/fetchClient";
+import { useAuthStore } from "@/store/authStore";
+import { fetchWithAuth } from "@/lib/http/fetchClient";
 import type { Order } from "@/components/admin/types";
 
 interface DashboardStats {

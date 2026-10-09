@@ -13,7 +13,7 @@ import {
   Truck,
   X,
 } from "lucide-react";
-import { fetchWithAuth } from "@/lib/fetchClient";
+import { fetchWithAuth } from "@/lib/http/fetchClient";
 
 type InventoryStatus =
   "Healthy" | "Low stock" | "Out of stock" | "Expiring soon";

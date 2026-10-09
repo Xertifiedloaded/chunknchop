@@ -5,13 +5,13 @@ import {
   generateRefreshToken,
   verifyRefreshToken,
 } from "@/lib/auth";
-import { clearAuthCookies, setAuthCookies } from "@/lib/auth-cookies";
+import { clearAuthCookies, setAuthCookies } from "@/lib/auth/cookies";
 import {
   consumeRefreshToken,
   revokeAllRefreshTokens,
   storeRefreshToken,
-} from "@/lib/refresh-tokens";
-import { findUserById } from "@/lib/users";
+} from "@/lib/auth/tokens";
+import { findUserById } from "@/features/users/server/users";
 
 export const runtime = "nodejs";
 

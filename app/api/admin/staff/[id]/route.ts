@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserFromRequest } from "@/lib/request";
+import { getUserFromRequest } from "@/lib/http/request";
 import prisma from "@/lib/db";
 import { hashPassword } from "@/lib/auth";
 import { z } from "zod";
-import { STAFF_ROLES } from "@/lib/permission";
+import { STAFF_ROLES } from "@/lib/auth/permissions";
 
 const updateSchema = z.object({
   email: z.string().email().optional(),

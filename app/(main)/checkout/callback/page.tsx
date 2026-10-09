@@ -3,9 +3,9 @@
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
-import type { VerifyResult } from "@/components/checkout/types";
-import { PaymentStatusCard } from "@/components/checkout/PaymentStatusCard";
-import { fetchWithAuth } from "@/lib/fetchClient";
+import type { VerifyResult } from "@/features/checkout/types";
+import { PaymentStatusCard } from "@/features/checkout/components/PaymentStatusCard";
+import { fetchWithAuth } from "@/lib/http/fetchClient";
 
 function CheckoutCallbackContent() {
   const searchParams = useSearchParams();

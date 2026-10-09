@@ -3,9 +3,9 @@
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
-import { isProtectedPage } from "@/lib/auth-routes";
-import { hydrateSession, useAuthStore } from "@/lib/store/authStore";
-import { useCartStore } from "@/lib/store/cartStore";
+import { isProtectedPage } from "@/lib/auth/routes";
+import { hydrateSession, useAuthStore } from "@/store/authStore";
+import { useCartStore } from "@/store/cartStore";
 
 export default function ClientAuthInit() {
   const router = useRouter();

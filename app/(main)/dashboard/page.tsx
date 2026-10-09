@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import useSWR from "swr";
 import { Button } from "@/components/ui/button";
-import { useAuthStore } from "@/lib/store/authStore";
-import { fetchWithAuth } from "@/lib/fetchClient";
+import { useAuthStore } from "@/store/authStore";
+import { fetchWithAuth } from "@/lib/http/fetchClient";
 
 interface DashboardStats {
   totalOrders: number;

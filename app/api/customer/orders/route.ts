@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getUserFromRequest } from "@/lib/request";
-import { paystack } from "@/lib/paystack";
+import { getUserFromRequest } from "@/lib/http/request";
+import { paystack } from "@/lib/payments/paystack";
 
 class CheckoutError extends Error {
   constructor(

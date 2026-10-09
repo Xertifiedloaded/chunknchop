@@ -1,19 +1,19 @@
 "use client";
 
-import { fetchWithAuth } from "@/lib/fetchClient";
+import { fetchWithAuth } from "@/lib/http/fetchClient";
 
 import { useCallback, useEffect } from "react";
 import { Loader2, Minus, Plus, Trash2, X } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
-import { useAuthStore } from "@/lib/store/authStore";
-import { useCartStore } from "@/lib/store/cartStore";
-import { formatNaira } from "@/lib/format";
+import { useAuthStore } from "@/store/authStore";
+import { useCartStore } from "@/store/cartStore";
+import { formatNaira } from "@/lib/utils/format";
 import {
   isTempItem,
   maxQuantityFor,
   useCartActions,
-} from "@/lib/hooks/useCartActions";
+} from "@/features/cart/hooks/useCartActions";
 
 interface CartDropdownProps {
   isOpen: boolean;

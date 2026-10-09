@@ -1,14 +1,14 @@
 "use client";
 
 
-import Header from "@/components/sections/common/Header";
+import Header from "@/components/layout/Header";
 import { categories, slides, faqs, highlights } from "@/lib";
-import { useProductStore } from "@/lib/store/productStore";
+import { useProductStore } from "@/store/productStore";
 import { useCallback, useEffect, useRef, useMemo, useState } from "react";
-import { useAuthStore } from "@/lib/store/authStore";
-import { useCartStore } from "@/lib/store/cartStore";
+import { useAuthStore } from "@/store/authStore";
+import { useCartStore } from "@/store/cartStore";
 import BestSellerCard from "@/components/sections/BestSellerCard";
-import { fetchWithAuth } from "@/lib/fetchClient";
+import { fetchWithAuth } from "@/lib/http/fetchClient";
 import Breadcrumbs, { type Crumb } from "@/components/Breadcrumbs";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";

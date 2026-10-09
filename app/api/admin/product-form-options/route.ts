@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserFromRequest } from "@/lib/request";
+import { getUserFromRequest } from "@/lib/http/request";
 import { prisma } from "@/lib/db";
-import { LOCATION_TYPES } from "@/lib/catalog";
+import { LOCATION_TYPES } from "@/features/catalog/server/catalog";
 
 export async function GET(request: NextRequest) {
   try {

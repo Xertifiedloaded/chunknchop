@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import ShopProduct from "./ShopProduct";
-import EmptyState from "@/components/sections/shops/EmptyState";
+import EmptyState from "@/components/feedback/EmptyState";
 import Hero from "@/components/sections/main/Hero";
 import { PageHero } from "@/components/PageHero";
 

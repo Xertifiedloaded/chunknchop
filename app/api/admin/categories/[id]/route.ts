@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserFromRequest } from "@/lib/request";
+import { getUserFromRequest } from "@/lib/http/request";
 import { prisma } from "@/lib/db";
-import { slugify } from "@/lib/slug";
+import { slugify } from "@/lib/utils/slug";
 
 // PATCH /api/admin/categories/[id]
 export async function PATCH(

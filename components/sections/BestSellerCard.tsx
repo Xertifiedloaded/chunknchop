@@ -2,7 +2,7 @@
 
 import { memo, useEffect, useState } from "react";
 import { Heart } from "lucide-react";
-import { useShopActions } from "@/lib/hooks/useShopActions";
+import { useShopActions } from "@/features/catalog/hooks/useShopActions";
 
 const formatPrice = (price: number | string) =>
   typeof price === "number" ? `₦${price.toLocaleString("en-NG")}` : price;

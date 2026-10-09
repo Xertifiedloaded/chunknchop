@@ -24,8 +24,8 @@ import {
   Search,
   Trash2,
 } from "lucide-react";
-import { fetchWithAuth } from "@/lib/fetchClient";
-import ProductModal from "@/components/sections/shops/ProductModal";
+import { fetchWithAuth } from "@/lib/http/fetchClient";
+import ProductModal from "@/features/catalog/components/ProductModal";
 
 interface Product {
   id: string;

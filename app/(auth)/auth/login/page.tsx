@@ -3,12 +3,12 @@
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import type { AuthField } from "@/lib/types";
+import type { AuthField } from "@/types";
 import Image from "next/image";
 import google from "@/assets/google.png";
 import { Loader2, LockOpen, Mail } from "lucide-react";
-import AuthInput from "@/components/auth/AuthInput";
-import { useAuthStore } from "@/lib/store/authStore";
+import AuthInput from "@/features/auth/components/AuthInput";
+import { useAuthStore } from "@/store/authStore";
 import { Button } from "@/components/ui/button";
 const FIELDS: AuthField[] = [
   {

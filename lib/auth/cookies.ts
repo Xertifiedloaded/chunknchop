@@ -1,7 +1,11 @@
 import type { NextResponse } from "next/server";
 
-export const ACCESS_TOKEN_MAX_AGE_SECONDS = parseInt(process.env.ACCESS_TOKEN_MAX_AGE_SECONDS || "") || 15 * 60;
+export const ACCESS_TOKEN_MAX_AGE_SECONDS = parseInt(process.env.ACCESS_TOKEN_MAX_AGE_SECONDS || "", 10) || 15 * 60;
 const REFRESH_TOKEN_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
+const OAUTH_STATE_MAX_AGE_SECONDS = 10 * 60;
+
+export const OAUTH_STATE_COOKIE = "oauthState";
+const OAUTH_STATE_PATH = "/api/auth/google";
 
 const base = {
   path: "/",
@@ -31,4 +35,18 @@ export function clearAuthCookies(res: NextResponse) {
   for (const name of ["accessToken", "refreshToken", "csrfToken"]) {
     res.cookies.set(name, "", { ...base, maxAge: 0 });
   }
+}
+
+
+export function setOAuthStateCookie(res: NextResponse, value: string) {
+  res.cookies.set(OAUTH_STATE_COOKIE, value, {
+    ...base,
+    path: OAUTH_STATE_PATH,
+    httpOnly: true,
+    maxAge: OAUTH_STATE_MAX_AGE_SECONDS,
+  });
+}
+
+export function clearOAuthStateCookie(res: NextResponse) {
+  res.cookies.set(OAUTH_STATE_COOKIE, "", { ...base, path: OAUTH_STATE_PATH, httpOnly: true, maxAge: 0 });
 }

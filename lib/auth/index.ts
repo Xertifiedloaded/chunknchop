@@ -16,13 +16,14 @@ export interface RefreshPayload {
   exp: number;
 }
 
-function getSecret(name: "JWT_SECRET" | "REFRESH_TOKEN_SECRET"): string {
+export function getSecret(name: "JWT_SECRET" | "REFRESH_TOKEN_SECRET"): string {
   const value = process.env[name];
   if (!value || value.length < 32) {
     throw new Error(`${name} must be set to at least 32 characters`);
   }
   return value;
 }
+
 
 export function hashPassword(password: string): string {
   return bcryptjs.hashSync(password, 10);
@@ -31,6 +32,17 @@ export function hashPassword(password: string): string {
 export function verifyPassword(password: string, hash: string): boolean {
   return bcryptjs.compareSync(password, hash);
 }
+
+export async function hashPasswordAsync(password: string): Promise<string> {
+  return bcryptjs.hash(password, 10);
+}
+
+export async function verifyPasswordAsync(password: string, hash: string): Promise<boolean> {
+  return bcryptjs.compare(password, hash);
+}
+
+export const DUMMY_HASH = bcryptjs.hashSync(randomUUID(), 10);
+
 
 export function generateAccessToken(userId: string, email: string, role: string): string {
   return jwt.sign({ id: userId, email, role }, getSecret("JWT_SECRET"), {

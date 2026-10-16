@@ -1,49 +1,30 @@
 "use client";
 
 import { Suspense, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Loader2, Lock, Mail, StoreIcon, User2 } from "lucide-react";
+import { Loader2, LockOpen, Mail, User } from "lucide-react";
 
+import type { AuthField } from "@/types";
+import AuthInput from "@/features/auth/components/AuthInput";
+import GoogleButton from "@/features/auth/components/GoogleButton";
 import { useAuthStore } from "@/store/authStore";
 import { Button } from "@/components/ui/button";
-import AuthInput from "@/features/auth/components/AuthInput";
-import type { AuthField } from "@/types";
-import Image from "next/image";
-import google from "@/assets/google.png";
+import { getSafeRedirect } from "@/features/auth/components/utils";
+
+type Role = "CUSTOMER" | "SUPPLIER";
+
 const FIELDS: AuthField[] = [
-  {
-    name: "name",
-    label: "Full Name",
-    type: "text",
-    icon: User2,
-    placeholder: "John Doe",
-    autoComplete: "name",
-  },
-  {
-    name: "email",
-    label: "Email Address",
-    type: "email",
-    icon: Mail,
-    placeholder: "you@example.com",
-    autoComplete: "email",
-  },
+  { name: "name", label: "Full Name", type: "text", icon: User, placeholder: "Your name", autoComplete: "name" },
+  { name: "email", label: "Email Address", type: "email", icon: Mail, placeholder: "you@example.com", autoComplete: "email" },
   {
     name: "password",
     label: "Password",
     type: "password",
-    icon: Lock,
+    icon: LockOpen,
     placeholder: "Create a password",
     autoComplete: "new-password",
-    hint: "Use at least 6 characters.",
-  },
-  {
-    name: "passwordConfirm",
-    label: "Confirm Password",
-    type: "password",
-    icon: Lock,
-    placeholder: "Confirm your password",
-    autoComplete: "new-password",
+    hint: "8 to 72 characters",
   },
 ];
 
@@ -66,124 +47,53 @@ function Loading() {
 
 function SignupForm() {
   const router = useRouter();
-
-  const { setUser } = useAuthStore();
+  const searchParams = useSearchParams();
+  const setUser = useAuthStore((state) => state.setUser);
+  const redirect = getSafeRedirect(searchParams.get("redirect"));
 
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [role, setRole] = useState<Role>("CUSTOMER");
+  const [formData, setFormData] = useState({ name: "", email: "", password: "" });
 
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    passwordConfirm: "",
-    role: "CUSTOMER",
-  });
-
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-
-    if (errors[name]) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: "",
-      }));
-    }
-
-    if (errors.form) {
-      setErrors((prev) => ({
-        ...prev,
-        form: "",
-      }));
-    }
-  };
-
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {};
-
-    if (!formData.name.trim()) {
-      newErrors.name = "Full name is required";
-    }
-
-    if (!formData.email.trim()) {
-      newErrors.email = "Email address is required";
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email address";
-    }
-
-    if (!formData.password) {
-      newErrors.password = "Password is required";
-    } else if (formData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
-    }
-
-    if (!formData.passwordConfirm) {
-      newErrors.passwordConfirm = "Please confirm your password";
-    } else if (formData.password !== formData.passwordConfirm) {
-      newErrors.passwordConfirm = "Passwords do not match";
-    }
-
-    setErrors(newErrors);
-
-    return Object.keys(newErrors).length === 0;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (error) setError("");
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!validateForm()) {
+    if (formData.password.length < 8 || formData.password.length > 72) {
+      setError("Password must be between 8 and 72 characters.");
       return;
     }
 
     setLoading(true);
-    setErrors({});
+    setError("");
 
     try {
       const response = await fetch("/api/auth/signup", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: formData.name.trim(),
-          email: formData.email.trim(),
-          password: formData.password,
-          role: formData.role,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...formData, role }),
         credentials: "include",
       });
 
-      const data = await response.json();
+      const data = await response.json().catch(() => null);
 
-      if (!response.ok) {
-        setErrors({
-          form: data?.error || "Unable to create your account. Please try again.",
-        });
-
+      if (!response.ok || !data?.user) {
+        setError(data?.error === "Invalid input" ? "Please check your details and try again." : data?.error || "Unable to create account. Please try again.");
         return;
       }
 
-      const { user } = data;
-
-      setUser(user);
-
-      if (formData.role === "SUPPLIER") {
-        router.push("/supplier/dashboard");
-      } else {
-        router.push("/");
-      }
+      setUser(data.user);
+      router.replace(redirect);
+      router.refresh();
     } catch (err) {
       console.error("Signup error:", err);
-
-      setErrors({
-        form: "Something went wrong. Please check your connection and try again.",
-      });
+      setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -191,62 +101,53 @@ function SignupForm() {
 
   return (
     <>
-      <div className="mb-7 text-center">
-        <h2 className="font-sora text-2xl font-bold sm:text-2xl">Create Your Account</h2>
-
-        <p className="mt-2 text-xs text-muted-foreground">Join ChunkNChop and start shopping today</p>
+      <div className="mb-8 text-center">
+        <h2 className="font-sora text-2xl font-bold sm:text-2xl">Create Account</h2>
+        <p className="mt-2 font-worksans text-xs text-ink">Join ChunkNChop today</p>
       </div>
-      {errors.form && (
-        <div role="alert" className="mb-5 rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-          {errors.form}
+
+      {error && (
+        <div role="alert" className="mb-5 rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-3 text-xs text-destructive">
+          {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-5">
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium">Account Type</label>
-
-          <div className="grid grid-cols-2 gap-2">
-            <label
-              className={`flex h-10 cursor-pointer items-center justify-center gap-1.5 rounded-md border px-2 transition ${formData.role === "CUSTOMER" ? "border-primary bg-primary/5 text-primary" : "border-border text-muted-foreground hover:bg-muted/40"}`}
-            >
-              <input type="radio" name="role" value="CUSTOMER" checked={formData.role === "CUSTOMER"} onChange={handleInputChange} className="sr-only" />
-
-              <User2 className="h-3 w-3 shrink-0" />
-              <span className="truncate text-[11px] leading-none font-medium">Customer</span>
-            </label>
-            <label
-              className={`flex h-10 cursor-pointer items-center justify-center gap-1.5 rounded-md border px-2 transition ${formData.role === "SUPPLIER" ? "border-primary bg-primary/5 text-primary" : "border-border text-muted-foreground hover:bg-muted/40"}`}
-            >
-              <input type="radio" name="role" value="SUPPLIER" checked={formData.role === "SUPPLIER"} onChange={handleInputChange} className="sr-only" />
-
-              <StoreIcon className="h-3 w-3 shrink-0" />
-              <span className="truncate text-[11px] leading-none font-medium">Supplier</span>
-            </label>
-          </div>
-        </div>
-        {FIELDS.map((field) => (
-          <AuthInput key={field.name} {...field} value={formData[field.name as keyof typeof formData]} error={errors[field.name]} onChange={handleInputChange} />
+      <div role="radiogroup" aria-label="Account type" className="mb-5 grid grid-cols-2 gap-2 rounded-lg bg-[#F3F4F6] p-1">
+        {(["CUSTOMER", "SUPPLIER"] as const).map((value) => (
+          <button
+            key={value}
+            type="button"
+            role="radio"
+            aria-checked={role === value}
+            onClick={() => setRole(value)}
+            className={`h-9 rounded-md text-xs font-semibold transition-all ${role === value ? "bg-white text-charcoal shadow-sm" : "text-muted-foreground hover:text-charcoal"}`}
+          >
+            {value === "CUSTOMER" ? "I'm a Customer" : "I'm a Supplier"}
+          </button>
         ))}
+      </div>
 
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {FIELDS.map((field) => (
+          <AuthInput key={field.name} {...field} value={formData[field.name as keyof typeof formData]} onChange={handleInputChange} />
+        ))}
         <Button type="submit" disabled={loading} className="h-11 w-full">
           {loading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Creating Account...
+              Creating account...
             </>
           ) : (
             "Create Account"
           )}
         </Button>
-        <fieldset className="border-0 border-t border-sand">
-          <legend className="mx-auto px-3 text-xs font-medium tracking-wide text-ink uppercase">Or</legend>
-        </fieldset>
-        <Button type="button" variant="outline" className="h-11 w-full animate-out border-[#E5E7EB] bg-white text-sm font-bold text-charcoal transition-all hover:bg-gray-50 hover:text-charcoal">
-          <Image src={google} alt="Google" width={18} height={18} className="mr-2" />
-          Continue with Google
-        </Button>
       </form>
+
+      <fieldset className="my-7 border-0 border-t border-sand">
+        <legend className="mx-auto px-3 text-xs font-medium tracking-wide text-ink uppercase">Or</legend>
+      </fieldset>
+
+      <GoogleButton role={role} next={redirect} disabled={loading} label="Sign up with Google" />
 
       <div className="mt-6 text-center">
         <p className="font-sora text-xs text-charcoal">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ArrowUpDown, SlidersHorizontal, Search } from "lucide-react";
 
@@ -15,6 +15,12 @@ import LoadingState from "@/components/feedback/LoadingState";
 
 const PAGE_SIZE = 8;
 const ALL = "All";
+const pill = "rounded-full border border-[#E5E7EB] bg-white shadow-sm";
+
+const SECTION_FLAGS: Record<string, Partial<FilterState>> = {
+  "best-sellers": { bestSeller: true },
+  "new-arrivals": { newArrival: true },
+};
 
 interface CategoryOption {
   id?: string;
@@ -31,176 +37,109 @@ interface CategorizedProduct {
 
 const normalize = (value?: string | null) => (value ?? "").trim().toLowerCase();
 
-function matchesCategory(product: unknown, category: CategoryOption | null): boolean {
+const applySection = (base: FilterState, section: string | null): FilterState => ({ ...base, ...SECTION_FLAGS[section ?? ""] });
+
+function matchesCategory(product: unknown, category: CategoryOption | null) {
   if (!category) return true;
 
   const item = product as CategorizedProduct;
-
-  if (category.id && (item.categoryId === category.id || item.categoryRef?.id === category.id)) {
-    return true;
-  }
+  if (category.id && (item.categoryId === category.id || item.categoryRef?.id === category.id)) return true;
 
   const target = normalize(category.name);
-
   return [item.category, item.categoryRef?.name, item.meatType].some((value) => normalize(value).replace(/_/g, " ") === target);
 }
 
-function applySectionParam(base: FilterState, section: string | null): FilterState {
-  switch (section) {
-    case "best-sellers":
-      return { ...base, bestSeller: true };
-    case "new-arrivals":
-      return { ...base, newArrival: true };
-    default:
-      return base;
-  }
+function useLoad(url: string, onData: (data: any) => void) {
+  const [loading, setLoading] = useState(true);
+  const handler = useRef(onData);
+  handler.current = onData;
+
+  useEffect(() => {
+    let cancelled = false;
+
+    fetch(url)
+      .then((res) => {
+        if (!res.ok) throw new Error(`Failed to load ${url}`);
+        return res.json();
+      })
+      .then((data) => !cancelled && handler.current(data))
+      .catch((error) => console.error(`Failed to load ${url}:`, error))
+      .finally(() => !cancelled && setLoading(false));
+
+    return () => {
+      cancelled = true;
+    };
+  }, [url]);
+
+  return loading;
 }
 
 export default function Shop() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-
   const { products, setProducts } = useProductStore();
 
-  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
   const [categories, setCategories] = useState<CategoryOption[]>([]);
-  const [categoriesLoaded, setCategoriesLoaded] = useState(false);
-
-  const [filters, setFilters] = useState<FilterState>(() => applySectionParam({ ...DEFAULT_FILTERS, category: ALL }, searchParams.get("section")));
-
+  const [filters, setFilters] = useState<FilterState>(() => applySection({ ...DEFAULT_FILTERS, category: ALL }, searchParams.get("section")));
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
+  const loadingProducts = useLoad("/api/products", (data) => setProducts(data.products || []));
+  const loadingCategories = useLoad("/api/categories", (data) =>
+    setCategories((Array.isArray(data) ? data : []).map(({ id, name, slug }: CategoryOption) => ({ id, name, slug }))),
+  );
+
   const categorySlug = searchParams.get("category");
-  const hasCategoryParam = Boolean(categorySlug) && normalize(categorySlug) !== "all";
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadProducts() {
-      try {
-        setIsLoadingProducts(true);
-
-        const res = await fetch("/api/products");
-        if (!res.ok) throw new Error("Failed to fetch products");
-
-        const data = await res.json();
-        if (cancelled) return;
-
-        setProducts(data.products || []);
-      } catch (error) {
-        console.error("Failed to fetch products:", error);
-      } finally {
-        if (!cancelled) setIsLoadingProducts(false);
-      }
-    }
-
-    loadProducts();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [setProducts]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadCategories() {
-      try {
-        const res = await fetch("/api/categories");
-        if (!res.ok) throw new Error("Failed to load categories");
-
-        const data = await res.json();
-        if (cancelled) return;
-
-        setCategories(
-          (Array.isArray(data) ? data : []).map((c: { id?: string; name: string; slug: string }) => ({
-            id: c.id,
-            name: c.name,
-            slug: c.slug,
-          })),
-        );
-      } catch (error) {
-        console.error("Failed to load categories:", error);
-      } finally {
-        if (!cancelled) setCategoriesLoaded(true);
-      }
-    }
-
-    loadCategories();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const hasCategoryParam = !!categorySlug && normalize(categorySlug) !== "all";
+  const resetPage = useCallback(() => setVisibleCount(PAGE_SIZE), []);
 
   useEffect(() => {
     const section = searchParams.get("section");
 
     setFilters((current) => {
-      const next = applySectionParam(current, section);
-      const unchanged = next.bestSeller === current.bestSeller && next.newArrival === current.newArrival;
-      return unchanged ? current : next;
+      const next = applySection(current, section);
+      return next.bestSeller === current.bestSeller && next.newArrival === current.newArrival ? current : next;
     });
+    resetPage();
+  }, [searchParams, resetPage]);
 
-    setVisibleCount(PAGE_SIZE);
-  }, [searchParams]);
-
-  const selectedCategory = useMemo<CategoryOption | null>(() => {
-    if (!hasCategoryParam) return null;
-    return categories.find((c) => normalize(c.slug) === normalize(categorySlug)) ?? null;
-  }, [categories, categorySlug, hasCategoryParam]);
+  const selectedCategory = useMemo(() => (hasCategoryParam ? (categories.find((c) => normalize(c.slug) === normalize(categorySlug)) ?? null) : null), [categories, categorySlug, hasCategoryParam]);
 
   const categoryLabel = selectedCategory?.name ?? ALL;
-
   const activeFilters = useMemo<FilterState>(() => ({ ...filters, category: categoryLabel as FilterState["category"] }), [filters, categoryLabel]);
 
-  const filtered = useMemo(() => {
-    const base = filterProducts(products, {
-      ...filters,
-      category: ALL as FilterState["category"],
-    });
-    return base.filter((product) => matchesCategory(product, selectedCategory));
-  }, [products, filters, selectedCategory]);
+  const filtered = useMemo(
+    () => filterProducts(products, { ...filters, category: ALL as FilterState["category"] }).filter((product) => matchesCategory(product, selectedCategory)),
+    [products, filters, selectedCategory],
+  );
 
-  const visibleProducts = filtered.slice(0, visibleCount);
   const activeCount = countActiveFilters(activeFilters);
-  const isLoading = isLoadingProducts || (hasCategoryParam && !categoriesLoaded);
+  const isLoading = loadingProducts || (hasCategoryParam && loadingCategories);
 
   const setCategoryInUrl = (slug: string | null) => {
     const params = new URLSearchParams(searchParams.toString());
 
-    if (slug && normalize(slug) !== "all") {
-      params.set("category", slug);
-    } else {
-      params.delete("category");
-    }
+    if (slug && normalize(slug) !== "all") params.set("category", slug);
+    else params.delete("category");
 
     const query = params.toString();
-    router.replace(query ? `${pathname}?${query}` : pathname, {
-      scroll: false,
-    });
-    setVisibleCount(PAGE_SIZE);
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+    resetPage();
   };
 
   const applyFilters = (next: FilterState) => {
     if (next.category !== categoryLabel) {
-      const match = next.category === ALL ? null : categories.find((c) => c.name === next.category);
-      setCategoryInUrl(match?.slug ?? null);
+      setCategoryInUrl(next.category === ALL ? null : (categories.find((c) => c.name === next.category)?.slug ?? null));
     }
-
     setFilters(next);
-    setVisibleCount(PAGE_SIZE);
+    resetPage();
   };
 
   const clearAll = () => {
     setFilters({ ...DEFAULT_FILTERS, category: ALL });
-    setVisibleCount(PAGE_SIZE);
-
-    if (searchParams.toString()) {
-      router.replace(pathname, { scroll: false });
-    }
+    resetPage();
+    if (searchParams.toString()) router.replace(pathname, { scroll: false });
   };
 
   return (
@@ -209,22 +148,17 @@ export default function Shop() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="relative w-full sm:max-w-md">
             <Search className="pointer-events-none absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2 text-charcoal" />
-
             <input
               type="search"
               value={filters.search}
               onChange={(e) => applyFilters({ ...activeFilters, search: e.target.value })}
               placeholder="Search premium meat..."
-              className="text-ink-900 w-full rounded-full border border-[#E5E7EB] bg-white py-3 pr-4 pl-11 text-sm shadow-sm transition outline-none placeholder:text-charcoal"
+              className={`${pill} text-ink-900 w-full py-3 pr-4 pl-11 text-sm transition outline-none placeholder:text-charcoal`}
             />
           </div>
 
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setDrawerOpen(true)}
-              className="hover:bg-ember-50 flex items-center gap-2 rounded-full border border-[#E5E7EB] bg-white px-4 py-3 text-sm font-semibold text-ink shadow-sm transition lg:hidden"
-            >
+            <button type="button" onClick={() => setDrawerOpen(true)} className={`${pill} hover:bg-ember-50 flex items-center gap-2 px-4 py-3 text-sm font-semibold text-ink transition lg:hidden`}>
               <SlidersHorizontal className="h-4 w-4" />
               Filters
               {activeCount > 0 && <span className="bg-ember-500 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[11px] font-bold text-white">{activeCount}</span>}
@@ -232,17 +166,11 @@ export default function Shop() {
 
             <div className="relative">
               <ArrowUpDown className="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-charcoal" />
-
               <select
                 value={filters.sort}
-                onChange={(e) =>
-                  applyFilters({
-                    ...activeFilters,
-                    sort: e.target.value as FilterState["sort"],
-                  })
-                }
+                onChange={(e) => applyFilters({ ...activeFilters, sort: e.target.value as FilterState["sort"] })}
                 aria-label="Sort products"
-                className="focus:ring-ember-100 appearance-none rounded-full border border-[#E5E7EB] bg-white py-3 pr-8 pl-9 text-sm font-medium text-ink shadow-sm transition outline-none focus:ring-2"
+                className={`${pill} focus:ring-ember-100 appearance-none py-3 pr-8 pl-9 text-sm font-medium text-ink transition outline-none focus:ring-2`}
               >
                 {SORT_OPTIONS.map((opt) => (
                   <option key={opt} value={opt}>
@@ -255,7 +183,7 @@ export default function Shop() {
         </div>
 
         <div className="mt-5">
-          <CategoryPills active={categoryLabel} onSelect={(slug) => setCategoryInUrl(slug)} />
+          <CategoryPills active={categoryLabel} onSelect={setCategoryInUrl} />
         </div>
 
         <div className="mt-6 flex gap-8">
@@ -276,18 +204,14 @@ export default function Shop() {
                 ) : (
                   <>
                     <div className="grid grid-cols-2 gap-1 xl:grid-cols-3 2xl:grid-cols-4">
-                      {visibleProducts.map((product) => (
+                      {filtered.slice(0, visibleCount).map((product) => (
                         <ProductCard key={product.id} product={product} />
                       ))}
                     </div>
 
                     {visibleCount < filtered.length && (
                       <div className="mt-10 flex justify-center">
-                        <button
-                          type="button"
-                          onClick={() => setVisibleCount((count) => count + PAGE_SIZE)}
-                          className="rounded-full border border-[#E5E7EB] bg-white px-8 py-3 text-sm font-semibold text-gray-900 shadow-sm transition-colors hover:bg-gray-100"
-                        >
+                        <button type="button" onClick={() => setVisibleCount((count) => count + PAGE_SIZE)} className={`${pill} px-8 py-3 text-sm font-semibold text-gray-900 transition-colors hover:bg-gray-100`}>
                           Load More
                         </button>
                       </div>

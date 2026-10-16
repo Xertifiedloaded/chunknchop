@@ -1,19 +1,18 @@
 "use client";
 
-import { fetchWithAuth } from "@/lib/http/fetchClient";
-
 import { useEffect, useState } from "react";
 import useSWR from "swr";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 
-import { ArrowLeft, Star, Truck, PackageCheck, ShieldCheck, Heart, Share2, Minus, Plus, ShoppingBag } from "lucide-react";
-
+import { ArrowLeft, Star, Truck, PackageCheck, ShieldCheck, Heart, Share2, Minus, Plus, ShoppingBag, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 
+import { fetchWithAuth } from "@/lib/http/fetchClient";
 import { formatNaira } from "@/lib/utils/format";
 import { useAuthStore } from "@/store/authStore";
-import { useCartStore } from "@/store/cartStore";
+import { useIsWishlisted } from "@/store/wishlistStore";
+import { useShopActions, useInCart } from "@/features/catalog/hooks/useShopActions";
 
 import ReviewsSection from "@/features/catalog/components/Rating";
 import LoadingState from "@/components/feedback/LoadingState";
@@ -49,39 +48,6 @@ interface Product {
   };
 }
 
-interface CartApiResponse {
-  id: string;
-  userId: string;
-  productId: string;
-  quantity: number;
-  selectedTier?: string | null;
-  selectedPreparation?: string | null;
-  selectedVariants?: string[] | null;
-  product: {
-    id: string;
-    name: string;
-    basePrice: number;
-    images: string[];
-    tiers: Array<{
-      id: string;
-      name: string;
-      price: number;
-    }>;
-    variants?: Array<{
-      id: string;
-      name: string;
-      value: string;
-      priceModifier: number;
-    }>;
-    supplier?: {
-      id?: string;
-      supplierProfile?: {
-        storeName: string;
-      };
-    };
-  };
-}
-
 const fetcher = async (url: string): Promise<Product> => {
   const res = await fetchWithAuth(url, {
     cache: "no-store",
@@ -98,13 +64,15 @@ const fetcher = async (url: string): Promise<Product> => {
 
 export default function ProductDetailPage() {
   const params = useParams();
+  const router = useRouter();
 
   const productId = params.id as string;
 
   const user = useAuthStore((s) => s.user);
-  const isHydrated = useAuthStore((s) => s.isHydrated);
 
-  const { setItems: setCartItems } = useCartStore();
+  const { addToCart, buyNow, setWishlisted } = useShopActions();
+  const inCart = useInCart(productId);
+  const wishlisted = useIsWishlisted(productId);
 
   const {
     data: product,
@@ -117,18 +85,12 @@ export default function ProductDetailPage() {
   });
 
   const [quantity, setQuantity] = useState(1);
-
   const [selectedTier, setSelectedTier] = useState("");
-
   const [selectedPreparation, setSelectedPreparation] = useState("");
-
   const [mainImageIndex, setMainImageIndex] = useState(0);
-
-  const [wishlisted, setWishlisted] = useState(false);
-
   const [isAddingToCart, setIsAddingToCart] = useState(false);
-
   const [isBuyingNow, setIsBuyingNow] = useState(false);
+  const [isToggling, setIsToggling] = useState(false);
 
   useEffect(() => {
     if (!product) {
@@ -152,38 +114,10 @@ export default function ProductDetailPage() {
 
   const savings = product ? Math.max(0, product.basePrice - currentPrice) : 0;
 
-  const refreshCart = async () => {
-    if (!isHydrated || !user || user.role === "SUPPLIER") {
-      return;
-    }
-
-    try {
-      const res = await fetchWithAuth("/api/customer/cart", {
-        method: "GET",
-        cache: "no-store",
-      });
-
-      if (!res.ok) {
-        return;
-      }
-
-      const data = await res.json();
-
-      setCartItems(
-        (data.cartItems || []).map((item: CartApiResponse) => ({
-          ...item,
-          selectedVariants: item.selectedVariants || [],
-          selectedTier: item.selectedTier || undefined,
-          product: {
-            ...item.product,
-            tiers: item.product.tiers || [],
-            variants: item.product.variants || [],
-          },
-        })),
-      );
-    } catch (error) {
-      console.error("[cart] failed to refresh cart:", error);
-    }
+  const options = {
+    quantity,
+    selectedTier: selectedTierData?.name ?? null,
+    selectedPreparation: selectedPreparation || null,
   };
 
   const handleAddToCart = async () => {
@@ -191,48 +125,12 @@ export default function ProductDetailPage() {
       return;
     }
 
-    if (!isHydrated || !user) {
-      toast.error("Please sign in to add items to your cart.");
-      return;
-    }
-
-    if (user.role === "SUPPLIER") {
-      toast.error("Suppliers cannot add products to cart.");
-      return;
-    }
+    setIsAddingToCart(true);
 
     try {
-      setIsAddingToCart(true);
-
-      const res = await fetchWithAuth("/api/customer/cart", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          productId: product.id,
-          quantity,
-          selectedTier: selectedTierData?.name || null,
-          selectedPreparation: selectedPreparation || null,
-          selectedVariants: [],
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data?.error || "Failed to add product to cart");
+      if (await addToCart(product, options)) {
+        setQuantity(1);
       }
-
-      await refreshCart();
-
-      toast.success("Added to cart");
-
-      setQuantity(1);
-    } catch (error) {
-      console.error("[cart] failed to add item:", error);
-
-      toast.error(error instanceof Error ? error.message : "Failed to add item to cart");
     } finally {
       setIsAddingToCart(false);
     }
@@ -243,49 +141,27 @@ export default function ProductDetailPage() {
       return;
     }
 
-    if (!isHydrated || !user) {
-      toast.error("Please sign in to continue.");
-      return;
-    }
-
-    if (user.role === "SUPPLIER") {
-      toast.error("Suppliers cannot purchase products.");
-      return;
-    }
+    setIsBuyingNow(true);
 
     try {
-      setIsBuyingNow(true);
-
-      const res = await fetchWithAuth("/api/customer/cart", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          productId: product.id,
-          quantity,
-          selectedTier: selectedTierData?.name || null,
-          selectedPreparation: selectedPreparation || null,
-          selectedVariants: [],
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data?.error || "Failed to add product to cart");
+      if (await buyNow(product, options)) {
+        router.push("/checkout");
       }
-
-      await refreshCart();
-
-      window.location.href = "/checkout";
-    } catch (error) {
-      console.error("[cart] buy now failed:", error);
-
-      toast.error(error instanceof Error ? error.message : "Failed to continue to checkout");
     } finally {
       setIsBuyingNow(false);
     }
+  };
+
+  const handleWishlist = async () => {
+    if (isToggling) {
+      return;
+    }
+
+    setIsToggling(true);
+
+    await setWishlisted(productId, !wishlisted);
+
+    setIsToggling(false);
   };
 
   if (isLoading) {
@@ -555,7 +431,7 @@ export default function ProductDetailPage() {
             <div className="mt-5 flex flex-col gap-2 sm:flex-row">
               {!user ? (
                 <Link
-                  href={`/auth/login?redirect=${encodeURIComponent(`/shop/${product.id}`)}`}
+                  href={`/auth/login?next=${encodeURIComponent(`/shop/${product.id}`)}`}
                   className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand py-3 text-xs font-semibold text-white transition-colors hover:bg-[#B96A2F]"
                 >
                   Login to Continue
@@ -570,7 +446,7 @@ export default function ProductDetailPage() {
                   >
                     <ShoppingBag size={17} />
 
-                    {isAddingToCart ? "Adding..." : `Add to Cart · ${formatNaira(total)}`}
+                    {isAddingToCart ? "Adding..." : `${inCart ? "Add more" : "Add to Cart"} · ${formatNaira(total)}`}
                   </button>
 
                   <button
@@ -588,11 +464,13 @@ export default function ProductDetailPage() {
             <div className="mt-3 flex gap-3 text-charcoal">
               <button
                 type="button"
-                onClick={() => setWishlisted((w) => !w)}
-                className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-[#E5DDD2] bg-white py-3 text-xs font-medium transition-colors hover:border-brand"
+                onClick={handleWishlist}
+                disabled={isToggling}
+                aria-pressed={wishlisted}
+                className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-[#E5DDD2] bg-white py-3 text-xs font-medium transition-colors hover:border-brand disabled:opacity-70"
               >
-                <Heart size={16} className={wishlisted ? "fill-brand text-brand" : ""} />
-                Wishlist
+                {isToggling ? <Loader2 size={16} className="animate-spin" /> : <Heart size={16} className={wishlisted ? "fill-brand text-brand" : ""} />}
+                {wishlisted ? "Saved" : "Wishlist"}
               </button>
 
               <button

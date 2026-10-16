@@ -2,43 +2,23 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { prisma } from "@/lib/db";
-import { generateAccessToken, generateRefreshToken, verifyPassword } from "@/lib/auth";
+import { DUMMY_HASH, verifyPasswordAsync } from "@/lib/auth";
 import { setAuthCookies } from "@/lib/auth/cookies";
-import { storeRefreshToken } from "@/lib/auth/tokens";
+import { createSession, toPublicUser } from "@/lib/auth/session";
+import { getIp, isRateLimited } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
-
-const RATE_LIMIT_WINDOW_MS = 60 * 1000;
-const RATE_LIMIT_MAX = 10;
-const rateLimits = new Map<string, { count: number; start: number }>();
-
-function isRateLimited(key: string) {
-  const now = Date.now();
-  const entry = rateLimits.get(key);
-
-  if (!entry || now - entry.start > RATE_LIMIT_WINDOW_MS) {
-    rateLimits.set(key, { count: 1, start: now });
-    return false;
-  }
-
-  entry.count += 1;
-  return entry.count > RATE_LIMIT_MAX;
-}
-
-function getIp(req: NextRequest) {
-  return req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "unknown";
-}
 
 const loginSchema = z.object({
   email: z
     .string()
     .email()
     .transform((value) => value.toLowerCase().trim()),
-  password: z.string().min(1),
+  password: z.string().min(1).max(72),
 });
 
 export async function POST(req: NextRequest) {
-  if (isRateLimited(getIp(req))) {
+  if (isRateLimited(`login:${getIp(req)}`, { max: 10, windowMs: 60_000 })) {
     return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   }
 
@@ -47,25 +27,16 @@ export async function POST(req: NextRequest) {
 
     const user = await prisma.user.findUnique({ where: { email } });
 
-    if (!user || !verifyPassword(password, user.password)) {
+    const passwordOk = await verifyPasswordAsync(password, user?.password ?? DUMMY_HASH);
+
+    if (!user || !user.password || !passwordOk) {
       return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
     }
 
-    const accessToken = generateAccessToken(user.id, user.email, user.role);
-    const refreshToken = generateRefreshToken(user.id);
-    await storeRefreshToken(user.id, refreshToken);
+    const tokens = await createSession(user);
 
-    const response = NextResponse.json({
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        staffRole: user.staffRole,
-      },
-    });
-
-    setAuthCookies(response, { accessToken, refreshToken });
+    const response = NextResponse.json({ user: toPublicUser(user) });
+    setAuthCookies(response, tokens);
     return response;
   } catch (error) {
     if (error instanceof z.ZodError) {

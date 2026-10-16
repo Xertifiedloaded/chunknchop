@@ -16,20 +16,27 @@ export const isTempItem = (id: string) => id.startsWith("temp-");
 
 export const maxQuantityFor = (stock?: number | null) => Math.min(MAX_QTY, typeof stock === "number" && stock > 0 ? stock : MAX_QTY);
 
+const errorMessage = (e: unknown, fallback: string) => (e instanceof Error ? e.message : fallback);
+
+function forget(id: string) {
+  clearTimeout(timers.get(id));
+  timers.delete(id);
+  confirmedQty.delete(id);
+}
+
 async function syncQuantity(itemId: string) {
   timers.delete(itemId);
 
   const item = useCartStore.getState().items.find((i) => i.id === itemId);
-  if (!item) {
-    confirmedQty.delete(itemId);
-    return;
-  }
+  if (!item) return void confirmedQty.delete(itemId);
+
+  const sent = item.quantity;
 
   try {
     const res = await fetchWithAuth(`/api/customer/cart/${itemId}`, {
       method: "PATCH",
       headers: json,
-      body: JSON.stringify({ quantity: item.quantity }),
+      body: JSON.stringify({ quantity: sent }),
     });
 
     if (!res.ok) {
@@ -37,16 +44,17 @@ async function syncQuantity(itemId: string) {
       throw new Error(data?.error || "Failed to update quantity");
     }
 
-    confirmedQty.delete(itemId);
+    if (!timers.has(itemId)) confirmedQty.delete(itemId);
   } catch (error) {
     const previous = confirmedQty.get(itemId);
-    confirmedQty.delete(itemId);
+    const current = useCartStore.getState().items.find((i) => i.id === itemId);
 
-    if (previous !== undefined) {
+    if (previous !== undefined && current?.quantity === sent && !timers.has(itemId)) {
       useCartStore.getState().updateQuantity(itemId, previous);
+      confirmedQty.delete(itemId);
     }
 
-    toast.error(error instanceof Error ? error.message : "Failed to update quantity");
+    toast.error(errorMessage(error, "Failed to update quantity"));
   }
 }
 
@@ -84,26 +92,42 @@ export function useCartActions() {
     const item = items.find((i) => i.id === itemId);
     if (!item) return;
 
-    clearTimeout(timers.get(itemId));
-    timers.delete(itemId);
-    confirmedQty.delete(itemId);
-
+    forget(itemId);
     removeFromStore(itemId);
 
     try {
-      const res = await fetchWithAuth(`/api/customer/cart/${itemId}`, {
-        method: "DELETE",
-      });
-
+      const res = await fetchWithAuth(`/api/customer/cart/${itemId}`, { method: "DELETE" });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data?.error || "Failed to remove item");
       }
     } catch (error) {
       addItem(item);
-      toast.error(error instanceof Error ? error.message : "Failed to remove item");
+      toast.error(errorMessage(error, "Failed to remove item"));
     }
   }, []);
 
-  return { setQuantity, removeItem };
+  const clearAll = useCallback(async () => {
+    const { items, setItems, addItem } = useCartStore.getState();
+    const real = items.filter((i) => !isTempItem(i.id));
+    if (!real.length) return;
+
+    real.forEach(({ id }) => forget(id));
+    setItems(items.filter((i) => isTempItem(i.id)));
+
+    const results = await Promise.allSettled(
+      real.map(async ({ id }) => {
+        const res = await fetchWithAuth(`/api/customer/cart/${id}`, { method: "DELETE" });
+        if (!res.ok) throw new Error("delete failed");
+      }),
+    );
+
+    const failed = real.filter((_, i) => results[i].status === "rejected");
+    if (failed.length) {
+      failed.forEach(addItem);
+      toast.error(`Couldn't remove ${failed.length} item${failed.length > 1 ? "s" : ""}`);
+    }
+  }, []);
+
+  return { setQuantity, removeItem, clearAll };
 }

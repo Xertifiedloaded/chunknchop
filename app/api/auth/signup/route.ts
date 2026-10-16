@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { prisma } from "@/lib/db";
-import { generateAccessToken, generateRefreshToken, hashPassword } from "@/lib/auth";
+import { hashPasswordAsync } from "@/lib/auth";
 import { setAuthCookies } from "@/lib/auth/cookies";
-import { storeRefreshToken } from "@/lib/auth/tokens";
+import { createSession, toPublicUser } from "@/lib/auth/session";
 
 export const runtime = "nodejs";
 
@@ -13,8 +13,8 @@ const signupSchema = z.object({
     .string()
     .email()
     .transform((value) => value.toLowerCase().trim()),
-  password: z.string().min(6),
-  name: z.string().min(1),
+  password: z.string().min(8).max(72),
+  name: z.string().trim().min(1),
   role: z.enum(["CUSTOMER", "SUPPLIER"]).default("CUSTOMER"),
 });
 
@@ -22,39 +22,20 @@ export async function POST(req: NextRequest) {
   try {
     const { email, password, name, role } = signupSchema.parse(await req.json());
 
-    const existingUser = await prisma.user.findUnique({ where: { email } });
-    if (existingUser) {
-      return NextResponse.json({ error: "User already exists" }, { status: 400 });
-    }
-
     const user = await prisma.user.create({
-      data: { email, password: hashPassword(password), name, role },
+      data: {
+        email,
+        password: await hashPasswordAsync(password),
+        name,
+        role,
+        ...(role === "SUPPLIER" && { supplierProfile: { create: { storeName: name } } }),
+      },
     });
 
-    if (role === "SUPPLIER") {
-      await prisma.supplierProfile.create({
-        data: { userId: user.id, storeName: name },
-      });
-    }
+    const tokens = await createSession(user);
 
-    const accessToken = generateAccessToken(user.id, user.email, user.role);
-    const refreshToken = generateRefreshToken(user.id);
-    await storeRefreshToken(user.id, refreshToken);
-
-    const response = NextResponse.json(
-      {
-        user: {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-          staffRole: user.staffRole,
-        },
-      },
-      { status: 201 },
-    );
-
-    setAuthCookies(response, { accessToken, refreshToken });
+    const response = NextResponse.json({ user: toPublicUser(user) }, { status: 201 });
+    setAuthCookies(response, tokens);
     return response;
   } catch (error) {
     if (error instanceof z.ZodError) {

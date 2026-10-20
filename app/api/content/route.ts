@@ -1,7 +1,7 @@
+
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { isContentType, type ContentTypeKey } from "@/lib/cms/config";
-import { meatboxSku } from "@/lib/cms/meatbox-sync";
 
 export async function GET(request: NextRequest) {
   const sp = request.nextUrl.searchParams;
@@ -23,18 +23,8 @@ export async function GET(request: NextRequest) {
       select: { id: true, type: true, title: true, slug: true, sortOrder: true, data: true, publishedAt: true },
     });
 
-    const productBySku = new Map<string, { id: string; inStock: boolean; stock: number; basePrice: number }>();
-    const meatboxRows = rows.filter((r) => r.type === "MEATBOX");
-    if (meatboxRows.length) {
-      const products = await prisma.product.findMany({
-        where: { sku: { in: meatboxRows.map((r) => meatboxSku(r.id)) }, isActive: true, isArchived: false },
-        select: { id: true, sku: true, inStock: true, stock: true, basePrice: true },
-      });
-      for (const p of products) if (p.sku) productBySku.set(p.sku, p);
-    }
-
     const now = Date.now();
-    const content: Record<string, any[]> = Object.fromEntries(types.map((t) => [t, []]));
+    const content: Record<string, typeof rows> = Object.fromEntries(types.map((t) => [t, []]));
 
     for (const row of rows) {
       if (row.type === "BANNER") {
@@ -42,18 +32,6 @@ export async function GET(request: NextRequest) {
         if (d.startsAt && new Date(d.startsAt).getTime() > now) continue;
         if (d.endsAt && new Date(d.endsAt).getTime() < now) continue;
       }
-
-      if (row.type === "MEATBOX") {
-        const p = productBySku.get(meatboxSku(row.id));
-        content[row.type].push({
-          ...row,
-          productId: p?.id ?? null,
-          inStock: p ? p.inStock && p.stock > 0 : null,
-          data: { ...(row.data as Record<string, any>), price: p?.basePrice ?? (row.data as any)?.price },
-        });
-        continue;
-      }
-
       content[row.type].push(row);
     }
 

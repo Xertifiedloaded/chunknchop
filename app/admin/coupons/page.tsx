@@ -278,7 +278,7 @@ export default function AdminCouponsPage() {
     <main className="min-h-screen bg-[#f8f8f6] px-3 py-5 text-[#302b27] sm:px-5 lg:px-7 lg:py-7">
       <div className="mx-auto max-w-[1440px] space-y-5">
 
-        {/* Header */}
+        {}
         <header className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div>
             <div className="mb-1.5 flex items-center gap-2">
@@ -306,7 +306,7 @@ export default function AdminCouponsPage() {
           </button>
         </header>
 
-        {/* Notifications */}
+        {}
         {notice && (
           <div className="flex items-center justify-between gap-3 rounded-md border border-[#dcecdf] bg-[#f1f8f2] px-4 py-3">
             <p className="text-[11px] text-[#438052]">{notice}</p>
@@ -333,7 +333,7 @@ export default function AdminCouponsPage() {
           </div>
         )}
 
-        {/* Statistics */}
+        {}
         <section className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <Stat
             label="All coupons"
@@ -360,7 +360,7 @@ export default function AdminCouponsPage() {
           />
         </section>
 
-        {/* Coupon table */}
+        {}
         <section className="overflow-hidden rounded-lg border border-[#ece9e4] bg-white shadow-[0_2px_9px_rgba(35,30,25,0.025)]">
           <div className="flex flex-col gap-3 border-b border-[#f0ede9] p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
             <div>
@@ -476,7 +476,7 @@ export default function AdminCouponsPage() {
                         key={coupon.id}
                         className="transition-colors hover:bg-[#fdfbf9]"
                       >
-                        {/* Coupon code */}
+                        {}
                         <td className="px-4 py-3.5">
                           <div className="flex items-center gap-2.5">
                             <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-[#fff2eb] text-[#c8552b]">
@@ -494,7 +494,7 @@ export default function AdminCouponsPage() {
                           </div>
                         </td>
 
-                        {/* Discount */}
+                        {}
                         <td className="px-4 py-3.5">
                           <span className="inline-flex items-center rounded-md bg-[#f7f4f0] px-2.5 py-1 text-[10px] font-semibold text-[#554c43]">
                             {coupon.discountType === 'percentage'
@@ -509,7 +509,7 @@ export default function AdminCouponsPage() {
                           )}
                         </td>
 
-                        {/* Usage */}
+                        {}
                         <td className="px-4 py-3.5">
                           <p className="text-[11px] font-semibold text-[#514a43]">
                             {coupon.usageCount ?? 0}
@@ -536,7 +536,7 @@ export default function AdminCouponsPage() {
                           )}
                         </td>
 
-                        {/* Validity */}
+                        {}
                         <td className="px-4 py-3.5">
                           <div className="flex items-center gap-1.5 text-[10px] text-[#716960]">
                             <CalendarDays size={12} className="text-[#a49b92]" />
@@ -560,7 +560,7 @@ export default function AdminCouponsPage() {
                           )}
                         </td>
 
-                        {/* Status */}
+                        {}
                         <td className="px-4 py-3.5">
                           <button
                             onClick={() => void toggle(coupon)}
@@ -580,7 +580,7 @@ export default function AdminCouponsPage() {
                           </button>
                         </td>
 
-                        {/* Actions */}
+                        {}
                         <td className="px-4 py-3.5">
                           <div className="flex items-center gap-1.5">
                             <button
@@ -622,7 +622,7 @@ export default function AdminCouponsPage() {
         </section>
       </div>
 
-      {/* Create / Edit modal */}
+      {}
       {modal && (
         <div
           className="fixed inset-0 z-50 flex items-end justify-center bg-[#24211e]/45 backdrop-blur-[2px] sm:items-center sm:p-4"
@@ -636,7 +636,7 @@ export default function AdminCouponsPage() {
             onSubmit={submit}
             className="max-h-[94dvh] w-full max-w-[570px] space-y-5 overflow-y-auto rounded-t-xl border border-[#efebe6] bg-white p-5 shadow-[0_20px_70px_rgba(0,0,0,0.16)] sm:rounded-lg sm:p-6"
           >
-            {/* Modal header */}
+            {}
             <div className="flex items-start justify-between gap-3 border-b border-[#f0ede9] pb-4">
               <div className="flex items-start gap-3">
                 <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-[#fff2eb] text-[#c8552b]">
@@ -671,7 +671,7 @@ export default function AdminCouponsPage() {
               </div>
             )}
 
-            {/* Coupon details */}
+            {}
             <div>
               <p className="mb-3 text-[9px] font-bold uppercase tracking-[0.13em] text-[#a0988f]">
                 Coupon details
@@ -749,7 +749,7 @@ export default function AdminCouponsPage() {
               </div>
             </div>
 
-            {/* Redemption rules */}
+            {}
             <div className="border-t border-[#f0ede9] pt-4">
               <p className="mb-3 text-[9px] font-bold uppercase tracking-[0.13em] text-[#a0988f]">
                 Redemption rules
@@ -786,7 +786,7 @@ export default function AdminCouponsPage() {
               </div>
             </div>
 
-            {/* Validity */}
+            {}
             <div className="border-t border-[#f0ede9] pt-4">
               <p className="mb-3 text-[9px] font-bold uppercase tracking-[0.13em] text-[#a0988f]">
                 Validity period
@@ -817,7 +817,7 @@ export default function AdminCouponsPage() {
               </div>
             </div>
 
-            {/* Active state */}
+            {}
             <div className="flex items-center justify-between gap-3 rounded-md border border-[#eeeae5] bg-[#fdfcfb] px-3.5 py-3">
               <div>
                 <p className="text-[11px] font-semibold text-[#514a43]">
@@ -847,7 +847,7 @@ export default function AdminCouponsPage() {
               </button>
             </div>
 
-            {/* Actions */}
+            {}
             <div className="flex flex-col-reverse gap-2 border-t border-[#f0ede9] pt-4 sm:flex-row sm:justify-end">
               <button
                 type="button"

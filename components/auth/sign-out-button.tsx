@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/components/auth-provider';
+import { useAuth } from '@/components/auth/auth-provider';
 
 export default function SignOutButton() {
   const router = useRouter();

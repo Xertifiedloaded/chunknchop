@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import CatalogPage from '@/components/catalog-page';
+import CatalogPage from '@/components/catalog/catalog-page';
 import { getPublishedProducts } from '@/lib/products';
 
 export const dynamic = 'force-dynamic';

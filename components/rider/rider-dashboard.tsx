@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import useSWR from 'swr';
 import { Check, LoaderCircle, MapPin, Navigation, PackageCheck } from 'lucide-react';
 import { formatPrice } from '@/lib/catalog';
-import OrderConversation from '@/components/order-conversation';
+import OrderConversation from '@/components/orders/order-conversation';
 
 type RiderOrder = {
   orderNumber: string;

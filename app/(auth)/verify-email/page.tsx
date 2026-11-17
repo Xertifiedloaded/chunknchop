@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
-import AuthShell from '@/components/auth-shell';
-import { EmailCodeForm } from '@/components/auth-code-form';
+import AuthShell from '@/components/auth/auth-shell';
+import { EmailCodeForm } from '@/components/auth/auth-code-form';
 import { getSession, safeReturnTo } from '@/lib/auth';
 import { headers } from 'next/headers';
 

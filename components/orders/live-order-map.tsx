@@ -4,7 +4,7 @@
 import dynamic from 'next/dynamic';
 import { MapPin } from 'lucide-react';
 
-const MapView = dynamic(() => import('@/components/live-order-map-view'), {
+const MapView = dynamic(() => import('@/components/orders/live-order-map-view'), {
   ssr: false,
   loading: () => (
     <div

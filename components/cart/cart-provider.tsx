@@ -10,7 +10,7 @@ import {
   type ReactNode,
 } from 'react';
 import useSWR from 'swr';
-import { useAuth } from '@/components/auth-provider';
+import { useAuth } from '@/components/auth/auth-provider';
 import type { CatalogProduct } from '@/lib/catalog';
 
 type CartLine = { product: CatalogProduct; quantity: number };

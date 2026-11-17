@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { ArrowLeft, ArrowRight, Check, Heart, Minus, Plus } from 'lucide-react';
 import type { CatalogProduct } from '@/lib/catalog';
 import { formatPrice } from '@/lib/catalog';
-import { useCart } from '@/components/cart-provider';
+import { useCart } from '@/components/cart/cart-provider';
 
 export default function ProductDetail({ product }: { product: CatalogProduct }) {
   const [quantity, setQuantity] = useState(1);

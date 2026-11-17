@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import CheckoutPageClient from '@/components/checkout-page';
+import CheckoutPageClient from '@/components/checkout/checkout-page';
 
 export const metadata: Metadata = {
   title: 'Checkout | ChunknChop',

@@ -5,8 +5,8 @@ import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import { isAdminUser } from '@/lib/admin-api';
-import SignOutButton from '@/components/sign-out-button';
-import RiderDashboard from '@/components/rider-dashboard';
+import SignOutButton from '@/components/auth/sign-out-button';
+import RiderDashboard from '@/components/rider/rider-dashboard';
 
 export const metadata: Metadata = {
   title: 'Rider route | ChunknChop',

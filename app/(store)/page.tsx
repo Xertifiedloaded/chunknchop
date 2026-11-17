@@ -1,4 +1,4 @@
-import Storefront from '@/components/storefront';
+import Storefront from '@/components/home/storefront';
 import { getPublishedProducts } from '@/lib/products';
 
 export const dynamic = 'force-dynamic';

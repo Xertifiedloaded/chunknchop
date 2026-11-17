@@ -4,8 +4,8 @@ import { useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowRight, LoaderCircle } from 'lucide-react';
-import { useAuth } from '@/components/auth-provider';
-import { useCart } from '@/components/cart-provider';
+import { useAuth } from '@/components/auth/auth-provider';
+import { useCart } from '@/components/cart/cart-provider';
 import { destinationForRole } from '@/lib/role-redirect';
 
 type AuthFormProps = {

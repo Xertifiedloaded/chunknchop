@@ -3,8 +3,8 @@ import { Anton, Inter, Sora, Work_Sans } from 'next/font/google';
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import 'leaflet/dist/leaflet.css';
-import { CartProvider } from '@/components/cart-provider';
-import { AuthProvider } from '@/components/auth-provider';
+import { CartProvider } from '@/components/cart/cart-provider';
+import { AuthProvider } from '@/components/auth/auth-provider';
 const sora = Sora({
   subsets: ["latin"],
   variable: "--font-sora",

@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
-import OrderTracking from '@/components/order-tracking';
+import OrderTracking from '@/components/orders/order-tracking';
 
 type PageProps = {
   params: Promise<{ orderNumber: string }>;

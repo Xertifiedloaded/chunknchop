@@ -4,8 +4,8 @@ import Link from 'next/link';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
-import SignOutButton from '@/components/sign-out-button';
-import OrderDashboard from '@/components/order-dashboard';
+import SignOutButton from '@/components/auth/sign-out-button';
+import OrderDashboard from '@/components/orders/order-dashboard';
 
 export const metadata: Metadata = {
   title: 'Your orders | ChunknChop',

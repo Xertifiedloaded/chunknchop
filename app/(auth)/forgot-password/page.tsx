@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
-import AuthShell from '@/components/auth-shell';
-import { ForgotPasswordForm } from '@/components/auth-code-form';
+import AuthShell from '@/components/auth/auth-shell';
+import { ForgotPasswordForm } from '@/components/auth/auth-code-form';
 import { safeReturnTo } from '@/lib/auth';
 
 export const metadata: Metadata = {

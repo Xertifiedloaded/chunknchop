@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
-import AuthForm from '@/components/auth-form';
-import AuthShell from '@/components/auth-shell';
+import AuthForm from '@/components/auth/auth-form';
+import AuthShell from '@/components/auth/auth-shell';
 import { getSession, isGoogleAuthEnabled, safeReturnTo } from '@/lib/auth';
 
 export const metadata: Metadata = {

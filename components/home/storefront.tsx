@@ -3,7 +3,7 @@
 import { useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useCart } from '@/components/cart-provider';
+import { useCart } from '@/components/cart/cart-provider';
 import {
   ArrowDown,
   ArrowRight,
@@ -14,9 +14,9 @@ import {
   SlidersHorizontal,
 } from 'lucide-react';
 import { productCategories, type CatalogProduct } from '@/lib/catalog';
-import Header from './header';
-import Footer from './Footer';
-import AboutSection from './about-section';
+import Header from '@/components/layout/header';
+import Footer from '@/components/layout/footer';
+import AboutSection from '@/components/home/about-section';
 
 const container = 'mx-auto w-full max-w-[1280px] px-5 sm:px-8 lg:px-12';
 const sectionHeading =

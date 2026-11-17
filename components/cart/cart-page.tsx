@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { ArrowLeft, ArrowRight, Minus, Plus, Trash2 } from 'lucide-react';
-import { useCart } from '@/components/cart-provider';
+import { useCart } from '@/components/cart/cart-provider';
 import { formatPrice } from '@/lib/catalog';
 
 const container = 'mx-auto w-full max-w-[1280px] px-5 sm:px-8 lg:px-12';

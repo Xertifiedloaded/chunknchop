@@ -5,8 +5,8 @@ import Link from 'next/link';
 import useSWR from 'swr';
 import { ArrowLeft, ArrowUpRight, Check, Clock3, MapPin, PackageCheck } from 'lucide-react';
 import { formatPrice } from '@/lib/catalog';
-import LiveOrderMap from '@/components/live-order-map';
-import OrderConversation from '@/components/order-conversation';
+import LiveOrderMap from '@/components/orders/live-order-map';
+import OrderConversation from '@/components/orders/order-conversation';
 
 type OrderStatus =
   | 'payment_pending'

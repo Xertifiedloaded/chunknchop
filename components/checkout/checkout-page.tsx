@@ -13,8 +13,8 @@ import {
   Truck,
   LoaderCircle,
 } from 'lucide-react';
-import { useAuth } from '@/components/auth-provider';
-import { useCart } from '@/components/cart-provider';
+import { useAuth } from '@/components/auth/auth-provider';
+import { useCart } from '@/components/cart/cart-provider';
 import { formatPrice } from '@/lib/catalog';
 
 type CheckoutResponse = {

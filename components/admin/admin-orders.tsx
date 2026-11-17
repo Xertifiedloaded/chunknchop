@@ -376,7 +376,7 @@ export default function AdminOrders() {
 
   const orders = useMemo(() => data?.orders ?? [], [data]);
 
-  // Tab counts
+   
   const statusCounts = useMemo(() => {
     return {
       all: orders.length,
@@ -399,7 +399,7 @@ export default function AdminOrders() {
     };
   }, [orders]);
 
-  // Dashboard statistics
+   
   const stats = useMemo(
     () => ({
       total: orders.length,
@@ -423,7 +423,7 @@ export default function AdminOrders() {
     [orders],
   );
 
-  // Filtering and sorting: paid orders always appear first.
+   
   const filteredOrders = useMemo(() => {
     const query = search.trim().toLowerCase();
 
@@ -488,7 +488,7 @@ export default function AdminOrders() {
     });
   }, [orders, activeStatus, search, showUnassignedOnly]);
 
-  // Pagination
+   
   const totalPages = Math.max(1, Math.ceil(filteredOrders.length / pageSize));
 
   const currentPage = Math.min(page, totalPages);
@@ -531,7 +531,7 @@ export default function AdminOrders() {
     setMessage('');
   }
 
-  // CSV export
+   
   function exportOrders() {
     const headers = [
       'Order Number',
@@ -579,7 +579,7 @@ export default function AdminOrders() {
     URL.revokeObjectURL(url);
   }
 
-  // Rider assignment
+   
   async function assignRider(event: FormEvent<HTMLFormElement>, orderNumber: string) {
     event.preventDefault();
 
@@ -632,7 +632,7 @@ export default function AdminOrders() {
       className="min-w-0 space-y-5 text-stone-800 sm:space-y-6"
       aria-labelledby="admin-orders-title"
     >
-      {/* Header */}
+      {}
       <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
         <div>
           <h1
@@ -669,7 +669,7 @@ export default function AdminOrders() {
         </div>
       </div>
 
-      {/* Statistics */}
+      {}
       <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
         <StatCard
           label="Total orders"
@@ -700,7 +700,7 @@ export default function AdminOrders() {
         />
       </div>
 
-      {/* Feedback */}
+      {}
       {message && (
         <div
           role="status"
@@ -720,7 +720,7 @@ export default function AdminOrders() {
         </div>
       )}
 
-      {/* Search and assignment filter */}
+      {}
       <div className="flex flex-col gap-2 sm:flex-row">
         <div className="relative min-w-0 flex-1">
           <Search
@@ -758,7 +758,7 @@ export default function AdminOrders() {
         </button>
       </div>
 
-      {/* Status tabs */}
+      {}
       <div className="flex gap-1.5 overflow-x-auto border-b border-stone-200 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {statuses.map((status) => {
           const active = activeStatus === status;
@@ -790,7 +790,7 @@ export default function AdminOrders() {
         })}
       </div>
 
-      {/* Orders table */}
+      {}
       <div className="overflow-hidden rounded-xl border border-stone-200 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.025)]">
         <div className="flex items-center justify-between gap-3 border-b border-stone-100 px-4 py-3">
           <div>
@@ -878,7 +878,7 @@ export default function AdminOrders() {
                       key={order.orderNumber}
                       className="group transition-colors hover:bg-stone-50/70"
                     >
-                      {/* Product and order reference */}
+                      {}
                       <td className="px-4 py-3.5">
                         <div className="flex min-w-[210px] items-center gap-2.5">
                           <ProductImage imageUrl={imageUrl} name={title} />
@@ -906,7 +906,7 @@ export default function AdminOrders() {
                         </div>
                       </td>
 
-                      {/* Customer */}
+                      {}
                       <td className="px-4 py-3.5">
                         <div className="flex min-w-[150px] items-center gap-2">
                           <span className="grid size-7 shrink-0 place-items-center rounded-full bg-stone-100 text-[9px] font-semibold text-stone-600">
@@ -930,7 +930,7 @@ export default function AdminOrders() {
                         </div>
                       </td>
 
-                      {/* Delivery */}
+                      {}
                       <td className="px-4 py-3.5">
                         <div className="flex min-w-[115px] items-center gap-1.5 text-[10px] text-stone-500">
                           <MapPin size={12} className="shrink-0 text-stone-400" />
@@ -941,7 +941,7 @@ export default function AdminOrders() {
                         </div>
                       </td>
 
-                      {/* Date */}
+                      {}
                       <td className="px-4 py-3.5">
                         <div className="min-w-[110px]">
                           <p className="text-[10px] font-medium text-stone-700">
@@ -954,24 +954,24 @@ export default function AdminOrders() {
                         </div>
                       </td>
 
-                      {/* Total */}
+                      {}
                       <td className="px-4 py-3.5">
                         <p className="whitespace-nowrap text-[11px] font-semibold tabular-nums text-stone-900">
                           {formatPrice(order.subtotalCents)}
                         </p>
                       </td>
 
-                      {/* Payment */}
+                      {}
                       <td className="px-4 py-3.5">
                         <PaymentBadge status={order.paymentStatus} />
                       </td>
 
-                      {/* Order status */}
+                      {}
                       <td className="px-4 py-3.5">
                         <StatusBadge status={order.status} />
                       </td>
 
-                      {/* Rider assignment */}
+                      {}
                       <td className="px-4 py-3.5">
                         <RiderCell
                           order={order}
@@ -997,7 +997,7 @@ export default function AdminOrders() {
           </div>
         )}
 
-        {/* Pagination */}
+        {}
         {!isLoading && !error && filteredOrders.length > 0 && (
           <div className="flex flex-col gap-3 border-t border-stone-100 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-[10px] text-stone-500">

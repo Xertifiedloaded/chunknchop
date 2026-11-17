@@ -26,7 +26,7 @@ export default function CatalogPage({ products }: { products: CatalogProduct[] }
 
   return (
     <main className="flex min-h-screen flex-col bg-[#f8f8f6] text-[#24231f]">
-      {/* Catalog introduction */}
+      {}
       <section className="border-b border-[#e7e5df] bg-[#f8f8f6] px-[10.5%] pt-[65px] pb-[38px] max-[900px]:px-[6%] max-[650px]:px-[6%] max-[650px]:pt-[43px] max-[650px]:pb-[27px]">
         <p className="m-0 flex items-center gap-[9px] text-[9px] font-bold tracking-[0.15em] text-[#77736d]">
           <span className="h-px w-[19px] bg-[#e86b3e]" />
@@ -50,12 +50,12 @@ export default function CatalogPage({ products }: { products: CatalogProduct[] }
         </div>
       </section>
 
-      {/* Catalog content */}
+      {}
       <section
         className="mx-auto grid w-[79%] flex-1 grid-cols-[190px_minmax(0,1fr)] gap-[48px] py-[48px] max-[900px]:w-[88%] max-[900px]:grid-cols-[160px_minmax(0,1fr)] max-[900px]:gap-[30px] max-[650px]:w-[88%] max-[650px]:grid-cols-1 max-[650px]:gap-[27px] max-[650px]:py-[30px]"
         aria-label="Product catalogue"
       >
-        {/* Sidebar */}
+        {}
         <aside className="self-start">
           <p className="mb-[17px] text-[9px] font-bold tracking-[0.14em] text-[#77736d]">
             SHOP BY CUT
@@ -97,9 +97,9 @@ export default function CatalogPage({ products }: { products: CatalogProduct[] }
           </div>
         </aside>
 
-        {/* Product results */}
+        {}
         <div className="min-w-0">
-          {/* Controls */}
+          {}
           <div className="mb-[22px] flex min-h-[43px] items-center justify-between gap-4 border-b border-[#e7e5df] pb-[13px] max-[650px]:flex-col max-[650px]:items-stretch max-[650px]:gap-[13px]">
             <div className="flex items-center gap-[9px] text-[10px] text-[#77736d]">
               <span className="font-semibold text-[#24231f]">
@@ -125,7 +125,7 @@ export default function CatalogPage({ products }: { products: CatalogProduct[] }
             </label>
           </div>
 
-          {/* Products */}
+          {}
           <div className="grid grid-cols-3 gap-x-[17px] gap-y-[30px] max-[900px]:grid-cols-2 max-[650px]:grid-cols-2 max-[650px]:gap-x-[11px] max-[650px]:gap-y-[23px]">
             {visibleProducts.map((product) => (
               <Link className="group min-w-0" href={`/products/${product.slug}`} key={product.id}>
@@ -170,7 +170,7 @@ export default function CatalogPage({ products }: { products: CatalogProduct[] }
               </Link>
             ))}
 
-            {/* Empty state */}
+            {}
             {visibleProducts.length === 0 && (
               <div className="col-span-full flex min-h-[270px] flex-col items-center justify-center py-[45px] text-center text-[#77736d]">
                 <Search size={21} className="text-[#a9442c]" />
@@ -203,7 +203,7 @@ export default function CatalogPage({ products }: { products: CatalogProduct[] }
         </div>
       </section>
 
-      {/* Footer */}
+      {}
       <footer className="flex min-h-[65px] items-center justify-between gap-4 border-t border-[#e7e5df] bg-[#f8f8f6] px-[7.1%] text-[9px] tracking-[0.1em] text-[#77736d] max-[650px]:flex-wrap max-[650px]:px-[6%] max-[650px]:py-[17px]">
         <span className="font-heading text-[15px] font-semibold tracking-normal text-[#24231f]">
           ChunknChop

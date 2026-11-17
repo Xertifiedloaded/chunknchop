@@ -55,10 +55,10 @@ const emptyDraft: ProductDraft = {
   published: false,
 };
 
-/**
- * Always resolves to `{ products: [...] }`, whether the API returns
- * a bare array or `{ products: [...] }`. Prevents `undefined.length` crashes.
- */
+
+
+
+
 async function fetchProducts(url: string): Promise<AdminProductResponse> {
   const response = await fetch(url, { cache: 'no-store' });
 
@@ -370,7 +370,7 @@ export default function AdminProducts({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-[#88847d]">
@@ -398,7 +398,7 @@ export default function AdminProducts({
         </button>
       </div>
 
-      {/* Feedback */}
+      {}
       {message && !modalOpen && (
         <div
           role="status"
@@ -411,7 +411,7 @@ export default function AdminProducts({
         </div>
       )}
 
-      {/* Statistics */}
+      {}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="rounded-xl border border-[#e8e6e1] bg-white p-5">
           <div className="flex items-center justify-between">
@@ -447,7 +447,7 @@ export default function AdminProducts({
         </div>
       </div>
 
-      {/* Products table */}
+      {}
       <section className="overflow-hidden rounded-xl border border-[#e8e6e1] bg-white">
         <div className="flex flex-col gap-4 border-b border-[#e8e6e1] p-5 lg:flex-row lg:items-center lg:justify-between">
           <div>
@@ -544,7 +544,7 @@ export default function AdminProducts({
           </div>
         ) : (
           <>
-            {/* Desktop table */}
+            {}
             <div className="hidden overflow-x-auto md:block">
               <table className="w-full text-left">
                 <thead className="bg-[#faf9f6]">
@@ -653,7 +653,7 @@ export default function AdminProducts({
               </table>
             </div>
 
-            {/* Mobile product list */}
+            {}
             <div className="divide-y divide-[#efede8] md:hidden">
               {filteredProducts.map((product) => (
                 <article key={product.id} className="p-4">
@@ -720,7 +720,7 @@ export default function AdminProducts({
         )}
       </section>
 
-      {/* Add/Edit product modal */}
+      {}
       {modalOpen && (
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center bg-[#171613]/60 p-3 backdrop-blur-[3px] sm:p-6"
@@ -734,7 +734,7 @@ export default function AdminProducts({
             aria-labelledby="product-modal-title"
             className="flex max-h-[94vh] w-full max-w-3xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl"
           >
-            {/* Modal header */}
+            {}
             <div className="flex items-center justify-between border-b border-[#e8e6e1] px-5 py-5 sm:px-7">
               <div>
                 <div className="mb-1 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.16em] text-[#88847d]">
@@ -767,7 +767,7 @@ export default function AdminProducts({
               </button>
             </div>
 
-            {/* Modal form */}
+            {}
             <form onSubmit={saveProduct} className="overflow-y-auto">
               <div className="grid grid-cols-1 gap-x-5 gap-y-5 p-5 sm:grid-cols-2 sm:p-7">
                 <label className={labelClass}>
@@ -887,7 +887,7 @@ export default function AdminProducts({
                   />
                 </label>
 
-                {/* Image upload */}
+                {}
                 <div className="flex flex-col gap-3 sm:col-span-2">
                   <label className={labelClass}>
                     Product image
@@ -1012,7 +1012,7 @@ export default function AdminProducts({
                 </label>
               </div>
 
-              {/* API feedback */}
+              {}
               {message && (
                 <div
                   role="status"
@@ -1022,7 +1022,7 @@ export default function AdminProducts({
                 </div>
               )}
 
-              {/* Footer */}
+              {}
               <div className="sticky bottom-0 flex flex-col-reverse gap-3 border-t border-[#e8e6e1] bg-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-7">
                 <button
                   type="button"

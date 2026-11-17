@@ -236,7 +236,7 @@ export default function OrderDashboard() {
 
   return (
     <div className="mx-auto w-full max-w-7xl px-3 py-6 text-[#24231f] sm:px-5 sm:py-8 lg:px-8 lg:py-9">
-      {/* Header */}
+      {}
       <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:mb-7 sm:flex-row sm:items-end">
         <div className="min-w-0">
           <p className="mb-1.5 text-[9px] font-bold tracking-[0.16em] text-brand sm:text-[10px]">
@@ -261,7 +261,7 @@ export default function OrderDashboard() {
         </Link>
       </div>
 
-      {/* Analytics */}
+      {}
       <section
         className="mb-6 grid grid-cols-2 gap-2.5 sm:mb-7 sm:gap-3 xl:grid-cols-4"
         aria-label="Order analytics"
@@ -315,7 +315,7 @@ export default function OrderDashboard() {
         </article>
       </section>
 
-      {/* Filters and sorting */}
+      {}
       <section className="mb-5 flex flex-col gap-2.5 rounded-lg border border-[#eeece8] bg-white p-2 sm:mb-6 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex w-full items-center gap-1 overflow-x-auto rounded-md bg-[#f5f5f4] p-1 sm:w-auto">
           {filters.map((filter) => (
@@ -360,7 +360,7 @@ export default function OrderDashboard() {
         </div>
       </section>
 
-      {/* Orders */}
+      {}
       <section aria-label="Your orders">
         {isLoading ? (
           <div className="rounded-lg border border-[#eeece8] bg-white py-14 text-center">

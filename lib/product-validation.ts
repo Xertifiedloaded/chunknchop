@@ -27,7 +27,7 @@ const imageUrl = z
     }
   }, 'Use an uploaded image or a secure HTTPS image URL');
 
-// "" / undefined -> null
+ 
 const badge = z.preprocess(
   (v) => (v === undefined || (typeof v === 'string' && v.trim() === '') ? null : v),
   z.string().trim().max(40).nullable(),
@@ -38,7 +38,7 @@ const shape = {
   name: z.string().trim().min(1).max(100),
   description: z.string().trim().min(1).max(2000),
   cut: z.string().trim().min(1).max(120),
-  priceCents: z.coerce.number().int().min(1).max(MAX_PRICE_KOBO), // kobo
+  priceCents: z.coerce.number().int().min(1).max(MAX_PRICE_KOBO),  
   unit: z.string().trim().min(1).max(40),
   imageUrl,
   badge,

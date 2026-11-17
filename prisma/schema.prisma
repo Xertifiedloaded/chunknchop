@@ -18,6 +18,9 @@ model User {
   updatedAt     DateTime  @updatedAt
   sessions      Session[]
   accounts      Account[]
+  resetOtpHash       String?
+resetOtpExpiresAt  DateTime?
+resetOtpAttempts   Int       @default(0)
 }
 
 model Session {

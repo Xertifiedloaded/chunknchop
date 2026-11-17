@@ -29,10 +29,10 @@ export default function Header() {
 
   const accountRef = useRef<HTMLDivElement>(null);
 
-  // Calculate the cart count from the actual cart items.
+   
   const cartCount = items?.reduce((total, item) => total + (Number(item.quantity) || 0), 0) ?? 0;
 
-  // Normalize role values to handle ADMIN, admin, Admin, etc.
+   
   const normalizedRole = String(user?.role ?? '')
     .trim()
     .toUpperCase();
@@ -67,7 +67,7 @@ export default function Header() {
     setAccountOpen(false);
   }
 
-  // Refresh the session when the header mounts and when the tab becomes active.
+   
   useEffect(() => {
     void refreshSession();
 
@@ -86,7 +86,7 @@ export default function Header() {
     };
   }, [refreshSession]);
 
-  // Close the account dropdown when clicking outside or pressing Escape.
+   
   useEffect(() => {
     function handlePointerDown(event: MouseEvent) {
       if (accountRef.current && !accountRef.current.contains(event.target as Node)) {
@@ -122,7 +122,7 @@ export default function Header() {
 
   return (
     <>
-      {/* Announcement bar */}
+      {}
       <div className="flex h-8 items-center justify-between bg-[#24231f] px-[7.1%] text-[9px] font-semibold tracking-[0.13em] text-[#f7f5ef] max-[900px]:px-[5%] max-[650px]:justify-center max-[650px]:px-3 max-[650px]:text-[8px]">
         <span>GOOD FOOD STARTS WITH GOOD SOURCING.</span>
 
@@ -134,7 +134,7 @@ export default function Header() {
 
       <header className="sticky top-0 z-50 border-b border-[#efeee9] bg-white">
         <div className="relative mx-auto flex h-[76px] max-w-[1600px] items-center justify-between px-[7.1%] max-[900px]:px-[5%] max-[650px]:h-[65px]">
-          {/* Logo */}
+          {}
           <Link
             href="/"
             onClick={closeMenus}
@@ -146,7 +146,7 @@ export default function Header() {
             </span>
           </Link>
 
-          {/* Desktop navigation */}
+          {}
           <nav
             className="flex items-center gap-8 text-[12px] text-[#484741] max-[900px]:hidden"
             aria-label="Main navigation"
@@ -168,7 +168,7 @@ export default function Header() {
             </Link>
           </nav>
 
-          {/* Desktop actions */}
+          {}
           <div className="flex items-center gap-6 max-[650px]:gap-4">
             <Link
               href="/shop"
@@ -178,7 +178,7 @@ export default function Header() {
               <Search size={18} />
             </Link>
 
-            {/* Account */}
+            {}
             <div ref={accountRef} className="relative max-[900px]:hidden">
               {isLoading ? (
                 <div className="flex h-9 w-24 items-center justify-center">
@@ -225,7 +225,7 @@ export default function Header() {
                 </Link>
               )}
 
-              {/* Desktop account dropdown */}
+              {}
               {user && accountOpen && (
                 <div
                   role="menu"
@@ -274,7 +274,7 @@ export default function Header() {
               )}
             </div>
 
-            {/* Cart */}
+            {}
             <Link
               href="/cart"
               className="relative flex items-center text-[#484741] transition hover:text-[#e86b3e]"
@@ -289,7 +289,7 @@ export default function Header() {
               )}
             </Link>
 
-            {/* Mobile menu button */}
+            {}
             <button
               type="button"
               onClick={() => setMenuOpen((open) => !open)}
@@ -302,7 +302,7 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Mobile navigation */}
+        {}
         {menuOpen && (
           <div className="absolute left-0 right-0 top-full z-50 max-h-[calc(100vh-100px)] overflow-y-auto border-t border-[#efeee9] bg-white px-[5%] pb-6 pt-5 shadow-[0_15px_30px_rgba(0,0,0,0.08)] min-[901px]:hidden">
             <nav className="flex flex-col gap-1 text-[13px] text-[#484741]">

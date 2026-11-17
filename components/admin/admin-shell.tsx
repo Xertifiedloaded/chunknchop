@@ -79,7 +79,7 @@ function SidebarContent({
 }) {
   return (
     <>
-      {/* Brand */}
+      {}
       <div
         className={`flex shrink-0 items-center justify-between border-b border-white/[0.07] px-4 ${
           onClose
@@ -112,7 +112,7 @@ function SidebarContent({
         )}
       </div>
 
-      {/* Navigation */}
+      {}
       <nav className="flex-1 space-y-4 overflow-y-auto overscroll-contain px-3 py-4">
         {navigation.map((group) => (
           <div key={group.label}>
@@ -156,7 +156,7 @@ function SidebarContent({
         ))}
       </nav>
 
-      {/* Sidebar footer */}
+      {}
       <div className="shrink-0 space-y-2.5 border-t border-white/[0.07] p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
         <div className="rounded-lg bg-[#38332f] p-3">
           <div className="flex items-center gap-2 text-[11px] font-medium text-white">
@@ -200,12 +200,12 @@ export default function AdminShell({
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
-  // Close drawer when navigating.
+   
   useEffect(() => {
     setOpen(false);
   }, [pathname]);
 
-  // Escape key and body scroll locking.
+   
   useEffect(() => {
     if (!open) return;
 
@@ -224,7 +224,7 @@ export default function AdminShell({
     };
   }, [open]);
 
-  // Close mobile drawer on desktop resize.
+   
   useEffect(() => {
     const media = window.matchMedia('(min-width: 1024px)');
 
@@ -239,12 +239,12 @@ export default function AdminShell({
 
   return (
     <div className="min-h-dvh bg-[#f5f6f8] text-[#292723]">
-      {/* Desktop sidebar */}
+      {}
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-[232px] flex-col bg-[#292622] text-white lg:flex">
         <SidebarContent pathname={pathname} />
       </aside>
 
-      {/* Mobile header */}
+      {}
       <header className="sticky top-0 z-30 flex h-[calc(56px+env(safe-area-inset-top))] items-center gap-3 border-b border-white/[0.07] bg-[#292622] px-3 pt-[env(safe-area-inset-top)] text-white sm:px-4 lg:hidden">
         <button
           type="button"
@@ -275,7 +275,7 @@ export default function AdminShell({
         )}
       </header>
 
-      {/* Mobile drawer */}
+      {}
       <div
         className={`fixed inset-0 z-50 transition-[visibility] duration-300 lg:hidden ${
           open ? 'visible' : 'pointer-events-none invisible'
@@ -309,9 +309,9 @@ export default function AdminShell({
         </aside>
       </div>
 
-      {/* Main application */}
+      {}
       <div className="flex min-h-dvh min-w-0 flex-col lg:pl-[232px]">
-        {/* Desktop header */}
+        {}
         <AdminHeader
           name={userName || userEmail || 'Admin'}
           role={userRole}
@@ -319,7 +319,7 @@ export default function AdminShell({
           notificationCount={notificationCount}
         />
 
-        {/* Page content */}
+        {}
         <main className="mx-auto w-full min-w-0 max-w-[1600px] flex-1 px-3 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-5 sm:py-5 lg:px-6 lg:py-6">
           {children}
         </main>

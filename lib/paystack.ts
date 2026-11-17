@@ -182,8 +182,8 @@ export async function verifyAndRecordPaystackPayment(reference: string) {
     throw new Error('Order not found for this payment');
   }
 
-  // A previous callback may have marked the order paid but failed while
-  // recording the coupon. Retry coupon accounting before returning.
+   
+   
   if (order.paymentStatus === 'paid') {
     await recordCouponRedemption(order);
 
@@ -280,8 +280,8 @@ export async function verifyAndRecordPaystackPayment(reference: string) {
     ],
   });
 
-  // Read the order again because another callback may have completed
-  // the paid transition concurrently.
+   
+   
   const latest = await getStoredOrder(order._id);
   const paid = latest?.paymentStatus === 'paid';
 

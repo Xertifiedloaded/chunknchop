@@ -332,7 +332,7 @@ export async function POST(request: Request) {
 
   const deliveryFeeCents = getDeliveryFeeCents(data.deliveryMethod, data.deliveryWindow);
 
-  // This is the actual amount sent to Paystack.
+   
   const itemsAfterCouponCents = Math.max(0, discountedItemsTotalCents - couponDiscountCents);
 
   const subtotalCents = itemsAfterCouponCents + deliveryFeeCents;

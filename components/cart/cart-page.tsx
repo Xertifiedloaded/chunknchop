@@ -62,15 +62,15 @@ export default function CartPage() {
           </div>
         )}
 
-        {/* Loading */}
+        {}
         {isLoading ? (
           <LoadingState />
         ) : items.length === 0 ? (
           <EmptyCart />
         ) : (
-          /* Cart content */
+          
           <div className="grid grid-cols-1 items-start gap-7 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-9 xl:grid-cols-[minmax(0,1fr)_350px] xl:gap-12">
-            {/* Cart items */}
+            {}
             <div className="min-w-0">
               <div className="mb-4 flex items-center justify-between gap-3">
                 <h2 className="m-0 font-heading text-base font-semibold sm:text-lg">
@@ -88,7 +88,7 @@ export default function CartPage() {
                     key={product.slug}
                     className="grid grid-cols-[84px_minmax(0,1fr)] gap-3.5 border-b border-[#e6e4de] py-4 last:border-b-0 sm:grid-cols-[110px_minmax(0,1fr)_auto] sm:gap-5 sm:py-6 lg:grid-cols-[125px_minmax(0,1fr)_auto] lg:gap-6"
                   >
-                    {/* Product image */}
+                    {}
                     <Link
                       href={`/products/${product.slug}`}
                       className="group relative aspect-[4/5] overflow-hidden bg-[#eeece7]"
@@ -101,7 +101,7 @@ export default function CartPage() {
                       />
                     </Link>
 
-                    {/* Product details */}
+                    {}
                     <div className="flex min-w-0 flex-col justify-between gap-3">
                       <div>
                         <span className="text-[9px] font-bold tracking-[0.14em] text-brand">
@@ -127,7 +127,7 @@ export default function CartPage() {
                         </p>
                       </div>
 
-                      {/* Quantity controls */}
+                      {}
                       <div className="flex flex-wrap items-center justify-between gap-3">
                         <div className="inline-flex h-9 items-center border border-[#e6e4de] bg-white">
                           <button
@@ -154,7 +154,7 @@ export default function CartPage() {
                           </button>
                         </div>
 
-                        {/* Mobile remove */}
+                        {}
                         <button
                           type="button"
                           onClick={() => removeProduct(product.slug)}
@@ -167,7 +167,7 @@ export default function CartPage() {
                       </div>
                     </div>
 
-                    {/* Price and desktop remove */}
+                    {}
                     <div className="col-span-2 flex items-center justify-between border-t border-[#f0eee9] pt-3 sm:col-span-1 sm:flex-col sm:items-end sm:justify-between sm:border-0 sm:pt-0">
                       <strong className="text-[13px] font-semibold whitespace-nowrap tabular-nums sm:text-sm">
                         {formatPrice(product.priceCents * quantity)}
@@ -195,7 +195,7 @@ export default function CartPage() {
               </Link>
             </div>
 
-            {/* Order summary */}
+            {}
             <aside className="lg:sticky lg:top-24">
               <div className="border border-[#e6e4de] bg-white p-5 sm:p-6">
                 <p className="mt-0 mb-5 font-worksans text-[9px] font-bold tracking-[0.16em] text-[#77736d] sm:text-[10px]">
@@ -245,7 +245,7 @@ export default function CartPage() {
                 </p>
               </div>
 
-              {/* Trust information */}
+              {}
               <div className="mt-3 grid grid-cols-2 gap-2.5">
                 <div className="flex items-center gap-2 border border-[#e6e4de] bg-white p-3">
                   <ShieldCheck size={15} className="shrink-0 text-brand" />
@@ -266,7 +266,7 @@ export default function CartPage() {
         )}
       </section>
 
-      {/* Footer */}
+      {}
       <footer className="mt-auto border-t border-[#e6e4de]">
         <div
           className={`${container} flex flex-col items-center justify-between gap-3 py-5 text-center sm:flex-row sm:py-6`}

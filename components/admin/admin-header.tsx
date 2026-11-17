@@ -104,7 +104,7 @@ export default function AdminHeader({
 
   return (
     <header className="sticky top-0 z-40 flex h-[58px] w-full items-center justify-between gap-3 border-b border-[#eeece8] bg-white/95 px-3 backdrop-blur-md sm:px-5 lg:h-[62px] lg:px-7">
-      {/* Search */}
+      {}
       <div className="min-w-0 flex-1">
         <label className="relative flex h-9 w-full max-w-[400px] items-center rounded-lg border border-[#eeeae6] bg-[#faf9f7] transition focus-within:border-[#e8a58c] focus-within:bg-white">
           <Search className="pointer-events-none absolute left-3 size-3.5 text-[#aaa39b]" />
@@ -122,9 +122,9 @@ export default function AdminHeader({
         </label>
       </div>
 
-      {/* Right actions */}
+      {}
       <div className="flex shrink-0 items-center gap-1.5 sm:gap-2.5">
-        {/* Quick actions */}
+        {}
         <div ref={quickRef} className="relative">
           <button
             type="button"
@@ -171,7 +171,7 @@ export default function AdminHeader({
           )}
         </div>
 
-        {/* Messages */}
+        {}
         <button
           type="button"
           aria-label="Messages"
@@ -184,7 +184,7 @@ export default function AdminHeader({
           )}
         </button>
 
-        {/* Notifications */}
+        {}
         <button
           type="button"
           aria-label={`Notifications${notificationCount ? `, ${notificationCount} unread` : ''}`}
@@ -199,10 +199,10 @@ export default function AdminHeader({
           )}
         </button>
 
-        {/* Divider */}
+        {}
         <div className="mx-1 hidden h-7 w-px bg-[#eeeae6] sm:block" />
 
-        {/* Profile dropdown */}
+        {}
         <div ref={profileRef} className="relative">
           <button
             type="button"
@@ -238,7 +238,7 @@ export default function AdminHeader({
               role="menu"
               className="absolute right-0 top-full mt-2 w-60 overflow-hidden rounded-xl border border-[#eeeae6] bg-white shadow-[0_12px_35px_rgba(0,0,0,0.10)]"
             >
-              {/* Profile information */}
+              {}
               <div className="flex items-center gap-3 border-b border-[#f1eeeb] px-4 py-3.5">
                 <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#5A1F2B] text-xs font-bold text-white">
                   {initials(name)}
@@ -250,7 +250,7 @@ export default function AdminHeader({
                 </div>
               </div>
 
-              {/* Menu items */}
+              {}
               <div className="space-y-0.5 p-1.5">
                 <Link
                   href="/admin/settings"
@@ -273,7 +273,7 @@ export default function AdminHeader({
                 </Link>
               </div>
 
-              {/* Sign out */}
+              {}
               <div className="border-t border-[#f1eeeb] p-2">
                 <SignOutButton />
               </div>

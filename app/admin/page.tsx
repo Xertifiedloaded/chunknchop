@@ -482,7 +482,7 @@ export default function DashboardOverview({ name = 'Admin' }: { name?: string })
   return (
     <main className="min-h-screen bg-[#F7F8FA] px-3 py-4 font-sans text-[#302b27] sm:px-4 sm:py-5 lg:px-5 lg:py-5 xl:px-6">
       <div className="mx-auto max-w-[1600px] space-y-4">
-        {/* Header */}
+        {}
         <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
             <h1 className="text-lg font-bold tracking-tight text-[#302b27] sm:text-xl">
@@ -524,7 +524,7 @@ export default function DashboardOverview({ name = 'Admin' }: { name?: string })
           </div>
         </header>
 
-        {/* KPI cards */}
+        {}
         <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {kpis.map((k) => {
             const Icon = k.icon;
@@ -557,7 +557,7 @@ export default function DashboardOverview({ name = 'Admin' }: { name?: string })
           })}
         </section>
 
-        {/* Order statuses */}
+        {}
         <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {dashboardLoading && !dashboard ? (
             <div
@@ -589,9 +589,9 @@ export default function DashboardOverview({ name = 'Admin' }: { name?: string })
           )}
         </section>
 
-        {/* Weekly revenue and quick actions */}
+        {}
         <section className="grid grid-cols-1 gap-3 lg:grid-cols-3">
-          {/* Weekly revenue */}
+          {}
           <div className={`${card} flex min-w-0 flex-col overflow-hidden lg:col-span-2`}>
             <div className="p-4 pb-0">
               <CardHeader
@@ -671,7 +671,7 @@ export default function DashboardOverview({ name = 'Admin' }: { name?: string })
             </div>
           </div>
 
-          {/* Quick actions */}
+          {}
           <div className={`${card} min-w-0 p-4`}>
             <CardHeader title="Quick Actions" subtitle="Common operations tasks" />
 
@@ -705,9 +705,9 @@ export default function DashboardOverview({ name = 'Admin' }: { name?: string })
           </div>
         </section>
 
-        {/* Hourly orders and products */}
+        {}
         <section className="grid grid-cols-1 gap-3 lg:grid-cols-3">
-          {/* Orders by hour */}
+          {}
           <div className={`${card} flex min-w-0 flex-col p-4`}>
             <CardHeader
               title="Orders by Hour"
@@ -752,7 +752,7 @@ export default function DashboardOverview({ name = 'Admin' }: { name?: string })
             </div>
           </div>
 
-          {/* Top products */}
+          {}
           <div className={`${card} min-w-0 p-4 lg:col-span-2`}>
             <CardHeader
               title="Top Selling Products"
@@ -813,9 +813,9 @@ export default function DashboardOverview({ name = 'Admin' }: { name?: string })
           </div>
         </section>
 
-        {/* Customer activity and categories */}
+        {}
         <section className="grid grid-cols-1 gap-3 lg:grid-cols-3">
-          {/* Activity */}
+          {}
           <div className={`${card} min-w-0 p-4 lg:col-span-2`}>
             <CardHeader
               title="Recent Customer Activity"
@@ -857,7 +857,7 @@ export default function DashboardOverview({ name = 'Admin' }: { name?: string })
             )}
           </div>
 
-          {/* Categories */}
+          {}
           <div className={`${card} min-w-0 p-4`}>
             <CardHeader
               title="Top Categories"

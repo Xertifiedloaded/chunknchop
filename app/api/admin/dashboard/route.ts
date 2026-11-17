@@ -301,8 +301,8 @@ export async function GET() {
     const paidOrderCount = paid?.count ?? 0;
     const revenueCents = asNumber(paid?.revenueCents);
 
-    // Some older orders were created before category was copied into each order item.
-    // Recover missing/invalid snapshots from the current Product records using productId.
+     
+     
     const rawProductSales = result?.productSalesAll ?? [];
     const productIds = [
       ...new Set(

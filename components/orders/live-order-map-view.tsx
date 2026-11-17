@@ -1,30 +1,13 @@
-
 'use client';
 
 import { useEffect } from 'react';
-import {
-  CircleMarker,
-  MapContainer,
-  Popup,
-  TileLayer,
-  useMap,
-} from 'react-leaflet';
+import { CircleMarker, MapContainer, Popup, TileLayer, useMap } from 'react-leaflet';
 
-function FollowRider({
-  latitude,
-  longitude,
-}: {
-  latitude: number;
-  longitude: number;
-}) {
+function FollowRider({ latitude, longitude }: { latitude: number; longitude: number }) {
   const map = useMap();
 
   useEffect(() => {
-    map.setView(
-      [latitude, longitude],
-      Math.max(map.getZoom(), 13),
-      { animate: true },
-    );
+    map.setView([latitude, longitude], Math.max(map.getZoom(), 13), { animate: true });
   }, [latitude, longitude, map]);
 
   return null;

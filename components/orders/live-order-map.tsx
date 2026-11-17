@@ -1,4 +1,3 @@
-
 'use client';
 
 import dynamic from 'next/dynamic';
@@ -35,10 +34,7 @@ export default function LiveOrderMap({
 
   return (
     <div className="w-full overflow-hidden border border-[#e6e4de] bg-white">
-      <MapView
-        latitude={location.latitude}
-        longitude={location.longitude}
-      />
+      <MapView latitude={location.latitude} longitude={location.longitude} />
 
       {updatedAt && (
         <p className="border-t border-[#e6e4de] bg-[#faf9f6] px-4 py-3 text-[10px] font-bold tracking-[0.12em] text-[#88847d]">

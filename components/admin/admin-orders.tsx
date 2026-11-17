@@ -1,8 +1,8 @@
-
 'use client';
 
 import { useMemo, useState, type FormEvent } from 'react';
 import useSWR from 'swr';
+import Image from 'next/image';
 import {
   ArrowDownToLine,
   CalendarClock,
@@ -13,13 +13,13 @@ import {
   LoaderCircle,
   MapPin,
   Package,
-  PackageCheck,
   Search,
   ShoppingBag,
   Truck,
   UserRoundX,
   Wallet,
   X,
+  Check,
 } from 'lucide-react';
 import { formatPrice } from '@/lib/catalog';
 
@@ -29,6 +29,7 @@ type AdminOrderItem = {
   unit?: string;
   priceCents?: number;
   slug?: string;
+  imageUrl?: string | null;
 };
 
 type AdminOrder = {
@@ -42,51 +43,60 @@ type AdminOrder = {
   riderName?: string;
   riderEmail?: string;
   items?: AdminOrderItem[];
-  delivery?: { city?: string; region?: string };
+  delivery?: {
+    city?: string;
+    region?: string;
+  };
 };
 
-type AdminOrdersResponse = { orders: AdminOrder[] };
+type AdminOrdersResponse = {
+  orders: AdminOrder[];
+};
 
 const statuses = [
   'all',
+  'paid',
   'pending',
+  'assigned',
   'out_for_delivery',
   'delivered',
   'cancelled',
-];
+] as const;
 
-const statusLabels: Record<string, string> = {
-  all: 'All orders',
+type StatusFilter = (typeof statuses)[number];
+
+const statusLabels: Record<StatusFilter, string> = {
+  all: 'All',
+  paid: 'Paid',
   pending: 'Pending',
+  assigned: 'Assigned',
   out_for_delivery: 'Out for delivery',
   delivered: 'Delivered',
   cancelled: 'Cancelled',
 };
 
 const statusStyles: Record<string, string> = {
-  pending: 'bg-amber-50 text-amber-700 ring-amber-600/15',
-  preparing: 'bg-orange-50 text-orange-700 ring-orange-600/15',
-  quality_check: 'bg-rose-50 text-rose-700 ring-rose-600/15',
-  packaging: 'bg-stone-100 text-stone-600 ring-stone-500/15',
-  ready_for_dispatch: 'bg-sky-50 text-sky-700 ring-sky-600/15',
-  out_for_delivery: 'bg-blue-50 text-blue-700 ring-blue-600/15',
-  delivered: 'bg-emerald-50 text-emerald-700 ring-emerald-600/15',
-  cancelled: 'bg-red-50 text-red-700 ring-red-600/15',
-  refunded: 'bg-violet-50 text-violet-700 ring-violet-600/15',
+  pending: 'bg-amber-50 text-amber-700',
+  preparing: 'bg-orange-50 text-orange-700',
+  quality_check: 'bg-rose-50 text-rose-700',
+  packaging: 'bg-stone-100 text-stone-600',
+  ready_for_dispatch: 'bg-sky-50 text-sky-700',
+  assigned: 'bg-violet-50 text-violet-700',
+  out_for_delivery: 'bg-blue-50 text-blue-700',
+  delivered: 'bg-emerald-50 text-emerald-700',
+  cancelled: 'bg-red-50 text-red-700',
+  refunded: 'bg-violet-50 text-violet-700',
 };
 
 const paymentStyles: Record<string, string> = {
-  paid: 'bg-emerald-50 text-emerald-700 ring-emerald-600/15',
-  failed: 'bg-red-50 text-red-700 ring-red-600/15',
+  paid: 'bg-emerald-50 text-emerald-700',
+  failed: 'bg-red-50 text-red-700',
+  pending: 'bg-amber-50 text-amber-700',
+  unpaid: 'bg-amber-50 text-amber-700',
+  refunded: 'bg-violet-50 text-violet-700',
 };
 
-const IN_PROGRESS = [
-  'pending',
-  'preparing',
-  'quality_check',
-  'packaging',
-  'ready_for_dispatch',
-];
+const IN_PROGRESS = ['pending', 'preparing', 'quality_check', 'packaging', 'ready_for_dispatch'];
 
 const dateFormatter = new Intl.DateTimeFormat('en-NG', {
   day: 'numeric',
@@ -103,58 +113,72 @@ const timeFormatter = new Intl.DateTimeFormat('en-NG', {
 });
 
 async function fetchAdminOrders(url: string): Promise<AdminOrdersResponse> {
-  const response = await fetch(url, { cache: 'no-store' });
+  const response = await fetch(url, {
+    cache: 'no-store',
+    credentials: 'include',
+  });
+
   const result = await response.json().catch(() => null);
 
   if (!response.ok) {
     throw new Error(result?.error || 'Could not load orders.');
   }
 
-  return result;
+  return {
+    orders: Array.isArray(result?.orders) ? result.orders : [],
+  };
 }
 
 const formatStatus = (status: string) =>
-  statusLabels[status] ?? status.replaceAll('_', ' ');
+  statusLabels[status as StatusFilter] ?? status.replaceAll('_', ' ');
 
-const getInitials = (email: string) =>
-  email.split('@')[0].slice(0, 2).toUpperCase();
+const getInitials = (email: string) => (email.split('@')[0] || 'CU').slice(0, 2).toUpperCase();
 
-const escapeCsv = (value: string | number) =>
-  `"${String(value).replaceAll('"', '""')}"`;
+const escapeCsv = (value: string | number) => `"${String(value).replaceAll('"', '""')}"`;
 
 const titleCase = (value: string) =>
-  value.replace(/\w\S*/g, (word) =>
-    word.charAt(0).toUpperCase() + word.slice(1).toLowerCase(),
-  );
+  value.replace(/\w\S*/g, (word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase());
 
-const shortRef = (orderNumber: string) =>
-  `#${orderNumber.slice(-5).toUpperCase()}`;
+const shortRef = (orderNumber: string) => `#${orderNumber.slice(-5).toUpperCase()}`;
 
 function getItemSummary(order: AdminOrder) {
   const items = order.items ?? [];
   const first = items[0];
 
   if (!first) {
-    return { title: 'Order', detail: 'No items listed', extra: 0 };
+    return {
+      title: 'Order',
+      detail: 'No items listed',
+      extra: 0,
+      imageUrl: null as string | null,
+    };
   }
-
-  const detail = [`Qty ${first.quantity}`, first.unit]
-    .filter(Boolean)
-    .join(' · ');
 
   return {
     title: titleCase(first.name),
-    detail,
+    detail: `${first.quantity} ${first.unit || 'item'}${first.quantity === 1 ? '' : 's'}`,
     extra: items.length - 1,
+    imageUrl: first.imageUrl ?? null,
   };
+}
+
+function ProductImage({ imageUrl, name }: { imageUrl?: string | null; name: string }) {
+  return (
+    <div className="relative grid size-10 shrink-0 place-items-center overflow-hidden rounded-lg bg-stone-100">
+      {imageUrl ? (
+        <Image src={imageUrl} alt={name} fill sizes="40px" unoptimized className="object-cover" />
+      ) : (
+        <Package size={17} className="text-stone-400" />
+      )}
+    </div>
+  );
 }
 
 function StatusBadge({ status }: { status: string }) {
   return (
     <span
-      className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-2 py-1 text-[10px] font-semibold capitalize ring-1 ring-inset ${
-        statusStyles[status] ??
-        'bg-stone-100 text-stone-600 ring-stone-500/15'
+      className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-md px-2 py-1 text-[10px] font-semibold capitalize ${
+        statusStyles[status] ?? 'bg-stone-100 text-stone-600'
       }`}
     >
       <span className="size-1.5 rounded-full bg-current" />
@@ -166,12 +190,11 @@ function StatusBadge({ status }: { status: string }) {
 function PaymentBadge({ status }: { status: string }) {
   return (
     <span
-      className={`inline-flex shrink-0 whitespace-nowrap rounded-full px-2 py-1 text-[10px] font-semibold capitalize ring-1 ring-inset ${
-        paymentStyles[status] ??
-        'bg-amber-50 text-amber-700 ring-amber-600/15'
+      className={`inline-flex whitespace-nowrap rounded-md px-2 py-1 text-[10px] font-semibold capitalize ${
+        paymentStyles[status] ?? 'bg-stone-100 text-stone-600'
       }`}
     >
-      {status}
+      {status.replaceAll('_', ' ')}
     </span>
   );
 }
@@ -188,18 +211,15 @@ function StatCard({
   tone: string;
 }) {
   return (
-    <div className="flex min-w-0 items-center gap-3 rounded-xl border border-stone-200/80 bg-white p-3 shadow-[0_1px_3px_rgba(0,0,0,0.03)] sm:p-3.5">
-      <span
-        className={`grid size-9 shrink-0 place-items-center rounded-lg ${tone}`}
-      >
-        <Icon size={17} strokeWidth={1.8} />
+    <div className="flex min-w-0 items-center gap-3 rounded-xl border border-stone-200/80 bg-white px-3.5 py-3">
+      <span className={`grid size-9 shrink-0 place-items-center rounded-lg ${tone}`}>
+        <Icon size={16} strokeWidth={1.8} />
       </span>
 
       <div className="min-w-0">
-        <p className="truncate text-[10px] font-medium text-stone-500 sm:text-[11px]">
-          {label}
-        </p>
-        <p className="mt-0.5 truncate text-base font-semibold tracking-tight text-stone-900 sm:text-lg">
+        <p className="truncate text-[10px] font-medium text-stone-500">{label}</p>
+
+        <p className="mt-0.5 truncate text-[15px] font-semibold tracking-tight text-stone-900">
           {value}
         </p>
       </div>
@@ -227,48 +247,39 @@ function AssignForm({
   return (
     <form
       onSubmit={onSubmit}
-      className="space-y-3 rounded-xl border border-stone-200 bg-white p-3"
+      className="flex min-w-[220px] flex-col gap-2 rounded-lg border border-stone-200 bg-white p-2.5 shadow-lg"
     >
-      <div>
-        <label
-          htmlFor={inputId}
-          className="mb-1.5 block text-[11px] font-medium text-stone-600"
-        >
-          Rider email
-        </label>
+      <label htmlFor={inputId} className="text-[10px] font-semibold text-stone-600">
+        Registered rider email
+      </label>
 
-        <input
-          id={inputId}
-          type="email"
-          autoComplete="email"
-          autoFocus
-          maxLength={254}
-          required
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-          placeholder="Registered rider email"
-          className="h-9 w-full rounded-lg border border-stone-200 bg-stone-50 px-3 text-xs text-stone-900 outline-none transition placeholder:text-stone-400 focus:border-[#e86b3e] focus:bg-white focus:ring-2 focus:ring-[#e86b3e]/10"
-        />
-      </div>
+      <input
+        id={inputId}
+        type="email"
+        autoComplete="email"
+        autoFocus
+        maxLength={254}
+        required
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder="rider@example.com"
+        className="h-8 w-full rounded-md border border-stone-200 bg-stone-50 px-2.5 text-[11px] outline-none transition focus:border-[#e86b3e] focus:bg-white focus:ring-2 focus:ring-[#e86b3e]/10"
+      />
 
-      <div className="flex gap-2">
+      <div className="flex gap-1.5">
         <button
           type="submit"
           disabled={busy || order.paymentStatus !== 'paid'}
-          className="inline-flex h-9 flex-1 items-center justify-center gap-2 rounded-lg bg-[#e86b3e] px-3 text-xs font-semibold text-white transition hover:bg-[#cf572f] disabled:opacity-50"
+          className="inline-flex h-8 flex-1 items-center justify-center gap-1 rounded-md bg-[#e86b3e] px-2 text-[10px] font-semibold text-white transition hover:bg-[#cf572f] disabled:opacity-50"
         >
-          {busy ? (
-            <LoaderCircle size={14} className="animate-spin" />
-          ) : (
-            <Truck size={14} />
-          )}
-          Confirm
+          {busy ? <LoaderCircle size={12} className="animate-spin" /> : <Check size={12} />}
+          Assign rider
         </button>
 
         <button
           type="button"
           onClick={onCancel}
-          className="h-9 rounded-lg border border-stone-200 bg-white px-3 text-xs font-medium text-stone-600 transition hover:bg-stone-50"
+          className="h-8 rounded-md border border-stone-200 px-2.5 text-[10px] font-medium text-stone-600 hover:bg-stone-50"
         >
           Cancel
         </button>
@@ -277,233 +288,208 @@ function AssignForm({
   );
 }
 
-function OrderCard({
+function RiderCell({
   order,
   formOpen,
-  onToggleAssign,
-  form,
+  busy,
+  value,
+  onChange,
+  onToggle,
+  onSubmit,
+  onCancel,
 }: {
   order: AdminOrder;
   formOpen: boolean;
-  onToggleAssign: () => void;
-  form: React.ReactNode;
+  busy: boolean;
+  value: string;
+  onChange: (value: string) => void;
+  onToggle: () => void;
+  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+  onCancel: () => void;
 }) {
-  const { title, detail, extra } = getItemSummary(order);
-  const location = [
-    order.delivery?.city,
-    order.delivery?.region,
-  ]
-    .filter(Boolean)
-    .join(', ');
+  if (order.riderEmail) {
+    return (
+      <div className="flex min-w-0 items-center gap-2">
+        <span className="grid size-7 shrink-0 place-items-center rounded-full bg-stone-100 text-stone-600">
+          <Truck size={13} />
+        </span>
 
-  const placedAt = new Date(order.createdAt);
+        <div className="min-w-0">
+          <p className="truncate text-[11px] font-medium text-stone-800">
+            {order.riderName || order.riderEmail}
+          </p>
+
+          <p className="truncate text-[10px] text-stone-400">{order.riderEmail}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <article className="group flex min-w-0 flex-col overflow-hidden rounded-xl border border-stone-200/80 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.035)] transition-all duration-200 hover:border-stone-300 hover:shadow-[0_4px_14px_rgba(0,0,0,0.055)]">
-      <div className="flex items-start justify-between gap-2.5 p-3.5 pb-3">
-        <div className="flex min-w-0 items-center gap-2.5">
-          <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-orange-50 text-[#d75b30]">
-            <Package size={19} strokeWidth={1.7} />
-          </span>
-
-          <div className="min-w-0">
-            <div className="flex min-w-0 items-center gap-1.5">
-              <h3
-                className="truncate text-[13px] font-semibold text-stone-900"
-                title={title}
-              >
-                {title}
-              </h3>
-
-              {extra > 0 && (
-                <span className="shrink-0 rounded bg-stone-100 px-1.5 py-0.5 text-[9px] font-medium text-stone-500">
-                  +{extra}
-                </span>
-              )}
-            </div>
-
-            <p className="mt-1 truncate text-[10px] text-stone-500">
-              {detail}
-              <span className="mx-1.5 text-stone-300">•</span>
-              <span className="font-medium tabular-nums">
-                {shortRef(order.orderNumber)}
-              </span>
-            </p>
-          </div>
+    <div className="relative flex min-w-[110px] items-center">
+      {formOpen ? (
+        <div className="absolute right-0 top-0 z-20 w-64">
+          <AssignForm
+            order={order}
+            value={value}
+            busy={busy}
+            onChange={onChange}
+            onSubmit={onSubmit}
+            onCancel={onCancel}
+          />
         </div>
-
-        <p className="shrink-0 whitespace-nowrap text-sm font-semibold tracking-tight text-stone-900">
-          {formatPrice(order.subtotalCents)}
-        </p>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-1.5 px-3.5 pb-3">
-        <StatusBadge status={order.status} />
-        <PaymentBadge status={order.paymentStatus} />
-      </div>
-
-      <div className="mx-3.5 space-y-3 border-t border-stone-100 py-3">
-        <div className="flex min-w-0 items-center gap-2.5">
-          <span className="grid size-8 shrink-0 place-items-center rounded-full bg-orange-100 text-[10px] font-semibold text-[#c75b32]">
-            {getInitials(order.email)}
-          </span>
-
-          <div className="min-w-0">
-            <p
-              className="truncate text-xs font-medium text-stone-800"
-              title={order.customerName || order.email}
-            >
-              {order.customerName || order.email}
-            </p>
-
-            {order.customerName && (
-              <p className="truncate text-[10px] text-stone-400">
-                {order.email}
-              </p>
-            )}
-          </div>
-        </div>
-
-        <div className="flex min-w-0 items-center gap-2.5 text-[11px] text-stone-500">
-          <MapPin size={14} className="shrink-0 text-stone-400" />
-          <span className="truncate" title={location || 'No delivery location'}>
-            {location || 'No delivery location'}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-2.5 text-[11px] text-stone-500">
-          <CalendarClock size={14} className="shrink-0 text-stone-400" />
-          <span className="truncate">
-            {dateFormatter.format(placedAt)} · {timeFormatter.format(placedAt)}
-          </span>
-        </div>
-      </div>
-
-      <div className="mt-auto space-y-3 border-t border-stone-100 bg-stone-50/60 p-3.5">
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-stone-400">
-            Rider
-          </span>
-
-          {order.riderEmail ? (
-            <div className="flex min-w-0 items-center gap-2">
-              <span className="grid size-6 shrink-0 place-items-center rounded-full bg-stone-800 text-white">
-                <Truck size={11} />
-              </span>
-
-              <p
-                className="truncate text-[11px] font-medium text-stone-700"
-                title={order.riderEmail}
-              >
-                {order.riderName || order.riderEmail}
-              </p>
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={onToggleAssign}
-              disabled={order.paymentStatus !== 'paid'}
-              className="inline-flex h-7 items-center gap-1.5 rounded-lg border border-orange-200 bg-orange-50 px-2.5 text-[10px] font-semibold text-[#c75b32] transition hover:bg-orange-100 disabled:cursor-not-allowed disabled:border-stone-200 disabled:bg-stone-100 disabled:text-stone-400"
-            >
-              <Truck size={12} />
-              Assign rider
-            </button>
-          )}
-        </div>
-
-        {formOpen && !order.riderEmail && form}
-      </div>
-    </article>
+      ) : (
+        <button
+          type="button"
+          onClick={onToggle}
+          disabled={order.paymentStatus !== 'paid'}
+          className="inline-flex h-7 items-center gap-1.5 rounded-md border border-orange-200 bg-orange-50 px-2.5 text-[10px] font-semibold text-[#c75b32] transition hover:bg-orange-100 disabled:cursor-not-allowed disabled:border-stone-200 disabled:bg-stone-100 disabled:text-stone-400"
+        >
+          <Truck size={12} />
+          Assign rider
+        </button>
+      )}
+    </div>
   );
 }
 
 export default function AdminOrders() {
-  const { data, error, isLoading, mutate } =
-    useSWR<AdminOrdersResponse>(
-      '/api/admin/orders',
-      fetchAdminOrders,
-      { refreshInterval: 15_000 },
-    );
+  const { data, error, isLoading, mutate } = useSWR<AdminOrdersResponse>(
+    '/api/admin/orders',
+    fetchAdminOrders,
+    {
+      refreshInterval: 15_000,
+      revalidateOnFocus: true,
+    },
+  );
 
   const [emails, setEmails] = useState<Record<string, string>>({});
   const [busyOrder, setBusyOrder] = useState<string | null>(null);
   const [message, setMessage] = useState('');
-  const [activeStatus, setActiveStatus] = useState('all');
+  const [activeStatus, setActiveStatus] = useState<StatusFilter>('all');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [showUnassignedOnly, setShowUnassignedOnly] = useState(false);
   const [assignmentOrder, setAssignmentOrder] = useState<string | null>(null);
 
-  const pageSize = 9;
+  const pageSize = 10;
 
   const orders = useMemo(() => data?.orders ?? [], [data]);
 
+  // Tab counts
   const statusCounts = useMemo(() => {
-    const counts: Record<string, number> = {
+    return {
       all: orders.length,
+
+      paid: orders.filter((order) => order.paymentStatus === 'paid').length,
+
+      pending: orders.filter(
+        (order) =>
+          ['pending', 'unpaid'].includes(order.paymentStatus) || order.status === 'pending',
+      ).length,
+
+      assigned: orders.filter((order) => Boolean(order.riderEmail) || order.status === 'assigned')
+        .length,
+
+      out_for_delivery: orders.filter((order) => order.status === 'out_for_delivery').length,
+
+      delivered: orders.filter((order) => order.status === 'delivered').length,
+
+      cancelled: orders.filter((order) => order.status === 'cancelled').length,
     };
-
-    orders.forEach((order) => {
-      counts[order.status] = (counts[order.status] ?? 0) + 1;
-    });
-
-    return counts;
   }, [orders]);
 
+  // Dashboard statistics
   const stats = useMemo(
     () => ({
       total: orders.length,
-      inProgress: orders.filter((o) =>
-        IN_PROGRESS.includes(o.status),
-      ).length,
+
+      inProgress: orders.filter((order) => IN_PROGRESS.includes(order.status)).length,
+
       needsRider: orders.filter(
-        (o) =>
-          !o.riderEmail &&
-          o.paymentStatus === 'paid' &&
-          IN_PROGRESS.includes(o.status),
+        (order) =>
+          !order.riderEmail && order.paymentStatus === 'paid' && IN_PROGRESS.includes(order.status),
       ).length,
+
       revenue: orders
         .filter(
-          (o) =>
-            o.paymentStatus === 'paid' &&
-            o.status !== 'refunded' &&
-            o.status !== 'cancelled',
+          (order) =>
+            order.paymentStatus === 'paid' &&
+            order.status !== 'refunded' &&
+            order.status !== 'cancelled',
         )
-        .reduce((sum, o) => sum + o.subtotalCents, 0),
+        .reduce((sum, order) => sum + order.subtotalCents, 0),
     }),
     [orders],
   );
 
+  // Filtering and sorting: paid orders always appear first.
   const filteredOrders = useMemo(() => {
     const query = search.trim().toLowerCase();
 
-    return orders.filter((order) => {
-      const matchesStatus =
-        activeStatus === 'all' || order.status === activeStatus;
-
+    const filtered = orders.filter((order) => {
       const matchesSearch =
         !query ||
         order.orderNumber.toLowerCase().includes(query) ||
         order.email.toLowerCase().includes(query) ||
         (order.customerName ?? '').toLowerCase().includes(query) ||
-        (order.items ?? []).some((item) =>
-          item.name.toLowerCase().includes(query),
-        ) ||
+        (order.items ?? []).some((item) => item.name.toLowerCase().includes(query)) ||
         (order.delivery?.city ?? '').toLowerCase().includes(query) ||
+        (order.delivery?.region ?? '').toLowerCase().includes(query) ||
         (order.riderName ?? '').toLowerCase().includes(query) ||
         (order.riderEmail ?? '').toLowerCase().includes(query);
 
-      const matchesAssignment =
-        !showUnassignedOnly || !order.riderEmail;
+      const matchesAssignment = !showUnassignedOnly || !order.riderEmail;
 
-      return matchesStatus && matchesSearch && matchesAssignment;
+      let matchesStatus = true;
+
+      switch (activeStatus) {
+        case 'paid':
+          matchesStatus = order.paymentStatus === 'paid';
+          break;
+
+        case 'pending':
+          matchesStatus =
+            ['pending', 'unpaid'].includes(order.paymentStatus) || order.status === 'pending';
+          break;
+
+        case 'assigned':
+          matchesStatus = Boolean(order.riderEmail) || order.status === 'assigned';
+          break;
+
+        case 'out_for_delivery':
+          matchesStatus = order.status === 'out_for_delivery';
+          break;
+
+        case 'delivered':
+          matchesStatus = order.status === 'delivered';
+          break;
+
+        case 'cancelled':
+          matchesStatus = order.status === 'cancelled';
+          break;
+
+        default:
+          matchesStatus = true;
+      }
+
+      return matchesSearch && matchesAssignment && matchesStatus;
+    });
+
+    return filtered.sort((a, b) => {
+      const paidDifference =
+        Number(b.paymentStatus === 'paid') - Number(a.paymentStatus === 'paid');
+
+      if (paidDifference !== 0) {
+        return paidDifference;
+      }
+
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
   }, [orders, activeStatus, search, showUnassignedOnly]);
 
-  const totalPages = Math.max(
-    1,
-    Math.ceil(filteredOrders.length / pageSize),
-  );
+  // Pagination
+  const totalPages = Math.max(1, Math.ceil(filteredOrders.length / pageSize));
 
   const currentPage = Math.min(page, totalPages);
 
@@ -512,30 +498,24 @@ export default function AdminOrders() {
     currentPage * pageSize,
   );
 
-  const rangeStart =
-    filteredOrders.length === 0
-      ? 0
-      : (currentPage - 1) * pageSize + 1;
+  const rangeStart = filteredOrders.length === 0 ? 0 : (currentPage - 1) * pageSize + 1;
 
-  const rangeEnd = Math.min(
-    currentPage * pageSize,
-    filteredOrders.length,
-  );
+  const rangeEnd = Math.min(currentPage * pageSize, filteredOrders.length);
 
-  function changeStatus(status: string) {
+  function changeStatus(status: StatusFilter) {
     setActiveStatus(status);
     setPage(1);
+    setAssignmentOrder(null);
   }
 
   function toggleAssignment(orderNumber: string) {
-    setAssignmentOrder((current) =>
-      current === orderNumber ? null : orderNumber,
-    );
+    setAssignmentOrder((current) => (current === orderNumber ? null : orderNumber));
   }
 
   function jumpToFirstUnassigned() {
     const target = orders.find(
-      (o) => !o.riderEmail && o.paymentStatus === 'paid',
+      (order) =>
+        !order.riderEmail && order.paymentStatus === 'paid' && IN_PROGRESS.includes(order.status),
     );
 
     if (!target) {
@@ -548,8 +528,10 @@ export default function AdminOrders() {
     setShowUnassignedOnly(true);
     setPage(1);
     setAssignmentOrder(target.orderNumber);
+    setMessage('');
   }
 
+  // CSV export
   function exportOrders() {
     const headers = [
       'Order Number',
@@ -568,9 +550,7 @@ export default function AdminOrders() {
 
     const rows = filteredOrders.map((order) => [
       order.orderNumber,
-      (order.items ?? [])
-        .map((i) => `${i.name} x${i.quantity}`)
-        .join('; '),
+      (order.items ?? []).map((item) => `${item.name} x${item.quantity}`).join('; '),
       order.customerName ?? '',
       order.email,
       order.createdAt,
@@ -583,9 +563,7 @@ export default function AdminOrders() {
       order.subtotalCents,
     ]);
 
-    const csv = [headers, ...rows]
-      .map((row) => row.map(escapeCsv).join(','))
-      .join('\n');
+    const csv = [headers, ...rows].map((row) => row.map(escapeCsv).join(',')).join('\n');
 
     const blob = new Blob(['\uFEFF' + csv], {
       type: 'text/csv;charset=utf-8;',
@@ -601,10 +579,8 @@ export default function AdminOrders() {
     URL.revokeObjectURL(url);
   }
 
-  async function assignRider(
-    event: FormEvent<HTMLFormElement>,
-    orderNumber: string,
-  ) {
+  // Rider assignment
+  async function assignRider(event: FormEvent<HTMLFormElement>, orderNumber: string) {
     event.preventDefault();
 
     const email = emails[orderNumber]?.trim();
@@ -615,21 +591,19 @@ export default function AdminOrders() {
     setMessage('');
 
     try {
-      const response = await fetch(
-        `/api/admin/orders/${encodeURIComponent(orderNumber)}/assign`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email }),
+      const response = await fetch(`/api/admin/orders/${encodeURIComponent(orderNumber)}/assign`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      );
+        credentials: 'include',
+        body: JSON.stringify({ email }),
+      });
 
       const result = await response.json().catch(() => null);
 
       if (!response.ok) {
-        throw new Error(
-          result?.error || 'Could not assign this rider.',
-        );
+        throw new Error(result?.error || 'Could not assign this rider.');
       }
 
       setMessage(
@@ -642,12 +616,11 @@ export default function AdminOrders() {
       }));
 
       setAssignmentOrder(null);
+
       await mutate();
     } catch (assignError) {
       setMessage(
-        assignError instanceof Error
-          ? assignError.message
-          : 'Could not assign this rider.',
+        assignError instanceof Error ? assignError.message : 'Could not assign this rider.',
       );
     } finally {
       setBusyOrder(null);
@@ -664,12 +637,12 @@ export default function AdminOrders() {
         <div>
           <h1
             id="admin-orders-title"
-            className="text-xl font-semibold tracking-tight text-stone-900 sm:text-[22px]"
+            className="text-xl font-semibold tracking-tight text-stone-900"
           >
             Orders
           </h1>
 
-          <p className="mt-1 text-xs text-stone-500 sm:text-[13px]">
+          <p className="mt-1 text-xs text-stone-500">
             Manage customer orders, payments and deliveries.
           </p>
         </div>
@@ -679,7 +652,7 @@ export default function AdminOrders() {
             type="button"
             onClick={exportOrders}
             disabled={filteredOrders.length === 0}
-            className="inline-flex h-9 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border border-stone-200 bg-white px-3 text-xs font-medium text-stone-600 shadow-sm transition hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-40"
+            className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-stone-200 bg-white px-3 text-xs font-medium text-stone-600 shadow-sm transition hover:bg-stone-50 disabled:opacity-40"
           >
             <ArrowDownToLine size={14} />
             Export CSV
@@ -688,7 +661,7 @@ export default function AdminOrders() {
           <button
             type="button"
             onClick={jumpToFirstUnassigned}
-            className="inline-flex h-9 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg bg-[#e86b3e] px-3 text-xs font-semibold text-white shadow-sm transition hover:bg-[#cf572f]"
+            className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg bg-[#e86b3e] px-3 text-xs font-semibold text-white shadow-sm transition hover:bg-[#cf572f]"
           >
             <Truck size={14} />
             Assign riders
@@ -697,7 +670,7 @@ export default function AdminOrders() {
       </div>
 
       {/* Statistics */}
-      <div className="grid grid-cols-2 gap-2.5 sm:gap-3 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
         <StatCard
           label="Total orders"
           value={stats.total}
@@ -747,178 +720,323 @@ export default function AdminOrders() {
         </div>
       )}
 
-      {/* Search and filters */}
-      <div className="space-y-3">
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <div className="relative min-w-0 flex-1">
-            <Search
-              size={15}
-              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-stone-400"
-            />
+      {/* Search and assignment filter */}
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <div className="relative min-w-0 flex-1">
+          <Search
+            size={15}
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-stone-400"
+          />
 
-            <input
-              type="search"
-              value={search}
-              onChange={(event) => {
-                setSearch(event.target.value);
-                setPage(1);
-              }}
-              placeholder="Search order, customer, city or rider..."
-              className="h-10 w-full rounded-lg border border-stone-200 bg-white pl-9 pr-3 text-xs text-stone-900 shadow-sm outline-none transition placeholder:text-stone-400 focus:border-[#e86b3e] focus:ring-2 focus:ring-[#e86b3e]/10"
-            />
-          </div>
-
-          <button
-            type="button"
-            aria-pressed={showUnassignedOnly}
-            onClick={() => {
-              setShowUnassignedOnly((current) => !current);
+          <input
+            type="search"
+            value={search}
+            onChange={(event) => {
+              setSearch(event.target.value);
               setPage(1);
             }}
-            className={`inline-flex h-10 items-center justify-center gap-2 rounded-lg border px-3 text-xs font-medium shadow-sm transition ${
-              showUnassignedOnly
-                ? 'border-[#e86b3e] bg-orange-50 text-[#d75b30]'
-                : 'border-stone-200 bg-white text-stone-600 hover:bg-stone-50'
-            }`}
-          >
-            <Filter size={14} />
-            Unassigned only
-          </button>
+            placeholder="Search order, customer, product, city or rider..."
+            className="h-10 w-full rounded-lg border border-stone-200 bg-white pl-9 pr-3 text-xs text-stone-900 shadow-sm outline-none transition placeholder:text-stone-400 focus:border-[#e86b3e] focus:ring-2 focus:ring-[#e86b3e]/10"
+          />
         </div>
 
-        {/* Status tabs */}
-        <div className="flex gap-1.5 overflow-x-auto rounded-xl border border-stone-200 bg-white p-1.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {statuses.map((status) => {
-            const active = activeStatus === status;
-
-            return (
-              <button
-                type="button"
-                key={status}
-                onClick={() => changeStatus(status)}
-                className={`inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg px-3 text-[11px] font-medium transition sm:px-3.5 ${
-                  active
-                    ? 'bg-stone-900 text-white shadow-sm'
-                    : 'text-stone-500 hover:bg-stone-50 hover:text-stone-800'
-                }`}
-              >
-                {formatStatus(status)}
-
-                <span
-                  className={`rounded-md px-1.5 py-0.5 text-[9px] tabular-nums ${
-                    active
-                      ? 'bg-white/15 text-white'
-                      : 'bg-stone-100 text-stone-500'
-                  }`}
-                >
-                  {statusCounts[status] ?? 0}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+        <button
+          type="button"
+          aria-pressed={showUnassignedOnly}
+          onClick={() => {
+            setShowUnassignedOnly((current) => !current);
+            setPage(1);
+          }}
+          className={`inline-flex h-10 items-center justify-center gap-2 rounded-lg border px-3 text-xs font-medium shadow-sm transition ${
+            showUnassignedOnly
+              ? 'border-[#e86b3e] bg-orange-50 text-[#d75b30]'
+              : 'border-stone-200 bg-white text-stone-600 hover:bg-stone-50'
+          }`}
+        >
+          <Filter size={14} />
+          Unassigned only
+        </button>
       </div>
 
-      {/* Orders */}
-      {isLoading ? (
-        <div className="flex min-h-56 items-center justify-center gap-2 rounded-xl border border-stone-200 bg-white text-xs text-stone-500">
-          <LoaderCircle
-            size={17}
-            className="animate-spin text-[#e86b3e]"
-          />
-          Loading orders...
-        </div>
-      ) : error ? (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center text-xs text-red-700">
-          {error.message}
-        </div>
-      ) : paginatedOrders.length === 0 ? (
-        <div className="flex min-h-56 flex-col items-center justify-center rounded-xl border border-dashed border-stone-300 bg-white px-5 text-center">
-          <PackageCheck size={28} className="mb-3 text-stone-300" />
+      {/* Status tabs */}
+      <div className="flex gap-1.5 overflow-x-auto border-b border-stone-200 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {statuses.map((status) => {
+          const active = activeStatus === status;
 
-          <p className="text-xs font-semibold text-stone-800">
-            No orders found
-          </p>
+          return (
+            <button
+              type="button"
+              key={status}
+              onClick={() => changeStatus(status)}
+              className={`relative inline-flex h-10 shrink-0 items-center gap-1.5 px-3 text-[11px] font-medium transition ${
+                active ? 'text-[#d75b30]' : 'text-stone-500 hover:text-stone-800'
+              }`}
+            >
+              {statusLabels[status]}
 
-          <p className="mt-1 text-[11px] text-stone-500">
-            Try changing your search or status filter.
-          </p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-          {paginatedOrders.map((order) => (
-            <OrderCard
-              key={order.orderNumber}
-              order={order}
-              formOpen={assignmentOrder === order.orderNumber}
-              onToggleAssign={() =>
-                toggleAssignment(order.orderNumber)
-              }
-              form={
-                <AssignForm
-                  order={order}
-                  value={emails[order.orderNumber] ?? ''}
-                  busy={busyOrder === order.orderNumber}
-                  onChange={(value) =>
-                    setEmails((current) => ({
-                      ...current,
-                      [order.orderNumber]: value,
-                    }))
-                  }
-                  onSubmit={(event) =>
-                    void assignRider(event, order.orderNumber)
-                  }
-                  onCancel={() => setAssignmentOrder(null)}
-                />
-              }
-            />
-          ))}
-        </div>
-      )}
+              <span
+                className={`rounded px-1.5 py-0.5 text-[9px] tabular-nums ${
+                  active ? 'bg-orange-50 text-[#d75b30]' : 'bg-stone-100 text-stone-500'
+                }`}
+              >
+                {statusCounts[status]}
+              </span>
 
-      {/* Pagination */}
-      <div className="flex flex-col gap-3 rounded-xl border border-stone-200 bg-white px-3.5 py-3 shadow-[0_1px_3px_rgba(0,0,0,0.025)] sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-[11px] text-stone-500">
-          Showing{' '}
-          <span className="font-semibold text-stone-800">
-            {rangeStart}–{rangeEnd}
-          </span>{' '}
-          of{' '}
-          <span className="font-semibold text-stone-800">
-            {filteredOrders.length}
-          </span>{' '}
-          orders
-        </p>
+              {active && (
+                <span className="absolute inset-x-2 bottom-0 h-0.5 rounded-full bg-[#e86b3e]" />
+              )}
+            </button>
+          );
+        })}
+      </div>
 
-        <div className="flex items-center justify-between gap-2 sm:justify-end">
-          <button
-            type="button"
-            disabled={currentPage <= 1}
-            onClick={() => setPage(currentPage - 1)}
-            className="inline-flex h-8 items-center gap-1 rounded-lg border border-stone-200 bg-white px-2.5 text-[11px] font-medium text-stone-600 transition hover:bg-stone-50 disabled:opacity-40"
-          >
-            <ChevronLeft size={13} />
-            Previous
-          </button>
+      {/* Orders table */}
+      <div className="overflow-hidden rounded-xl border border-stone-200 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.025)]">
+        <div className="flex items-center justify-between gap-3 border-b border-stone-100 px-4 py-3">
+          <div>
+            <h2 className="text-xs font-semibold text-stone-900">Order history</h2>
 
-          <span className="whitespace-nowrap px-1 text-[11px] text-stone-500">
-            Page{' '}
-            <span className="font-semibold text-stone-800">
-              {currentPage}
-            </span>{' '}
-            of {totalPages}
+            <p className="mt-0.5 text-[10px] text-stone-400">
+              {filteredOrders.length} matching orders
+            </p>
+          </div>
+
+          <span className="hidden items-center gap-1.5 text-[10px] text-stone-400 sm:flex">
+            <CalendarClock size={12} />
+            Times shown in WAT
           </span>
-
-          <button
-            type="button"
-            disabled={currentPage >= totalPages}
-            onClick={() => setPage(currentPage + 1)}
-            className="inline-flex h-8 items-center gap-1 rounded-lg border border-stone-200 bg-white px-2.5 text-[11px] font-medium text-stone-600 transition hover:bg-stone-50 disabled:opacity-40"
-          >
-            Next
-            <ChevronRight size={13} />
-          </button>
         </div>
+
+        {isLoading ? (
+          <div className="flex min-h-56 items-center justify-center gap-2 text-xs text-stone-500">
+            <LoaderCircle size={17} className="animate-spin text-[#e86b3e]" />
+            Loading orders...
+          </div>
+        ) : error ? (
+          <div className="p-8 text-center text-xs text-red-700">{error.message}</div>
+        ) : paginatedOrders.length === 0 ? (
+          <div className="flex min-h-56 flex-col items-center justify-center px-5 text-center">
+            <Package size={26} className="mb-3 text-stone-300" />
+
+            <p className="text-xs font-semibold text-stone-800">No orders found</p>
+
+            <p className="mt-1 text-[11px] text-stone-500">
+              Try changing your search or status filter.
+            </p>
+          </div>
+        ) : (
+          <div className="w-full overflow-x-auto">
+            <table className="w-full min-w-[1050px] border-collapse text-left">
+              <thead>
+                <tr className="border-b border-stone-100 bg-stone-50/80">
+                  <th className="px-4 py-3 text-[9px] font-semibold uppercase tracking-wider text-stone-400">
+                    Order
+                  </th>
+
+                  <th className="px-4 py-3 text-[9px] font-semibold uppercase tracking-wider text-stone-400">
+                    Customer
+                  </th>
+
+                  <th className="px-4 py-3 text-[9px] font-semibold uppercase tracking-wider text-stone-400">
+                    Delivery
+                  </th>
+
+                  <th className="px-4 py-3 text-[9px] font-semibold uppercase tracking-wider text-stone-400">
+                    Date
+                  </th>
+
+                  <th className="px-4 py-3 text-[9px] font-semibold uppercase tracking-wider text-stone-400">
+                    Total
+                  </th>
+
+                  <th className="px-4 py-3 text-[9px] font-semibold uppercase tracking-wider text-stone-400">
+                    Payment
+                  </th>
+
+                  <th className="px-4 py-3 text-[9px] font-semibold uppercase tracking-wider text-stone-400">
+                    Status
+                  </th>
+
+                  <th className="px-4 py-3 text-[9px] font-semibold uppercase tracking-wider text-stone-400">
+                    Rider
+                  </th>
+                </tr>
+              </thead>
+
+              <tbody className="divide-y divide-stone-100">
+                {paginatedOrders.map((order) => {
+                  const { title, detail, extra, imageUrl } = getItemSummary(order);
+
+                  const location = [order.delivery?.city, order.delivery?.region]
+                    .filter(Boolean)
+                    .join(', ');
+
+                  const placedAt = new Date(order.createdAt);
+
+                  return (
+                    <tr
+                      key={order.orderNumber}
+                      className="group transition-colors hover:bg-stone-50/70"
+                    >
+                      {/* Product and order reference */}
+                      <td className="px-4 py-3.5">
+                        <div className="flex min-w-[210px] items-center gap-2.5">
+                          <ProductImage imageUrl={imageUrl} name={title} />
+
+                          <div className="min-w-0">
+                            <p
+                              className="max-w-[190px] truncate text-[11px] font-semibold text-stone-800"
+                              title={title}
+                            >
+                              {title}
+
+                              {extra > 0 && (
+                                <span className="ml-1.5 text-[9px] font-medium text-stone-400">
+                                  +{extra} more
+                                </span>
+                              )}
+                            </p>
+
+                            <p className="mt-1 text-[10px] text-stone-400">
+                              {shortRef(order.orderNumber)}
+                              <span className="mx-1.5">·</span>
+                              {detail}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Customer */}
+                      <td className="px-4 py-3.5">
+                        <div className="flex min-w-[150px] items-center gap-2">
+                          <span className="grid size-7 shrink-0 place-items-center rounded-full bg-stone-100 text-[9px] font-semibold text-stone-600">
+                            {getInitials(order.email)}
+                          </span>
+
+                          <div className="min-w-0">
+                            <p
+                              className="max-w-[150px] truncate text-[11px] font-medium text-stone-800"
+                              title={order.customerName || order.email}
+                            >
+                              {order.customerName || order.email}
+                            </p>
+
+                            {order.customerName && (
+                              <p className="max-w-[150px] truncate text-[10px] text-stone-400">
+                                {order.email}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Delivery */}
+                      <td className="px-4 py-3.5">
+                        <div className="flex min-w-[115px] items-center gap-1.5 text-[10px] text-stone-500">
+                          <MapPin size={12} className="shrink-0 text-stone-400" />
+
+                          <span className="max-w-[130px] truncate">
+                            {location || 'Not provided'}
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* Date */}
+                      <td className="px-4 py-3.5">
+                        <div className="min-w-[110px]">
+                          <p className="text-[10px] font-medium text-stone-700">
+                            {dateFormatter.format(placedAt)}
+                          </p>
+
+                          <p className="mt-0.5 text-[10px] text-stone-400">
+                            {timeFormatter.format(placedAt)}
+                          </p>
+                        </div>
+                      </td>
+
+                      {/* Total */}
+                      <td className="px-4 py-3.5">
+                        <p className="whitespace-nowrap text-[11px] font-semibold tabular-nums text-stone-900">
+                          {formatPrice(order.subtotalCents)}
+                        </p>
+                      </td>
+
+                      {/* Payment */}
+                      <td className="px-4 py-3.5">
+                        <PaymentBadge status={order.paymentStatus} />
+                      </td>
+
+                      {/* Order status */}
+                      <td className="px-4 py-3.5">
+                        <StatusBadge status={order.status} />
+                      </td>
+
+                      {/* Rider assignment */}
+                      <td className="px-4 py-3.5">
+                        <RiderCell
+                          order={order}
+                          formOpen={assignmentOrder === order.orderNumber}
+                          busy={busyOrder === order.orderNumber}
+                          value={emails[order.orderNumber] ?? ''}
+                          onChange={(value) =>
+                            setEmails((current) => ({
+                              ...current,
+                              [order.orderNumber]: value,
+                            }))
+                          }
+                          onToggle={() => toggleAssignment(order.orderNumber)}
+                          onSubmit={(event) => void assignRider(event, order.orderNumber)}
+                          onCancel={() => setAssignmentOrder(null)}
+                        />
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Pagination */}
+        {!isLoading && !error && filteredOrders.length > 0 && (
+          <div className="flex flex-col gap-3 border-t border-stone-100 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-[10px] text-stone-500">
+              Showing{' '}
+              <span className="font-semibold text-stone-800">
+                {rangeStart}–{rangeEnd}
+              </span>{' '}
+              of <span className="font-semibold text-stone-800">{filteredOrders.length}</span>{' '}
+              orders
+            </p>
+
+            <div className="flex items-center justify-between gap-2 sm:justify-end">
+              <button
+                type="button"
+                disabled={currentPage <= 1}
+                onClick={() => setPage(currentPage - 1)}
+                className="inline-flex h-8 items-center gap-1 rounded-lg border border-stone-200 px-2.5 text-[10px] font-medium text-stone-600 transition hover:bg-stone-50 disabled:opacity-40"
+              >
+                <ChevronLeft size={13} />
+                Previous
+              </button>
+
+              <span className="whitespace-nowrap px-1 text-[10px] text-stone-500">
+                Page <span className="font-semibold text-stone-800">{currentPage}</span> of{' '}
+                {totalPages}
+              </span>
+
+              <button
+                type="button"
+                disabled={currentPage >= totalPages}
+                onClick={() => setPage(currentPage + 1)}
+                className="inline-flex h-8 items-center gap-1 rounded-lg border border-stone-200 px-2.5 text-[10px] font-medium text-stone-600 transition hover:bg-stone-50 disabled:opacity-40"
+              >
+                Next
+                <ChevronRight size={13} />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );

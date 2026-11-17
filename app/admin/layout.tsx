@@ -10,7 +10,7 @@ function formatRole(role?: string | null) {
     .toLowerCase()
     .split('_')
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(' '); 
+    .join(' ');
 }
 
 export default async function AdminLayout({

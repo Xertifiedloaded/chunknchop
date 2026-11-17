@@ -97,9 +97,7 @@ export default function AuthForm({
 
   function continueWithGoogle() {
     const destination = internalDestination(returnTo);
-    window.location.assign(
-      `/api/auth/google/start?returnTo=${encodeURIComponent(destination)}`,
-    );
+    window.location.assign(`/api/auth/google/start?returnTo=${encodeURIComponent(destination)}`);
   }
 
   return (
@@ -168,9 +166,7 @@ export default function AuthForm({
         </label>
 
         {isSignUp && (
-          <p className="-mt-2 text-xs leading-5 text-[#88847d]">
-            Use at least 12 characters.
-          </p>
+          <p className="-mt-2 text-xs leading-5 text-[#88847d]">Use at least 12 characters.</p>
         )}
 
         {!isSignUp && (
@@ -207,9 +203,7 @@ export default function AuthForm({
         <>
           <div className="my-7 flex items-center gap-4">
             <span className="h-px flex-1 bg-[#e6e4de]" />
-            <span className="text-[10px] font-semibold tracking-[0.12em] text-[#aaa69e]">
-              OR
-            </span>
+            <span className="text-[10px] font-semibold tracking-[0.12em] text-[#aaa69e]">OR</span>
             <span className="h-px flex-1 bg-[#e6e4de]" />
           </div>
 

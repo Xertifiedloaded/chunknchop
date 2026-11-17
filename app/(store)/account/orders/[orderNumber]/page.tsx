@@ -1,4 +1,3 @@
-
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
@@ -15,27 +14,14 @@ export const metadata: Metadata = {
   description: 'Follow your order status and rider location in real time.',
 };
 
-export default async function OrderTrackingPage({
-  params,
-  searchParams,
-}: PageProps) {
-  const [{ orderNumber }, query] = await Promise.all([
-    params,
-    searchParams,
-  ]);
+export default async function OrderTrackingPage({ params, searchParams }: PageProps) {
+  const [{ orderNumber }, query] = await Promise.all([params, searchParams]);
 
   const session = await getSession(await headers());
 
   if (!session?.user) {
-    redirect(
-      `/sign-in?returnTo=${encodeURIComponent(`/account/orders/${orderNumber}`)}`,
-    );
+    redirect(`/sign-in?returnTo=${encodeURIComponent(`/account/orders/${orderNumber}`)}`);
   }
 
-  return (
-    <OrderTracking
-      orderNumber={orderNumber}
-      paymentNotice={query.payment}
-    />
-  );
+  return <OrderTracking orderNumber={orderNumber} paymentNotice={query.payment} />;
 }

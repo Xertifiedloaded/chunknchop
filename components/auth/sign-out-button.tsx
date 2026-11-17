@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -41,11 +40,7 @@ export default function SignOutButton() {
       disabled={pending}
       className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2.5 text-left text-[11px] font-medium text-[#c44c38] transition hover:bg-[#fff3ef] disabled:cursor-not-allowed disabled:opacity-50"
     >
-      {pending ? (
-        <LoaderCircle size={15} className="animate-spin" />
-      ) : (
-        <LogOut size={15} />
-      )}
+      {pending ? <LoaderCircle size={15} className="animate-spin" /> : <LogOut size={15} />}
 
       {pending ? 'Signing out...' : 'Sign out'}
     </button>

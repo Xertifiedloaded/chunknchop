@@ -268,8 +268,6 @@ export default function Storefront({ products }: { products: CatalogProduct[] })
 
   return (
     <main id="home" className="relative">
-      <Header cartCount={cartCount} />
-
       <section className="relative flex min-h-[580px] items-end overflow-hidden bg-[#402b28] text-white md:min-h-[620px] md:items-center">
         <Image
           src="/images/market-hero.png"
@@ -321,10 +319,7 @@ export default function Storefront({ products }: { products: CatalogProduct[] })
         </div>
       </section>
 
-      <section
-        className="border-b border-[#eeede8] bg-[#f8f8f6]"
-        aria-label="Our promises"
-      >
+      <section className="border-b border-[#eeede8] bg-[#f8f8f6]" aria-label="Our promises">
         <div
           className={`${container} grid grid-cols-1 items-center gap-4 py-5 sm:grid-cols-3 sm:gap-0 sm:py-6 lg:grid-cols-[1fr_1fr_1fr_1.2fr]`}
         >
@@ -556,8 +551,6 @@ export default function Storefront({ products }: { products: CatalogProduct[] })
           <NewsletterForm />
         </div>
       </section>
-
-      <Footer />
 
       {cartError && (
         <div

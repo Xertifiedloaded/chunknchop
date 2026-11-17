@@ -42,7 +42,9 @@ export default function AboutSection() {
   return (
     <div className="w-full">
       <section className="bg-[#faf9f6] py-20">
-        <div className={`${container} grid grid-cols-1 items-center gap-10 lg:grid-cols-2 lg:gap-16`}>
+        <div
+          className={`${container} grid grid-cols-1 items-center gap-10 lg:grid-cols-2 lg:gap-16`}
+        >
           <div>
             <p className="mb-3 flex items-center gap-2.5 font-worksans text-[11px] font-bold tracking-[0.15em] text-[#77736d]">
               <span className="h-px w-5 bg-brand" />
@@ -92,7 +94,9 @@ export default function AboutSection() {
       </section>
 
       <section className="bg-white py-20">
-        <div className={`${container} grid grid-cols-1 items-center gap-10 lg:grid-cols-2 lg:gap-16`}>
+        <div
+          className={`${container} grid grid-cols-1 items-center gap-10 lg:grid-cols-2 lg:gap-16`}
+        >
           <div className="order-2 overflow-hidden lg:order-1">
             <img
               src="https://chickenvicken.in/cdn/shop/files/Happy_customer.png?v=1771416342"

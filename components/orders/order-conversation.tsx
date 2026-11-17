@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useRef, useState, type FormEvent } from 'react';
@@ -89,9 +88,7 @@ export default function OrderConversation({
       await mutate();
     } catch (sendError) {
       setMessageError(
-        sendError instanceof Error
-          ? sendError.message
-          : 'Message could not be sent.',
+        sendError instanceof Error ? sendError.message : 'Message could not be sent.',
       );
     } finally {
       setSending(false);
@@ -120,10 +117,7 @@ export default function OrderConversation({
           </h2>
         </div>
 
-        <MessageCircle
-          size={18}
-          className="shrink-0 text-[#e86b3e]"
-        />
+        <MessageCircle size={18} className="shrink-0 text-[#e86b3e]" />
       </div>
 
       {error ? (
@@ -164,13 +158,10 @@ export default function OrderConversation({
                   >
                     <span className="px-1 text-[10px] text-[#88847d]">
                       {message.senderName} ·{' '}
-                      {new Date(message.createdAt).toLocaleTimeString(
-                        'en-US',
-                        {
-                          hour: 'numeric',
-                          minute: '2-digit',
-                        },
-                      )}
+                      {new Date(message.createdAt).toLocaleTimeString('en-US', {
+                        hour: 'numeric',
+                        minute: '2-digit',
+                      })}
                     </span>
 
                     <p
@@ -190,8 +181,7 @@ export default function OrderConversation({
 
           {!data.canChat ? (
             <p className="border-t border-[#e6e4de] px-5 py-4 text-xs leading-5 text-[#88847d] sm:px-6">
-              Messaging is closed for this order. You can still review previous
-              messages.
+              Messaging is closed for this order. You can still review previous messages.
             </p>
           ) : (
             <>
@@ -208,10 +198,7 @@ export default function OrderConversation({
                 className="flex items-center gap-2 border-t border-[#e6e4de] p-4 sm:px-6"
                 onSubmit={sendMessage}
               >
-                <label
-                  className="sr-only"
-                  htmlFor={`message-${orderNumber}`}
-                >
+                <label className="sr-only" htmlFor={`message-${orderNumber}`}>
                   Message your {viewer === 'customer' ? 'rider' : 'customer'}
                 </label>
 
@@ -232,10 +219,7 @@ export default function OrderConversation({
                   className="flex h-11 w-11 shrink-0 items-center justify-center bg-[#e86b3e] text-white transition-colors hover:bg-[#a9442c] disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   {sending ? (
-                    <LoaderCircle
-                      className="animate-spin"
-                      size={16}
-                    />
+                    <LoaderCircle className="animate-spin" size={16} />
                   ) : (
                     <Send size={15} />
                   )}

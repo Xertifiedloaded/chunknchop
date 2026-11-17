@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState, type ReactNode } from 'react';
@@ -29,15 +28,13 @@ import AdminHeader from '@/components/admin/admin-header';
 const navigation = [
   {
     label: 'Overview',
-    items: [
-      { label: 'Dashboard', href: '/admin', icon: LayoutDashboard },
-    ],
+    items: [{ label: 'Dashboard', href: '/admin', icon: LayoutDashboard }],
   },
   {
     label: 'Operations',
     items: [
       { label: 'Orders', href: '/admin/orders', icon: ShoppingBag },
-      { label: 'Processing Queue', href: '/admin/processing', icon: ChefHat },
+      { label: 'Coupons', href: '/admin/coupons', icon: ChefHat },
       { label: 'Delivery', href: '/admin/delivery', icon: Truck },
     ],
   },
@@ -46,7 +43,7 @@ const navigation = [
     items: [
       { label: 'Products', href: '/admin/products', icon: Package },
       { label: 'Categories', href: '/admin/categories', icon: Tags },
-      { label: 'Inventory', href: '/admin/inventory', icon: Boxes },
+      { label: 'Payments', href: '/admin/payments', icon: Boxes },
     ],
   },
   {
@@ -90,11 +87,7 @@ function SidebarContent({
             : 'h-[60px]'
         }`}
       >
-        <Link
-          href="/admin"
-          onClick={onNavigate}
-          className="flex min-w-0 items-center gap-2.5"
-        >
+        <Link href="/admin" onClick={onNavigate} className="flex min-w-0 items-center gap-2.5">
           <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-[#e85d2a] text-sm font-bold text-white">
             C
           </span>
@@ -103,9 +96,7 @@ function SidebarContent({
             <span className="block text-[13px] font-semibold tracking-tight text-white">
               ChunkNChop
             </span>
-            <span className="mt-0.5 block text-[10px] text-[#aaa39a]">
-              Operations Console
-            </span>
+            <span className="mt-0.5 block text-[10px] text-[#aaa39a]">Operations Console</span>
           </span>
         </Link>
 
@@ -136,8 +127,7 @@ function SidebarContent({
                 const active =
                   item.href === '/admin'
                     ? pathname === '/admin'
-                    : pathname === item.href ||
-                      pathname.startsWith(`${item.href}/`);
+                    : pathname === item.href || pathname.startsWith(`${item.href}/`);
 
                 return (
                   <Link
@@ -170,10 +160,7 @@ function SidebarContent({
       <div className="shrink-0 space-y-2.5 border-t border-white/[0.07] p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
         <div className="rounded-lg bg-[#38332f] p-3">
           <div className="flex items-center gap-2 text-[11px] font-medium text-white">
-            <Snowflake
-              size={14}
-              className="shrink-0 text-sky-400"
-            />
+            <Snowflake size={14} className="shrink-0 text-sky-400" />
             Cold chain healthy
           </div>
 
@@ -252,7 +239,6 @@ export default function AdminShell({
 
   return (
     <div className="min-h-dvh bg-[#f5f6f8] text-[#292723]">
-
       {/* Desktop sidebar */}
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-[232px] flex-col bg-[#292622] text-white lg:flex">
         <SidebarContent pathname={pathname} />
@@ -276,9 +262,7 @@ export default function AdminShell({
             C
           </span>
 
-          <span className="truncate text-[13px] font-semibold">
-            ChunkNChop
-          </span>
+          <span className="truncate text-[13px] font-semibold">ChunkNChop</span>
         </Link>
 
         {userEmail && (
@@ -327,7 +311,6 @@ export default function AdminShell({
 
       {/* Main application */}
       <div className="flex min-h-dvh min-w-0 flex-col lg:pl-[232px]">
-
         {/* Desktop header */}
         <AdminHeader
           name={userName || userEmail || 'Admin'}

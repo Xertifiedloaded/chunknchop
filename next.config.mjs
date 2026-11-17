@@ -4,9 +4,7 @@ const nextConfig = {
     unoptimized: true,
   },
   async redirects() {
-    return [
-      { source: '/account', destination: '/account/orders', permanent: true },
-    ];
+    return [{ source: '/account', destination: '/account/orders', permanent: true }];
   },
   async headers() {
     return [

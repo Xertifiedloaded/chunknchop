@@ -44,13 +44,38 @@ const shape = {
   badge,
   category: z.enum(productCategories),
   published: z.boolean(),
+  discountPercent: z.coerce.number().int().min(0).max(100).default(0),
+  discountStartsAt: z.coerce.date().nullable().optional().default(null),
+  discountEndsAt: z.coerce.date().nullable().optional().default(null),
 };
+
+function validateDiscountDates(
+  value: { discountStartsAt?: Date | null; discountEndsAt?: Date | null },
+  ctx: z.RefinementCtx,
+) {
+  if (
+    value.discountStartsAt &&
+    value.discountEndsAt &&
+    value.discountEndsAt <= value.discountStartsAt
+  ) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['discountEndsAt'],
+      message: 'Discount end date must be after its start date',
+    });
+  }
+}
 
 export const productInputSchema = z
   .object({ ...shape, published: z.boolean().default(false) })
-  .strict();
+  .strict()
+  .superRefine(validateDiscountDates);
 
-export const productPatchSchema = z.object(shape).partial().strict();
+export const productPatchSchema = z
+  .object(shape)
+  .partial()
+  .strict()
+  .superRefine(validateDiscountDates);
 
 export function validationErrorResponse(error: ZodError) {
   const { fieldErrors, formErrors } = error.flatten();

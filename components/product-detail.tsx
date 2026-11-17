@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -31,10 +30,7 @@ export default function ProductDetail({ product }: { product: CatalogProduct }) 
           SHOP ALL
         </Link>
 
-        <Link
-          href="/"
-          className="font-heading text-[27px] tracking-[-0.06em] text-[#24231f]"
-        >
+        <Link href="/" className="font-heading text-[27px] tracking-[-0.06em] text-[#24231f]">
           ChunknChop
         </Link>
 
@@ -100,18 +96,12 @@ export default function ProductDetail({ product }: { product: CatalogProduct }) 
           <div className="h-px w-full bg-[#e6e4de]" />
 
           <div className="flex items-center justify-between gap-4 border-b border-[#e6e4de] py-[17px]">
-            <span className="text-[9px] font-bold tracking-[0.12em] text-[#77736d]">
-              YOUR CUT
-            </span>
-            <strong className="text-right text-[11px] font-semibold">
-              {product.cut}
-            </strong>
+            <span className="text-[9px] font-bold tracking-[0.12em] text-[#77736d]">YOUR CUT</span>
+            <strong className="text-right text-[11px] font-semibold">{product.cut}</strong>
           </div>
 
           <div className="flex items-center justify-between gap-4 border-b border-[#e6e4de] py-[17px]">
-            <span className="text-[9px] font-bold tracking-[0.12em] text-[#77736d]">
-              QUANTITY
-            </span>
+            <span className="text-[9px] font-bold tracking-[0.12em] text-[#77736d]">QUANTITY</span>
 
             <div className="flex h-[36px] items-center border border-[#dedbd3]">
               <button
@@ -143,9 +133,7 @@ export default function ProductDetail({ product }: { product: CatalogProduct }) 
             <button
               type="button"
               className={`flex min-h-[49px] flex-1 items-center justify-center gap-[12px] px-[15px] text-[9px] font-bold tracking-[0.1em] transition-colors duration-200 ${
-                added
-                  ? 'bg-[#53623f] text-white'
-                  : 'bg-[#292721] text-white hover:bg-[#a9442c]'
+                added ? 'bg-[#53623f] text-white' : 'bg-[#292721] text-white hover:bg-[#a9442c]'
               }`}
               onClick={addToBag}
             >
@@ -189,9 +177,7 @@ export default function ProductDetail({ product }: { product: CatalogProduct }) 
             </span>
 
             <div className="flex flex-col gap-[5px] text-right">
-              <strong className="text-[10px] font-semibold">
-                Availability and details
-              </strong>
+              <strong className="text-[10px] font-semibold">Availability and details</strong>
               <span className="text-[9px] leading-[1.6] text-[#88847d]">
                 Product information is provided by ChunknChop.
               </span>

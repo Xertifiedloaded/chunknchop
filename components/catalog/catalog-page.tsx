@@ -1,5 +1,4 @@
-
-'use client'
+'use client';
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
@@ -27,34 +26,6 @@ export default function CatalogPage({ products }: { products: CatalogProduct[] }
 
   return (
     <main className="flex min-h-screen flex-col bg-[#f8f8f6] text-[#24231f]">
-      {/* Header */}
-      <header className="flex h-[72px] shrink-0 items-center justify-between border-b border-[#e7e5df] bg-white px-[7.1%] max-[900px]:px-[5%] max-[650px]:h-[65px]">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-[9px] text-[9px] font-bold tracking-[0.13em] text-[#514f49] transition-colors hover:text-[#e86b3e] max-[650px]:text-[8px]"
-        >
-          <ArrowLeft size={15} />
-          BACK HOME
-        </Link>
-
-        <Link
-          href="/"
-          className="text-xs font-bold tracking-[0.16em] text-[#24231f]"
-        >
-          FIELD <i className="font-heading text-[15px] text-[#e86b3e]">&</i> FABLE
-        </Link>
-
-        <Link
-          href="/cart"
-          className="inline-flex items-center gap-[9px] text-[9px] font-bold tracking-[0.13em] text-[#514f49] transition-colors hover:text-[#e86b3e] max-[650px]:text-[8px]"
-        >
-          YOUR BAG
-          <span className="grid size-5 place-items-center bg-[#f0eee8] text-[9px] text-[#24231f]">
-            {cartCount}
-          </span>
-        </Link>
-      </header>
-
       {/* Catalog introduction */}
       <section className="border-b border-[#e7e5df] bg-[#f8f8f6] px-[10.5%] pt-[65px] pb-[38px] max-[900px]:px-[6%] max-[650px]:px-[6%] max-[650px]:pt-[43px] max-[650px]:pb-[27px]">
         <p className="m-0 flex items-center gap-[9px] text-[9px] font-bold tracking-[0.15em] text-[#77736d]">
@@ -132,8 +103,7 @@ export default function CatalogPage({ products }: { products: CatalogProduct[] }
           <div className="mb-[22px] flex min-h-[43px] items-center justify-between gap-4 border-b border-[#e7e5df] pb-[13px] max-[650px]:flex-col max-[650px]:items-stretch max-[650px]:gap-[13px]">
             <div className="flex items-center gap-[9px] text-[10px] text-[#77736d]">
               <span className="font-semibold text-[#24231f]">
-                {visibleProducts.length}{' '}
-                {visibleProducts.length === 1 ? 'cut' : 'cuts'}
+                {visibleProducts.length} {visibleProducts.length === 1 ? 'cut' : 'cuts'}
               </span>
               <span className="text-[#b7b3aa]">·</span>
               <span>Available now</span>
@@ -158,11 +128,7 @@ export default function CatalogPage({ products }: { products: CatalogProduct[] }
           {/* Products */}
           <div className="grid grid-cols-3 gap-x-[17px] gap-y-[30px] max-[900px]:grid-cols-2 max-[650px]:grid-cols-2 max-[650px]:gap-x-[11px] max-[650px]:gap-y-[23px]">
             {visibleProducts.map((product) => (
-              <Link
-                className="group min-w-0"
-                href={`/products/${product.slug}`}
-                key={product.id}
-              >
+              <Link className="group min-w-0" href={`/products/${product.slug}`} key={product.id}>
                 <div className="relative aspect-[0.92] overflow-hidden bg-[#e7e3db] max-[650px]:aspect-[0.85]">
                   <img
                     src={product.imageUrl}

@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -162,9 +161,7 @@ export default function RiderDashboard({ name }: { name: string }) {
         throw new Error(result?.error || 'Could not update this delivery.');
       }
 
-      setFeedback(
-        `${order.orderNumber}: ${next.label.toLowerCase().replaceAll('_', ' ')}.`,
-      );
+      setFeedback(`${order.orderNumber}: ${next.label.toLowerCase().replaceAll('_', ' ')}.`);
 
       await mutate();
 
@@ -173,9 +170,7 @@ export default function RiderDashboard({ name }: { name: string }) {
       }
     } catch (updateError) {
       setFeedback(
-        updateError instanceof Error
-          ? updateError.message
-          : 'Could not update this delivery.',
+        updateError instanceof Error ? updateError.message : 'Could not update this delivery.',
       );
     } finally {
       setBusyOrder(null);
@@ -267,8 +262,7 @@ export default function RiderDashboard({ name }: { name: string }) {
                   <div className="flex items-center justify-between gap-2 text-[8px] text-[#77736d]">
                     <span
                       className={`inline-flex items-center border px-[9px] py-[7px] text-[8px] font-bold tracking-[0.08em] uppercase ${
-                        statusStyles[order.status] ||
-                        'border-[#eae9e5] bg-[#fbfaf7] text-[#77736d]'
+                        statusStyles[order.status] || 'border-[#eae9e5] bg-[#fbfaf7] text-[#77736d]'
                       }`}
                     >
                       {order.status.replaceAll('_', ' ')}
@@ -288,9 +282,7 @@ export default function RiderDashboard({ name }: { name: string }) {
                       </h3>
                     </div>
 
-                    <strong className="text-[11px]">
-                      {formatPrice(order.subtotalCents)}
-                    </strong>
+                    <strong className="text-[11px]">{formatPrice(order.subtotalCents)}</strong>
                   </div>
 
                   <address className="my-3 text-[10px] leading-[1.8] text-[#77736d] not-italic">

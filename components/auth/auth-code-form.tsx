@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, type FormEvent } from 'react';
@@ -109,14 +108,10 @@ export function EmailCodeForm({ mode, email: initialEmail, returnTo }: EmailCode
 
       if (!response.ok) throw new Error(result?.error || 'We could not send another code.');
 
-      setMessage(
-        'If the address has an account awaiting verification, a new code is on its way.',
-      );
+      setMessage('If the address has an account awaiting verification, a new code is on its way.');
     } catch (requestError) {
       setError(
-        requestError instanceof Error
-          ? requestError.message
-          : 'We could not send another code.',
+        requestError instanceof Error ? requestError.message : 'We could not send another code.',
       );
     } finally {
       setResending(false);
@@ -295,9 +290,7 @@ export function ForgotPasswordForm({ returnTo }: { returnTo: string }) {
       setSent(true);
     } catch (requestError) {
       setError(
-        requestError instanceof Error
-          ? requestError.message
-          : 'We could not process that request.',
+        requestError instanceof Error ? requestError.message : 'We could not process that request.',
       );
     } finally {
       setPending(false);

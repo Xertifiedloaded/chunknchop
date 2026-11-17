@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
@@ -105,7 +104,6 @@ export default function AdminHeader({
 
   return (
     <header className="sticky top-0 z-40 flex h-[58px] w-full items-center justify-between gap-3 border-b border-[#eeece8] bg-white/95 px-3 backdrop-blur-md sm:px-5 lg:h-[62px] lg:px-7">
-
       {/* Search */}
       <div className="min-w-0 flex-1">
         <label className="relative flex h-9 w-full max-w-[400px] items-center rounded-lg border border-[#eeeae6] bg-[#faf9f7] transition focus-within:border-[#e8a58c] focus-within:bg-white">
@@ -126,7 +124,6 @@ export default function AdminHeader({
 
       {/* Right actions */}
       <div className="flex shrink-0 items-center gap-1.5 sm:gap-2.5">
-
         {/* Quick actions */}
         <div ref={quickRef} className="relative">
           <button
@@ -248,12 +245,8 @@ export default function AdminHeader({
                 </span>
 
                 <div className="min-w-0">
-                  <p className="truncate text-xs font-semibold text-[#332d28]">
-                    {name}
-                  </p>
-                  <p className="mt-1 truncate text-[10px] text-[#99918a]">
-                    {role}
-                  </p>
+                  <p className="truncate text-xs font-semibold text-[#332d28]">{name}</p>
+                  <p className="mt-1 truncate text-[10px] text-[#99918a]">{role}</p>
                 </div>
               </div>
 

@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -156,13 +155,9 @@ export default function OrderTracking({ orderNumber, paymentNotice }: RouteProps
   }
 
   const currentIndex =
-    order.status === 'payment_failed'
-      ? 0
-      : steps.findIndex((step) => step.key === order.status);
+    order.status === 'payment_failed' ? 0 : steps.findIndex((step) => step.key === order.status);
 
-  const events = new Map(
-    (order.statusHistory ?? []).map((event) => [event.status, event]),
-  );
+  const events = new Map((order.statusHistory ?? []).map((event) => [event.status, event]));
 
   const completed = ['delivered', 'cancelled'].includes(order.status);
 
@@ -173,36 +168,10 @@ export default function OrderTracking({ orderNumber, paymentNotice }: RouteProps
         ? 'Payment wasn’t confirmed. Your order is still in your ledger; retry checkout or contact the shop.'
         : '';
 
-  const paymentFailed =
-    paymentNotice === 'failed' || order.status === 'payment_failed';
+  const paymentFailed = paymentNotice === 'failed' || order.status === 'payment_failed';
 
   return (
     <main className="mx-auto min-h-screen w-[min(1120px,90%)] max-[650px]:w-[92%]">
-      <header className="flex h-[76px] items-center justify-between border-b border-[#e6e4de]">
-        <Link
-          href="/account/orders"
-          className="inline-flex items-center gap-2 text-[9px] font-bold tracking-[0.12em] text-[#514f49] transition-colors hover:text-[#a9442c]"
-        >
-          <ArrowLeft size={14} />
-          YOUR ORDERS
-        </Link>
-
-        <Link
-          href="/"
-          className="font-heading text-[27px] tracking-[-0.06em] text-[#24231f]"
-        >
-          ChunknChop
-        </Link>
-
-        <Link
-          href="/shop"
-          className="inline-flex items-center gap-2 text-[9px] font-bold tracking-[0.12em] text-[#514f49] transition-colors hover:text-[#a9442c]"
-        >
-          SHOP THE COUNTER
-          <ArrowUpRight size={14} />
-        </Link>
-      </header>
-
       <section className="py-[38px] pb-[75px] max-[650px]:py-[25px] max-[650px]:pb-[50px]">
         <div className="mb-[30px] flex items-end justify-between gap-5 max-[650px]:items-start">
           <div>
@@ -239,8 +208,7 @@ export default function OrderTracking({ orderNumber, paymentNotice }: RouteProps
 
           <span
             className={`inline-flex shrink-0 items-center border px-[10px] py-[8px] text-[8px] font-bold tracking-[0.08em] uppercase ${
-              statusStyles[order.status] ??
-              'border-[#e6e4de] bg-[#fbfaf7] text-[#77736d]'
+              statusStyles[order.status] ?? 'border-[#e6e4de] bg-[#fbfaf7] text-[#77736d]'
             }`}
           >
             {order.status.replaceAll('_', ' ')}
@@ -313,7 +281,11 @@ export default function OrderTracking({ orderNumber, paymentNotice }: RouteProps
                             : 'border-[#dedbd3] bg-[#f8f8f6] text-[#aaa49a]'
                         }`}
                       >
-                        {complete ? <Check size={13} /> : <span className="size-[5px] rounded-full bg-current" />}
+                        {complete ? (
+                          <Check size={13} />
+                        ) : (
+                          <span className="size-[5px] rounded-full bg-current" />
+                        )}
                       </span>
 
                       <div className="min-w-0 pt-[2px]">
@@ -419,8 +391,7 @@ export default function OrderTracking({ orderNumber, paymentNotice }: RouteProps
                     key={`${item.name}-${item.unit}`}
                   >
                     <span className="leading-[1.6] text-[#514f49]">
-                      {item.name}{' '}
-                      <small className="text-[#88847d]">× {item.quantity}</small>
+                      {item.name} <small className="text-[#88847d]">× {item.quantity}</small>
                     </span>
 
                     <strong className="shrink-0 font-semibold">

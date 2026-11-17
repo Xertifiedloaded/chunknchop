@@ -90,8 +90,7 @@ function slugifyWhileTyping(value: string) {
 const inputClass =
   'w-full rounded-lg border border-[#e8e6e1] bg-[#fcfcfa] px-3.5 py-3 text-sm text-[#24231f] outline-none transition placeholder:text-[#aaa69e] focus:border-[#e86b3e] focus:ring-2 focus:ring-[#e86b3e]/10';
 
-const labelClass =
-  'flex flex-col gap-2 text-xs font-semibold text-[#332925]';
+const labelClass = 'flex flex-col gap-2 text-xs font-semibold text-[#332925]';
 
 const buttonClass =
   'inline-flex items-center justify-center gap-2 rounded-lg border border-[#e8e6e1] bg-white px-4 py-2.5 text-xs font-semibold text-[#55514a] transition hover:border-[#e86b3e] hover:text-[#e86b3e] disabled:cursor-not-allowed disabled:opacity-50';
@@ -112,9 +111,7 @@ export default function AdminProducts({
     fallbackData: { products: safeInitial },
   });
 
-  const products: CatalogProduct[] = Array.isArray(data?.products)
-    ? data.products
-    : safeInitial;
+  const products: CatalogProduct[] = Array.isArray(data?.products) ? data.products : safeInitial;
 
   const [modalOpen, setModalOpen] = useState(false);
   const [draft, setDraft] = useState<ProductDraft>(emptyDraft);
@@ -136,17 +133,13 @@ export default function AdminProducts({
 
     return products.filter((product) => {
       const matchesSearch =
-        product.name.toLowerCase().includes(term) ||
-        product.slug.toLowerCase().includes(term);
+        product.name.toLowerCase().includes(term) || product.slug.toLowerCase().includes(term);
 
-      const matchesCategory =
-        categoryFilter === 'All' || product.category === categoryFilter;
+      const matchesCategory = categoryFilter === 'All' || product.category === categoryFilter;
 
       const matchesVisibility =
         visibilityFilter === 'All' ||
-        (visibilityFilter === 'Published'
-          ? product.published
-          : !product.published);
+        (visibilityFilter === 'Published' ? product.published : !product.published);
 
       return matchesSearch && matchesCategory && matchesVisibility;
     });
@@ -236,9 +229,7 @@ export default function AdminProducts({
 
       setMessage('Image uploaded successfully. Save to keep it.');
     } catch (error) {
-      setMessage(
-        error instanceof Error ? error.message : 'Unable to upload this image.',
-      );
+      setMessage(error instanceof Error ? error.message : 'Unable to upload this image.');
     } finally {
       setUploadingImage(false);
     }
@@ -289,9 +280,7 @@ export default function AdminProducts({
       const result = await response.json().catch(() => null);
 
       if (!response.ok) {
-        const fieldErrors = result?.details?.fieldErrors as
-          | Record<string, string[]>
-          | undefined;
+        const fieldErrors = result?.details?.fieldErrors as Record<string, string[]> | undefined;
 
         const firstField = fieldErrors && Object.entries(fieldErrors)[0];
 
@@ -313,15 +302,9 @@ export default function AdminProducts({
       setDraft(emptyDraft);
       setModalOpen(false);
 
-      setMessage(
-        editingId
-          ? 'Product updated successfully.'
-          : 'Product created successfully.',
-      );
+      setMessage(editingId ? 'Product updated successfully.' : 'Product created successfully.');
     } catch (error) {
-      setMessage(
-        error instanceof Error ? error.message : 'Unable to save this product.',
-      );
+      setMessage(error instanceof Error ? error.message : 'Unable to save this product.');
     } finally {
       setSubmitting(false);
     }
@@ -341,16 +324,12 @@ export default function AdminProducts({
       const result = await response.json().catch(() => null);
 
       if (!response.ok) {
-        throw new Error(
-          result?.error || 'Unable to update product visibility.',
-        );
+        throw new Error(result?.error || 'Unable to update product visibility.');
       }
 
       await mutate();
     } catch (error) {
-      setMessage(
-        error instanceof Error ? error.message : 'Unable to update product.',
-      );
+      setMessage(error instanceof Error ? error.message : 'Unable to update product.');
     } finally {
       setActionId(null);
     }
@@ -383,9 +362,7 @@ export default function AdminProducts({
 
       setMessage('Product deleted successfully.');
     } catch (error) {
-      setMessage(
-        error instanceof Error ? error.message : 'Unable to delete this product.',
-      );
+      setMessage(error instanceof Error ? error.message : 'Unable to delete this product.');
     } finally {
       setActionId(null);
     }
@@ -438,19 +415,13 @@ export default function AdminProducts({
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="rounded-xl border border-[#e8e6e1] bg-white p-5">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-[#88847d]">
-              Total products
-            </span>
+            <span className="text-xs font-medium text-[#88847d]">Total products</span>
             <Package size={19} className="text-[#e86b3e]" />
           </div>
 
-          <p className="mt-3 text-3xl font-semibold text-[#24231f]">
-            {products.length}
-          </p>
+          <p className="mt-3 text-3xl font-semibold text-[#24231f]">{products.length}</p>
 
-          <p className="mt-1 text-[11px] text-[#99958d]">
-            Products in catalogue
-          </p>
+          <p className="mt-1 text-[11px] text-[#99958d]">Products in catalogue</p>
         </div>
 
         <div className="rounded-xl border border-[#e8e6e1] bg-white p-5">
@@ -459,28 +430,20 @@ export default function AdminProducts({
             <Eye size={19} className="text-emerald-600" />
           </div>
 
-          <p className="mt-3 text-3xl font-semibold text-[#24231f]">
-            {publishedCount}
-          </p>
+          <p className="mt-3 text-3xl font-semibold text-[#24231f]">{publishedCount}</p>
 
           <p className="mt-1 text-[11px] text-[#99958d]">Visible in your shop</p>
         </div>
 
         <div className="rounded-xl border border-[#e8e6e1] bg-white p-5">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-[#88847d]">
-              Draft products
-            </span>
+            <span className="text-xs font-medium text-[#88847d]">Draft products</span>
             <EyeOff size={19} className="text-amber-600" />
           </div>
 
-          <p className="mt-3 text-3xl font-semibold text-[#24231f]">
-            {draftCount}
-          </p>
+          <p className="mt-3 text-3xl font-semibold text-[#24231f]">{draftCount}</p>
 
-          <p className="mt-1 text-[11px] text-[#99958d]">
-            Not visible in your shop
-          </p>
+          <p className="mt-1 text-[11px] text-[#99958d]">Not visible in your shop</p>
         </div>
       </div>
 
@@ -488,9 +451,7 @@ export default function AdminProducts({
       <section className="overflow-hidden rounded-xl border border-[#e8e6e1] bg-white">
         <div className="flex flex-col gap-4 border-b border-[#e8e6e1] p-5 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h3 className="font-heading text-lg font-semibold text-[#24231f]">
-              All products
-            </h3>
+            <h3 className="font-heading text-lg font-semibold text-[#24231f]">All products</h3>
             <p className="mt-1 text-xs text-[#88847d]">
               Showing {filteredProducts.length} of {products.length} products
             </p>
@@ -563,9 +524,7 @@ export default function AdminProducts({
             </div>
 
             <h3 className="text-sm font-semibold text-[#332925]">
-              {products.length === 0
-                ? 'No products yet'
-                : 'No matching products'}
+              {products.length === 0 ? 'No products yet' : 'No matching products'}
             </h3>
 
             <p className="mt-2 max-w-xs text-xs leading-5 text-[#88847d]">
@@ -600,10 +559,7 @@ export default function AdminProducts({
 
                 <tbody className="divide-y divide-[#efede8]">
                   {filteredProducts.map((product) => (
-                    <tr
-                      key={product.id}
-                      className="transition hover:bg-[#fcfbf9]"
-                    >
+                    <tr key={product.id} className="transition hover:bg-[#fcfbf9]">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <img
@@ -633,9 +589,7 @@ export default function AdminProducts({
                         <p className="text-sm font-semibold text-[#24231f]">
                           {formatPrice(product.priceCents)}
                         </p>
-                        <p className="mt-1 text-[10px] text-[#99958d]">
-                          / {product.unit}
-                        </p>
+                        <p className="mt-1 text-[10px] text-[#99958d]">/ {product.unit}</p>
                       </td>
 
                       <td className="px-4 py-4">
@@ -648,9 +602,7 @@ export default function AdminProducts({
                         >
                           <span
                             className={`h-1.5 w-1.5 rounded-full ${
-                              product.published
-                                ? 'bg-emerald-500'
-                                : 'bg-amber-500'
+                              product.published ? 'bg-emerald-500' : 'bg-amber-500'
                             }`}
                           />
                           {product.published ? 'Published' : 'Draft'}
@@ -714,9 +666,7 @@ export default function AdminProducts({
 
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-[10px] text-[#88847d]">
-                          {product.category}
-                        </span>
+                        <span className="text-[10px] text-[#88847d]">{product.category}</span>
                         <span
                           className={`rounded-full px-2 py-1 text-[9px] font-semibold ${
                             product.published
@@ -945,9 +895,7 @@ export default function AdminProducts({
                       <ImagePlus size={25} className="mb-3 text-[#e86b3e]" />
 
                       <span className="text-xs font-semibold text-[#332925]">
-                        {uploadingImage
-                          ? 'Uploading image...'
-                          : 'Click to upload an image'}
+                        {uploadingImage ? 'Uploading image...' : 'Click to upload an image'}
                       </span>
 
                       <span className="mt-1 text-[10px] text-[#99958d]">
@@ -958,9 +906,7 @@ export default function AdminProducts({
                         type="file"
                         accept="image/jpeg,image/png,image/webp"
                         disabled={uploadingImage || submitting}
-                        onChange={(e) =>
-                          void uploadImage(e.currentTarget.files?.[0])
-                        }
+                        onChange={(e) => void uploadImage(e.currentTarget.files?.[0])}
                         className="absolute inset-0 cursor-pointer opacity-0 disabled:cursor-not-allowed"
                       />
                     </div>
@@ -972,9 +918,7 @@ export default function AdminProducts({
                       className={inputClass}
                       type="url"
                       value={
-                        draft.imageUrl.startsWith('/api/product-images/')
-                          ? ''
-                          : draft.imageUrl
+                        draft.imageUrl.startsWith('/api/product-images/') ? '' : draft.imageUrl
                       }
                       onChange={(e) => {
                         if (uploadedImageUrl) {
@@ -1000,9 +944,7 @@ export default function AdminProducts({
                       />
 
                       <div>
-                        <p className="text-xs font-semibold text-[#332925]">
-                          Image preview
-                        </p>
+                        <p className="text-xs font-semibold text-[#332925]">Image preview</p>
                         <p className="mt-1 text-[10px] text-[#88847d]">
                           {draft.imageUrl.includes('res.cloudinary.com')
                             ? 'Cloudinary image'

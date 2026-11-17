@@ -25,7 +25,24 @@ export async function PATCH(request: Request, { params }: RouteContext) {
   }
 
   try {
-    const previous = await prisma.product.findUnique({ where: { id }, select: { imageUrl: true } });
+    const previous = await prisma.product.findUnique({
+      where: { id },
+      select: { imageUrl: true, discountStartsAt: true, discountEndsAt: true },
+    });
+    const startsAt =
+      parsed.data.discountStartsAt !== undefined
+        ? parsed.data.discountStartsAt
+        : previous?.discountStartsAt;
+    const endsAt =
+      parsed.data.discountEndsAt !== undefined
+        ? parsed.data.discountEndsAt
+        : previous?.discountEndsAt;
+    if (startsAt && endsAt && endsAt <= startsAt) {
+      return NextResponse.json(
+        { error: 'Discount end date must be after its start date' },
+        { status: 400 },
+      );
+    }
     const product = await prisma.product.update({ where: { id }, data: parsed.data });
     if (previous && parsed.data.imageUrl && previous.imageUrl !== parsed.data.imageUrl) {
       await deleteProductImageByUrl(previous.imageUrl);
@@ -52,7 +69,10 @@ export async function DELETE(request: Request, { params }: RouteContext) {
     return NextResponse.json({ error: 'Product not found' }, { status: 404 });
 
   try {
-    const product = await prisma.product.findUnique({ where: { id }, select: { imageUrl: true } });
+    const product = await prisma.product.findUnique({
+      where: { id },
+      select: { imageUrl: true, discountStartsAt: true, discountEndsAt: true },
+    });
     await prisma.product.delete({ where: { id } });
     if (product) await deleteProductImageByUrl(product.imageUrl);
     return new NextResponse(null, { status: 204 });

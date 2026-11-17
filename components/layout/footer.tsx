@@ -1,5 +1,5 @@
-"use client";
-import Link from "next/link";
+'use client';
+import Link from 'next/link';
 
 export default function Footer() {
   return (
@@ -10,7 +10,9 @@ export default function Footer() {
             ChunkN <span className="text-[#b9aaa0]">CHOP</span>
           </div>
 
-          <p className="mt-3 max-w-[220px] text-xs leading-relaxed text-[#9b8e83]">Fresh meat, cut to order and delivered cold.</p>
+          <p className="mt-3 max-w-[220px] text-xs leading-relaxed text-[#9b8e83]">
+            Fresh meat, cut to order and delivered cold.
+          </p>
         </div>
 
         <div>
@@ -45,7 +47,9 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="mx-auto mt-12 max-w-271 border-t border-white/5 pt-5 text-center text-xs text-[#6c615a]">© ChunNchop. All rights reserved.</div>
+      <div className="mx-auto mt-12 max-w-271 border-t border-white/5 pt-5 text-center text-xs text-[#6c615a]">
+        © ChunNchop. All rights reserved.
+      </div>
     </footer>
   );
 }

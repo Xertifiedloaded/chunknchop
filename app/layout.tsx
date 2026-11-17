@@ -1,10 +1,11 @@
 import { Analytics } from '@vercel/analytics/next';
-import { Anton, Inter, Sora, Work_Sans } from 'next/font/google';
+import { Anton, Inter, Sora, Work_Sans,Plus_Jakarta_Sans } from 'next/font/google';
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import 'leaflet/dist/leaflet.css';
 import { CartProvider } from '@/components/cart/cart-provider';
 import { AuthProvider } from '@/components/auth/auth-provider';
+const jakarta = Plus_Jakarta_Sans({ subsets: ['latin'], variable: '--font-jakarta', display: 'swap' });
 const sora = Sora({
   subsets: ["latin"],
   variable: "--font-sora",
@@ -46,7 +47,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" data-scroll-behavior="smooth">
       <body
         className={`${inter.variable} ${sora.variable} ${workSans.variable} ${anton.variable} antialiased`}
       >

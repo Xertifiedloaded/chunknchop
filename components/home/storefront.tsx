@@ -350,7 +350,7 @@ export default function Storefront({ products }: { products: CatalogProduct[] })
 
       <AboutSection />
 
-      <section className="py-16 lg:py-24" id="categories">
+      <section className="py-10 lg:py-24" id="categories">
         <div className={container}>
           <div className="mb-8 flex items-end justify-between gap-4">
             <div>
@@ -411,7 +411,7 @@ export default function Storefront({ products }: { products: CatalogProduct[] })
         </div>
       </section>
 
-      <section className="bg-[#f8f8f6] py-16 lg:py-24" id="shop">
+      <section className="bg-[#f8f8f6] py-10 lg:py-24" id="shop">
         <div className={container}>
           <div className="mb-8 flex items-end justify-between gap-4">
             <div>
@@ -534,7 +534,7 @@ export default function Storefront({ products }: { products: CatalogProduct[] })
         </div>
       </section>
 
-      <section className="bg-[#332925] py-12 text-white lg:py-16">
+      <section className="bg-[#332925] py-12 text-white lg:py-10">
         <div
           className={`${container} flex flex-col gap-8 md:flex-row md:items-center md:justify-between md:gap-12`}
         >

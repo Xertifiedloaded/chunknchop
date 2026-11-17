@@ -41,7 +41,7 @@ const features = [
 export default function AboutSection() {
   return (
     <div className="w-full">
-      <section className="bg-[#faf9f6] py-20">
+      <section className="bg-[#faf9f6] py-10">
         <div
           className={`${container} grid grid-cols-1 items-center gap-10 lg:grid-cols-2 lg:gap-16`}
         >
@@ -93,7 +93,7 @@ export default function AboutSection() {
         </div>
       </section>
 
-      <section className="bg-white py-20">
+      <section className="bg-white py-10">
         <div
           className={`${container} grid grid-cols-1 items-center gap-10 lg:grid-cols-2 lg:gap-16`}
         >

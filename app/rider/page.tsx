@@ -23,29 +23,6 @@ export default async function RiderPage() {
 
   return (
     <main className="min-h-screen bg-[#f8f8f6] text-[#24231f]">
-      <header className="relative flex min-h-[76px] items-center justify-between border-b border-[#e6e4de] px-5 sm:px-8 lg:px-[10.5%]">
-        <Link
-          href="/account"
-          className="text-[10px] font-bold tracking-[0.12em] text-[#77736d] transition-colors hover:text-[#e86b3e]"
-        >
-          YOUR ACCOUNT
-        </Link>
-
-        <Link
-          href="/"
-          className="absolute left-1/2 -translate-x-1/2 font-heading text-xl font-bold tracking-tight text-[#24231f] sm:text-2xl"
-        >
-          ChunknChop
-        </Link>
-
-        <div className="flex items-center gap-3 sm:gap-5">
-          <span className="hidden max-w-[220px] truncate text-xs text-[#77736d] sm:block">
-            {session.user.email}
-          </span>
-
-          <SignOutButton />
-        </div>
-      </header>
 
       <RiderDashboard name={session.user.name} />
     </main>

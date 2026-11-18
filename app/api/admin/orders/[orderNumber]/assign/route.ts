@@ -6,8 +6,10 @@ import { hasSameOrigin, isAdminUser } from '@/lib/admin-api';
 import { prisma } from '@/lib/prisma';
 import { findMongoDocument, updateMongoDocument } from '@/lib/mongo-collections';
 import { publishOrderEvent } from '@/lib/pusher';
+import { notifyUsers } from '@/lib/notifications';
 type StoredOrder = {
   _id: string;
+  userId?: string;
   paymentStatus?: string;
   status?: string;
   deliveryZoneId?: string;
@@ -63,8 +65,6 @@ export async function POST(req: Request, { params }: Ctx) {
       { status: 409 },
     );
 
-   
-   
   let orderZoneIds: string[] = [];
   if (order.deliveryZoneId) {
     orderZoneIds = [order.deliveryZoneId];
@@ -107,6 +107,19 @@ export async function POST(req: Request, { params }: Ctx) {
   if ((result as { n?: number }).n === 0)
     return NextResponse.json({ error: 'Assignment could not be saved' }, { status: 409 });
   await prisma.riderProfile.update({ where: { id: profile.id }, data: { isAvailable: false } });
+  await notifyUsers([user.id], {
+    title: 'New delivery assigned',
+    body: `Order ${orderNumber} has been assigned to you.`,
+    url: '/rider',
+    tag: `assigned-rider-${orderNumber}`,
+  }).catch(() => undefined);
+  if (order.userId)
+    await notifyUsers([order.userId], {
+      title: 'Rider assigned',
+      body: `${user.name} has been assigned to your order ${orderNumber}.`,
+      url: `/account/orders/${encodeURIComponent(orderNumber)}/track`,
+      tag: `assigned-customer-${orderNumber}`,
+    }).catch(() => undefined);
   await publishOrderEvent(orderNumber, 'delivery.assigned', {
     orderNumber,
     status: 'assigned',

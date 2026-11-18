@@ -3,9 +3,10 @@ import { headers } from 'next/headers';
 import { z } from 'zod';
 import { getSession } from '@/lib/auth';
 import { hasSameOrigin, isAdminUser } from '@/lib/admin-api';
-import { prisma } from '@/lib/prisma';
 import { findMongoDocument, updateMongoDocument } from '@/lib/mongo-collections';
 import { publishOrderEvent } from '@/lib/pusher';
+import { notifyAdmins, notifyUsers } from '@/lib/notifications';
+import { prisma } from '@/lib/prisma';
 type O = { _id: string; riderId?: string; status?: string };
 type Ctx = { params: Promise<{ orderNumber: string }> };
 const schema = z
@@ -38,12 +39,36 @@ export async function POST(req: Request, { params }: Ctx) {
     'StoreOrder',
     { _id: orderNumber, riderId: s.user.id, status: order.status ?? '' },
     {
-      $set: { status: p.data.status, statusUpdatedAt: at },
+      $set: {
+        status: p.data.status,
+        statusUpdatedAt: at,
+        ...(p.data.status === 'delivered' ? { deliveredAt: at } : {}),
+      },
       $push: { statusHistory: { status: p.data.status, at, note: 'Updated by assigned rider' } },
     },
   );
   if ((result as { n?: number }).n === 0)
     return NextResponse.json({ error: 'Order status changed; refresh' }, { status: 409 });
+  const customerOrder = await findMongoDocument<{ userId?: string }>('StoreOrder', orderNumber);
+  const statusLabels: Record<string, string> = {
+    picked_up: 'picked up',
+    out_for_delivery: 'on the way',
+    delivered: 'delivered',
+  };
+  if (customerOrder?.userId)
+    await notifyUsers([customerOrder.userId], {
+      title: `Order ${statusLabels[p.data.status]}`,
+      body: `Your rider has ${statusLabels[p.data.status]} your order ${orderNumber}.`,
+      url: `/account/orders/${encodeURIComponent(orderNumber)}`,
+      tag: `status-${orderNumber}-${p.data.status}`,
+    }).catch(() => undefined);
+  if (p.data.status === 'delivered')
+    await notifyAdmins({
+      title: 'Delivery completed',
+      body: `Rider marked order ${orderNumber} as delivered.`,
+      url: '/admin/orders',
+      tag: `delivered-${orderNumber}`,
+    }).catch(() => undefined);
   await publishOrderEvent(orderNumber, 'delivery.status', {
     orderNumber,
     status: p.data.status,

@@ -1,13 +1,12 @@
 import { NextResponse } from 'next/server';
 import type { Prisma } from '@prisma/client';
 import { z } from 'zod';
-import { productCategories } from '@/lib/catalog';
 import { prisma } from '@/lib/prisma';
 import { toCatalogProduct } from '@/lib/products';
 
 const querySchema = z.object({
   q: z.string().trim().max(100).optional(),
-  category: z.enum(productCategories).optional(),
+  category: z.string().trim().min(1).max(50).optional(),
   page: z.coerce.number().int().min(1).max(10000).default(1),
   pageSize: z.coerce.number().int().min(1).max(100).default(24),
 });

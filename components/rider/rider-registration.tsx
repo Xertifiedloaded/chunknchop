@@ -173,7 +173,6 @@ export default function RiderRegisterModal({
   const isUploading = Object.values(uploading).some(Boolean);
   const firstField = useRef<HTMLInputElement>(null);
 
-   
   useEffect(() => {
     if (!open) return;
     setError('');
@@ -192,7 +191,6 @@ export default function RiderRegisterModal({
     setTimeout(() => firstField.current?.focus(), 0);
   }, [open, initial]);
 
-   
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && !busy && onClose();

@@ -35,7 +35,6 @@ type CouponValidationResponse = {
 
 type DeliveryMethod = 'home' | 'pickup';
 
-
 type Address = {
   id?: string;
   label?: string;
@@ -50,7 +49,6 @@ type Address = {
   instructions?: string;
   isDefault?: boolean;
 };
-
 
 type ApiAddress = {
   id?: string;
@@ -133,7 +131,6 @@ function itemLabel(count: number) {
   return `${count} ${count === 1 ? 'item' : 'items'}`;
 }
 
-
 function normalizeAddress(raw: ApiAddress): Address {
   return {
     ...initialAddress,
@@ -151,7 +148,6 @@ function normalizeAddress(raw: ApiAddress): Address {
     isDefault: raw.isDefault,
   };
 }
-
 
 function firstDetail(details: unknown): string | undefined {
   if (!details || typeof details !== 'object') return undefined;
@@ -261,10 +257,6 @@ export default function CheckoutPageClient() {
     setStep(nextStep);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
-
-  
-
-
 
   const fetchAddresses = useCallback(async (preferId?: string) => {
     setLoadingAddresses(true);
@@ -398,7 +390,6 @@ export default function CheckoutPageClient() {
     }
   }, [user, fetchAddresses]);
 
-   
   useEffect(() => {
     if (showAddress) void fetchZones();
   }, [showAddress, fetchZones]);
@@ -412,7 +403,6 @@ export default function CheckoutPageClient() {
     }
   }, [showAddress, selectedZoneId, fetchSchedules]);
 
-   
   useEffect(() => {
     if (!showAddress || selectedZoneId || zones.length === 0) return;
 
@@ -468,7 +458,6 @@ export default function CheckoutPageClient() {
     setSelectedZoneId(zone?.id ?? '');
     setSelectedScheduleId('');
 
-     
     setAddress((current) => ({
       ...current,
       area: zone?.name ?? '',
@@ -485,7 +474,6 @@ export default function CheckoutPageClient() {
     setSavingAddress(true);
 
     try {
-       
       const payload = {
         label: address.label || 'Home',
         fullName: address.fullName,
@@ -689,7 +677,6 @@ export default function CheckoutPageClient() {
     checkoutRequestId.current ??= crypto.randomUUID();
 
     try {
-       
       const base = {
         deliveryMethod,
         deliveryNotes: notes,
@@ -1150,7 +1137,6 @@ export default function CheckoutPageClient() {
                                   onClick={() => {
                                     setEditingAddress(false);
 
-                                     
                                     const original = addresses.find(
                                       (item) => item.id === selectedAddressId,
                                     );
@@ -1227,7 +1213,6 @@ export default function CheckoutPageClient() {
                                     );
                                   }
 
-                                   
                                   const locked = field === 'city' || field === 'region';
 
                                   return (

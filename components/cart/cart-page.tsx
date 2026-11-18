@@ -12,12 +12,10 @@ import {
   Truck,
 } from 'lucide-react';
 
-
 import { formatPrice } from '@/lib/catalog';
 
 import { useCart } from './cart-provider';
 import EmptyCart, { LoadingState } from './EmptyCart';
-
 
 const container = 'mx-auto w-full max-w-[1320px] px-4 sm:px-6 lg:px-10 xl:px-12';
 
@@ -93,7 +91,7 @@ export default function CartPage() {
                     {}
                     <Link
                       href={`/products/${product.slug}`}
-                      className="group relative aspect-[4/5] overflow-hidden bg-[#eeece7]"
+                      className="group relative aspect-4/5 overflow-hidden bg-[#eeece7]"
                     >
                       <img
                         src={product.imageUrl}

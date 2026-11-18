@@ -158,7 +158,6 @@ const formatStatus = (status: string) =>
     ? 'Picked up'
     : (statusLabels[status as StatusFilter] ?? status.replaceAll('_', ' '));
 
- 
 const isPickup = (order: AdminOrder) => {
   const d = order.delivery;
   return !d || !(d.addressLine1 || d.area || d.city || d.region);
@@ -167,7 +166,6 @@ const isPickup = (order: AdminOrder) => {
 const isClosed = (order: AdminOrder) =>
   ['cancelled', 'delivered', 'collected', 'refunded'].includes(order.status);
 
- 
 const canOpenOrder = (order: AdminOrder) =>
   isPickup(order) || (!order.riderEmail && order.paymentStatus === 'paid' && !isClosed(order));
 
@@ -287,7 +285,6 @@ type AdminRider = {
 
 type AdminZone = { id: string; name: string; city: string; state?: string | null };
 
-
 function resolveOrderZones(order: AdminOrder, zones: AdminZone[]): AdminZone[] {
   if (order.deliveryZoneId) return zones.filter((z) => z.id === order.deliveryZoneId);
   const city = norm(order.delivery?.city);
@@ -297,7 +294,7 @@ function resolveOrderZones(order: AdminOrder, zones: AdminZone[]): AdminZone[] {
 type RankedRider = AdminRider & {
   distanceKm: number | null;
   zoneMatch: boolean;
-  
+
   blockedReason: string | null;
 };
 
@@ -334,7 +331,7 @@ function rankRiders(riders: AdminRider[], order: AdminOrder, zoneIds: string[]):
           (!area && city && zoneCity === city)
         );
       });
-       
+
       const servesZone = zoneIds.length
         ? r.zones.some((z) => zoneIds.includes((z.zoneId ?? z.zone.id) as string))
         : null;

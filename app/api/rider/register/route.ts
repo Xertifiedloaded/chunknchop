@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { getSession } from '@/lib/auth';
 import { hasSameOrigin } from '@/lib/admin-api';
 import { prisma } from '@/lib/prisma';
- 
+
 const blank = (v: unknown) => (typeof v === 'string' && v.trim() === '' ? undefined : v);
 const httpsUrl = z
   .string()

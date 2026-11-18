@@ -20,6 +20,8 @@ export function toCatalogProduct(product: Product): CatalogProduct {
     discountEndsAt: product.discountEndsAt?.toISOString() ?? null,
     discountedPriceCents: getEffectiveProductPrice(product),
     category: product.category as CatalogProduct['category'],
+    productType: (product as any).productType ?? 'standard',
+    bundleItems: Array.isArray((product as any).bundleItems) ? (product as any).bundleItems : [],
     published: product.published,
     createdAt: product.createdAt.toISOString(),
   };
@@ -60,5 +62,5 @@ export async function getPublishedProducts() {
     take: 100,
   });
 
-  return products.filter((p) => categories.has(p.category)).map(toCatalogProduct);
+  return products.map(toCatalogProduct);
 }

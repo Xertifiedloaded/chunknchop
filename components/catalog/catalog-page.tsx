@@ -4,13 +4,16 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, ArrowUpRight, Search, SlidersHorizontal } from 'lucide-react';
 
-import { formatPrice, productCategories, type CatalogProduct } from '@/lib/catalog';
+import { formatPrice, type CatalogProduct } from '@/lib/catalog';
 import { useCart } from '../cart/cart-provider';
 
 export default function CatalogPage({ products }: { products: CatalogProduct[] }) {
   const [category, setCategory] = useState('All cuts');
   const [query, setQuery] = useState('');
   const { cartCount } = useCart();
+  const categoryNames = [
+    ...new Set(products.map((product) => product.category).filter(Boolean)),
+  ].sort((a, b) => a.localeCompare(b));
 
   const visibleProducts = useMemo(
     () =>
@@ -62,7 +65,7 @@ export default function CatalogPage({ products }: { products: CatalogProduct[] }
           </p>
 
           <div className="flex flex-col">
-            {['All cuts', ...productCategories].map((item) => (
+            {['All cuts', ...categoryNames].map((item) => (
               <button
                 key={item}
                 type="button"
@@ -165,7 +168,11 @@ export default function CatalogPage({ products }: { products: CatalogProduct[] }
                 </div>
 
                 <p className="mt-[7px] mb-0 text-[10px] leading-[1.6] text-[#88847d]">
-                  {product.cut}
+                  {product.productType === 'meatbox' && product.bundleItems?.length
+                    ? product.bundleItems
+                        .map((item) => `${item.name} ×${item.quantity}`)
+                        .join(' · ')
+                    : product.cut}
                 </p>
               </Link>
             ))}

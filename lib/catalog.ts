@@ -1,6 +1,6 @@
 export const productCategories = ['Beef', 'Poultry', 'Pork', 'Lamb'] as const;
 
-export type ProductCategory = (typeof productCategories)[number];
+export type ProductCategory = string;
 
 export type CatalogProduct = {
   id: string;
@@ -17,6 +17,8 @@ export type CatalogProduct = {
   discountEndsAt: string | null;
   discountedPriceCents: number;
   category: ProductCategory;
+  productType?: 'standard' | 'meatbox';
+  bundleItems?: { name: string; quantity: number }[];
   published: boolean;
   createdAt: string;
 };

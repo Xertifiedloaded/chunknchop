@@ -83,6 +83,8 @@ model Product {
   discountPercent  Int      @default(0)
   discountStartsAt DateTime?
   discountEndsAt   DateTime?
+  productType String @default("standard")
+bundleItems Json?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
   @@index([published, category])
@@ -169,6 +171,9 @@ model RiderProfile {
   zones              RiderZone[]
   createdAt          DateTime    @default(now())
   updatedAt          DateTime    @updatedAt
+  bankAccountName   String?
+bankName          String?
+bankAccountNumber String?
   @@index([isActive, isAvailable, verificationStatus])
 }
 

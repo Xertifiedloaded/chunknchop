@@ -1,4 +1,3 @@
-
 import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 
@@ -37,42 +36,23 @@ type Context = {
   }>;
 };
 
-export async function GET(
-  _request: Request,
-  { params }: Context,
-) {
+export async function GET(_request: Request, { params }: Context) {
   const session = await getSession(await headers());
 
   if (!session?.user) {
-    return NextResponse.json(
-      { error: 'Authentication required' },
-      { status: 401 },
-    );
+    return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
   }
 
   const { orderNumber } = await params;
 
   if (!/^CNC-[A-F\d]{32}$/i.test(orderNumber)) {
-    return NextResponse.json(
-      { error: 'Order not found' },
-      { status: 404 },
-    );
+    return NextResponse.json({ error: 'Order not found' }, { status: 404 });
   }
 
-  const order = await findMongoDocument<StoredOrder>(
-    'StoreOrder',
-    orderNumber,
-  );
+  const order = await findMongoDocument<StoredOrder>('StoreOrder', orderNumber);
 
-  if (
-    !order ||
-    (order.userId !== session.user.id &&
-      order.riderId !== session.user.id)
-  ) {
-    return NextResponse.json(
-      { error: 'Order not found' },
-      { status: 404 },
-    );
+  if (!order || (order.userId !== session.user.id && order.riderId !== session.user.id)) {
+    return NextResponse.json({ error: 'Order not found' }, { status: 404 });
   }
 
   const riderProfile = order.riderId
@@ -112,10 +92,7 @@ export async function GET(
           }
         : null,
 
-      delivery:
-        session.user.id === order.userId
-          ? order.delivery ?? null
-          : undefined,
+      delivery: session.user.id === order.userId ? (order.delivery ?? null) : undefined,
 
       statusHistory: order.statusHistory ?? [],
     },

@@ -13,7 +13,7 @@ import {
   Search,
   SlidersHorizontal,
 } from 'lucide-react';
-import { productCategories, type CatalogProduct } from '@/lib/catalog';
+import { type CatalogProduct } from '@/lib/catalog';
 import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
 import AboutSection from '@/components/home/about-section';
@@ -126,7 +126,11 @@ function ProductCard({
           </strong>
         </div>
 
-        <p className="mt-1.5 mb-0 text-[11px] text-[#88847d]">{product.cut}</p>
+        <p className="mt-1.5 mb-0 text-[11px] text-[#88847d]">
+          {product.productType === 'meatbox' && product.bundleItems?.length
+            ? product.bundleItems.map((item) => `${item.name} ×${item.quantity}`).join(' · ')
+            : product.cut}
+        </p>
       </div>
     </article>
   );
@@ -225,7 +229,11 @@ export default function Storefront({ products }: { products: CatalogProduct[] })
     [products, category, query],
   );
 
-  const categories = productCategories.flatMap((name, index) => {
+  const categoryNames = [
+    ...new Set(products.map((product) => product.category).filter(Boolean)),
+  ].sort((a, b) => a.localeCompare(b));
+
+  const categories = categoryNames.flatMap((name, index) => {
     const matching = products.filter((product) => product.category === name);
 
     return matching.length
@@ -435,7 +443,7 @@ export default function Storefront({ products }: { products: CatalogProduct[] })
               role="group"
               aria-label="Filter by category"
             >
-              {['All cuts', ...productCategories].map((item) => (
+              {['All cuts', ...categoryNames].map((item) => (
                 <button
                   key={item}
                   className={`shrink-0 cursor-pointer border-0 border-b-2 border-solid bg-transparent py-3 text-xs whitespace-nowrap transition-colors ${

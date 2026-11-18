@@ -67,8 +67,33 @@ export default function AdminHeader({
 
   const [quickOpen, setQuickOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [notices, setNotices] = useState<
+    Array<{
+      _id: string;
+      title: string;
+      body: string;
+      url: string;
+      read?: boolean;
+      createdAt: string;
+    }>
+  >([]);
+  const [noticeUnread, setNoticeUnread] = useState(0);
+  const [noticeBusy, setNoticeBusy] = useState(false);
+
+  async function loadNotices() {
+    const r = await fetch('/api/notifications', { cache: 'no-store' });
+    if (!r.ok) return;
+    const j = await r.json();
+    setNotices(j.notifications || []);
+    setNoticeUnread(j.unread || 0);
+  }
 
   useEffect(() => {
+    void loadNotices();
+    const refresh = window.setInterval(() => {
+      void loadNotices();
+    }, 60000);
     function handleKeyDown(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
@@ -78,6 +103,7 @@ export default function AdminHeader({
       if (e.key === 'Escape') {
         setQuickOpen(false);
         setProfileOpen(false);
+        setNotificationsOpen(false);
       }
     }
 
@@ -88,9 +114,7 @@ export default function AdminHeader({
         setQuickOpen(false);
       }
 
-      if (profileRef.current && !profileRef.current.contains(target)) {
-        setProfileOpen(false);
-      }
+      if (profileRef.current && !profileRef.current.contains(target)) setProfileOpen(false);
     }
 
     document.addEventListener('keydown', handleKeyDown);
@@ -99,6 +123,7 @@ export default function AdminHeader({
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('mousedown', handleClickOutside);
+      window.clearInterval(refresh);
     };
   }, []);
 
@@ -185,19 +210,108 @@ export default function AdminHeader({
         </button>
 
         {}
-        <button
-          type="button"
-          aria-label={`Notifications${notificationCount ? `, ${notificationCount} unread` : ''}`}
-          className="relative flex size-8 items-center justify-center rounded-lg text-[#817a72] transition hover:bg-[#f7f5f2] hover:text-[#D2582F] sm:size-9"
-        >
-          <Bell size={16} strokeWidth={1.8} />
-
-          {notificationCount > 0 && (
-            <span className="absolute right-0 top-0 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-[#D4474B] px-1 text-[8px] font-bold text-white ring-2 ring-white">
-              {notificationCount > 9 ? '9+' : notificationCount}
-            </span>
+        <div className="relative">
+          <button
+            type="button"
+            aria-label={`Notifications, ${noticeUnread} unread`}
+            onClick={() => {
+              const next = !notificationsOpen;
+              setNotificationsOpen(next);
+              setQuickOpen(false);
+              setProfileOpen(false);
+              if (next) void loadNotices();
+            }}
+            className="relative flex size-8 items-center justify-center rounded-lg text-[#817a72] transition hover:bg-[#f7f5f2] hover:text-[#D2582F] sm:size-9"
+          >
+            <Bell size={16} strokeWidth={1.8} />
+            {noticeUnread > 0 && (
+              <span className="absolute right-0 top-0 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-[#D4474B] px-1 text-[8px] font-bold text-white ring-2 ring-white">
+                {noticeUnread > 9 ? '9+' : noticeUnread}
+              </span>
+            )}
+          </button>
+          {notificationsOpen && (
+            <section className="absolute right-0 top-full z-50 mt-2 w-[min(92vw,380px)] overflow-hidden rounded-2xl border border-[#eee8e2] bg-white shadow-[0_18px_50px_rgba(0,0,0,.16)]">
+              <div className="flex items-center justify-between border-b border-[#f0ece7] px-4 py-3">
+                <div>
+                  <p className="text-sm font-semibold text-[#302923]">Notification history</p>
+                  <p className="text-[10px] text-[#958b82]">{noticeUnread} unread</p>
+                </div>
+                <button
+                  disabled={noticeBusy || notices.length === 0}
+                  onClick={async () => {
+                    setNoticeBusy(true);
+                    try {
+                      const r = await fetch('/api/notifications', { method: 'DELETE' });
+                      if (r.ok) {
+                        setNotices([]);
+                        setNoticeUnread(0);
+                      }
+                    } finally {
+                      setNoticeBusy(false);
+                    }
+                  }}
+                  className="text-[11px] font-semibold text-[#b44d31] disabled:opacity-40"
+                >
+                  Clear history
+                </button>
+              </div>
+              <div className="max-h-[420px] overflow-y-auto">
+                {notices.length === 0 ? (
+                  <p className="p-8 text-center text-xs text-[#958b82]">No notifications yet.</p>
+                ) : (
+                  notices.map((n) => (
+                    <a
+                      key={n._id}
+                      href={n.url || '/admin'}
+                      onClick={() => {
+                        if (!n.read)
+                          void fetch('/api/notifications', {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ id: n._id }),
+                          }).then(loadNotices);
+                        setNotificationsOpen(false);
+                      }}
+                      className={`block border-b border-[#f4f0ec] px-4 py-3 hover:bg-[#fcf8f5] ${n.read ? '' : 'bg-[#fff8f4]'}`}
+                    >
+                      <div className="flex items-start gap-2">
+                        <span
+                          className={`mt-1.5 size-2 shrink-0 rounded-full ${n.read ? 'bg-transparent' : 'bg-[#D2582F]'}`}
+                        />
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-xs font-semibold text-[#39312b]">
+                            {n.title}
+                          </span>
+                          <span className="mt-1 block text-[11px] leading-4 text-[#766d64]">
+                            {n.body}
+                          </span>
+                          <span className="mt-1.5 block text-[9px] text-[#a39a91]">
+                            {new Date(n.createdAt).toLocaleString()}
+                          </span>
+                        </span>
+                      </div>
+                    </a>
+                  ))
+                )}
+              </div>
+              <div className="border-t border-[#f0ece7] p-2 text-center">
+                <button
+                  onClick={() => {
+                    void fetch('/api/notifications', {
+                      method: 'PATCH',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ all: true }),
+                    }).then(loadNotices);
+                  }}
+                  className="text-[10px] font-semibold text-[#8b5140]"
+                >
+                  Mark all as read
+                </button>
+              </div>
+            </section>
           )}
-        </button>
+        </div>
 
         {}
         <div className="mx-1 hidden h-7 w-px bg-[#eeeae6] sm:block" />

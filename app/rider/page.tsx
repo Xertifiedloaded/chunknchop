@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
+import Header from '@/components/layout/header';
 import { isAdminUser } from '@/lib/admin-api';
 import SignOutButton from '@/components/auth/sign-out-button';
 import RiderDashboard from '@/components/rider/rider-dashboard';
@@ -22,8 +23,11 @@ export default async function RiderPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f8f8f6] text-[#24231f]">
-      <RiderDashboard name={session.user.name} />
-    </main>
+    <div className="min-h-screen bg-[#f8f8f6] text-[#24231f]">
+      <Header />
+      <main>
+        <RiderDashboard name={session.user.name} />
+      </main>
+    </div>
   );
 }

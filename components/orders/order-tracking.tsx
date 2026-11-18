@@ -1,14 +1,8 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
 import Pusher from 'pusher-js';
-import {
-  Check,
-  Clock3,
-  MapPin,
-  PackageCheck,
-} from 'lucide-react';
+import { Check, Clock3, MapPin, PackageCheck } from 'lucide-react';
 
 import OrderChat from '@/components/delivery/order-chat';
 
@@ -86,13 +80,12 @@ export default function OrderTracking({ orderNumber }: Props) {
 
   async function refresh() {
     try {
-      const response = await fetch(
-        `/api/orders/${encodeURIComponent(orderNumber)}/tracking`,
-        { cache: 'no-store' },
-      );
+      const response = await fetch(`/api/orders/${encodeURIComponent(orderNumber)}/tracking`, {
+        cache: 'no-store',
+      });
 
       const result = await response.json();
-console.log(result);
+      console.log(result);
 
       if (response.ok) {
         setData(result);
@@ -125,11 +118,7 @@ console.log(result);
 
     channel.bind(
       'delivery.location',
-      (location: {
-        latitude: number;
-        longitude: number;
-        updatedAt: string;
-      }) => {
+      (location: { latitude: number; longitude: number; updatedAt: string }) => {
         setData((old) => ({
           ...old,
           rider: {
@@ -151,17 +140,11 @@ console.log(result);
 
   const loc = data.rider?.location;
 
-  const mapUrl = loc
-    ? `https://www.google.com/maps?q=${loc.latitude},${loc.longitude}`
-    : undefined;
+  const mapUrl = loc ? `https://www.google.com/maps?q=${loc.latitude},${loc.longitude}` : undefined;
 
-  const currentIndex = steps.findIndex(
-    (step) => step.key === data.status,
-  );
+  const currentIndex = steps.findIndex((step) => step.key === data.status);
 
-  const completed = ['delivered', 'cancelled'].includes(
-    data.status ?? '',
-  );
+  const completed = ['delivered', 'cancelled'].includes(data.status ?? '');
 
   const status = data.status ?? 'payment_pending';
   const orderItem = data.items?.[0];
@@ -169,7 +152,6 @@ console.log(result);
   return (
     <main className="mx-auto min-h-screen w-[min(1120px,90%)] max-[650px]:w-[92%]">
       <section className="py-[38px] pb-[75px] max-[650px]:py-[25px] max-[650px]:pb-[50px]">
-
         {}
         <div className="mb-[30px] flex items-end justify-between gap-5 max-[650px]:items-start">
           <div className="min-w-0">
@@ -182,9 +164,7 @@ console.log(result);
               On its way to <em>you.</em>
             </h1>
 
-            <p className="m-0 text-[11px] leading-[1.7] text-[#77736d]">
-              Order {orderNumber}
-            </p>
+            <p className="m-0 text-[11px] leading-[1.7] text-[#77736d]">Order {orderNumber}</p>
 
             {}
             <div className="mt-6 flex items-center gap-4 border-t border-[#e6e4de] pt-5">
@@ -212,16 +192,12 @@ console.log(result);
                 </h2>
 
                 {orderItem?.quantity && (
-                  <p className="mt-1 text-[9px] text-[#77736d]">
-                    Quantity: {orderItem.quantity}
-                  </p>
+                  <p className="mt-1 text-[9px] text-[#77736d]">Quantity: {orderItem.quantity}</p>
                 )}
 
                 <p className="mt-1 text-[9px] leading-[1.6] text-[#77736d]">
                   Order ID:{' '}
-                  <span className="font-semibold text-[#24231f]">
-                    {data.id ?? orderNumber}
-                  </span>
+                  <span className="font-semibold text-[#24231f]">{data.id ?? orderNumber}</span>
                 </p>
 
                 {data.items && data.items.length > 1 && (
@@ -235,8 +211,7 @@ console.log(result);
 
           <span
             className={`inline-flex shrink-0 items-center border px-[10px] py-[8px] text-[8px] font-bold tracking-[0.08em] uppercase ${
-              statusStyles[status] ??
-              'border-[#e6e4de] bg-[#fbfaf7] text-[#77736d]'
+              statusStyles[status] ?? 'border-[#e6e4de] bg-[#fbfaf7] text-[#77736d]'
             }`}
           >
             {status.replaceAll('_', ' ')}
@@ -254,10 +229,8 @@ console.log(result);
 
         {}
         <div className="grid grid-cols-[minmax(0,1.65fr)_minmax(260px,0.85fr)] items-start gap-[22px] max-[850px]:grid-cols-1">
-
           {}
           <section className="flex min-w-0 flex-col gap-[18px]">
-
             {}
             <article className="border border-[#e6e4de] bg-white p-[22px] max-[650px]:p-[15px]">
               <div className="mb-[22px] flex items-center justify-between gap-4">
@@ -281,10 +254,7 @@ console.log(result);
 
               <ol className="m-0 list-none p-0">
                 {steps.map((step, index) => {
-                  if (
-                    status === 'cancelled' &&
-                    step.key !== 'payment_pending'
-                  ) {
+                  if (status === 'cancelled' && step.key !== 'payment_pending') {
                     return null;
                   }
 
@@ -321,9 +291,7 @@ console.log(result);
                       <div className="min-w-0 pt-[2px]">
                         <strong
                           className={`text-[11px] font-semibold ${
-                            complete
-                              ? 'text-[#24231f]'
-                              : 'text-[#88847d]'
+                            complete ? 'text-[#24231f]' : 'text-[#88847d]'
                           }`}
                         >
                           {step.label}
@@ -379,8 +347,7 @@ console.log(result);
                   </div>
 
                   <p className="mt-[13px] mb-0 text-[9px] leading-[1.6] text-[#88847d]">
-                    Last location update:{' '}
-                    {new Date(loc.updatedAt).toLocaleString()}
+                    Last location update: {new Date(loc.updatedAt).toLocaleString()}
                   </p>
 
                   <a
@@ -395,14 +362,10 @@ console.log(result);
               ) : (
                 <div className="grid aspect-video place-items-center bg-[#f8f8f6] px-5 text-center">
                   <div>
-                    <MapPin
-                      size={25}
-                      className="mx-auto mb-3 text-[#c2bcb2]"
-                    />
+                    <MapPin size={25} className="mx-auto mb-3 text-[#c2bcb2]" />
 
                     <p className="text-[10px] leading-[1.8] text-[#88847d]">
-                      Live location will appear here when your rider starts
-                      sharing GPS.
+                      Live location will appear here when your rider starts sharing GPS.
                     </p>
                   </div>
                 </div>
@@ -420,7 +383,6 @@ console.log(result);
 
           {}
           <aside className="flex min-w-0 flex-col gap-[15px]">
-
             {}
             <article className="border border-[#e6e4de] bg-white p-[19px]">
               <p className="m-0 flex items-center gap-[9px] text-[9px] font-bold tracking-[0.15em] text-[#77736d]">
@@ -468,19 +430,13 @@ console.log(result);
 
               <div className="mt-[17px] flex flex-col gap-[13px]">
                 <div className="flex items-start justify-between gap-3">
-                  <span className="text-[10px] text-[#77736d]">
-                    Order number
-                  </span>
+                  <span className="text-[10px] text-[#77736d]">Order number</span>
 
-                  <strong className="text-right text-[10px] font-semibold">
-                    {orderNumber}
-                  </strong>
+                  <strong className="text-right text-[10px] font-semibold">{orderNumber}</strong>
                 </div>
 
                 <div className="flex items-start justify-between gap-3 border-t border-[#e6e4de] pt-[13px]">
-                  <span className="text-[10px] text-[#77736d]">
-                    Payment status
-                  </span>
+                  <span className="text-[10px] text-[#77736d]">Payment status</span>
 
                   <strong className="text-right text-[10px] font-semibold capitalize">
                     {data.paymentStatus?.replaceAll('_', ' ') ?? 'Pending'}

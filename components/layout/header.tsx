@@ -19,6 +19,7 @@ import {
 import { useCart } from '@/components/cart/cart-provider';
 import { useAuth } from '@/components/auth/auth-provider';
 import SignOutButton from '@/components/auth/sign-out-button';
+import NotificationBell from '@/components/layout/notification-bell';
 
 export default function Header() {
   const { user, isLoading, refreshSession } = useAuth();
@@ -166,6 +167,8 @@ export default function Header() {
 
           {}
           <div className="flex items-center gap-6 max-[650px]:gap-4">
+            {user && <NotificationBell />}
+
             <Link
               href="/shop"
               className="text-[#484741] transition hover:text-[#e86b3e] max-[650px]:hidden"

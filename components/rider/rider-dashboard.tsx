@@ -2,6 +2,8 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
+import RiderFinancePanel from '@/components/rider/rider-finance-panel';
+import OrderConversation from '@/components/orders/order-conversation';
 import {
   ArrowLeft,
   AlertCircle,
@@ -220,6 +222,8 @@ export default function RiderDashboard({ name }: { name: string }) {
         </div>
       </section>
 
+      <RiderFinancePanel />
+
       {}
       <section className="mt-8">
         <div className="mb-4 flex items-end justify-between">
@@ -335,6 +339,10 @@ export default function RiderDashboard({ name }: { name: string }) {
                     >
                       Open tracking
                     </Link>
+                  </div>
+
+                  <div className="mt-4 border-t border-[#eeeae3] pt-4">
+                    <OrderConversation orderNumber={order.orderNumber} viewer="rider" />
                   </div>
                 </article>
               );

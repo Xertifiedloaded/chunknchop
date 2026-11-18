@@ -11,6 +11,7 @@ import {
   Package,
   Tags,
   Boxes,
+  Wallet,
   Users,
   Megaphone,
   FileText,
@@ -34,9 +35,9 @@ const navigation = [
     label: 'Operations',
     items: [
       { label: 'Orders', href: '/admin/orders', icon: ShoppingBag },
-      { label: 'Coupons', href: '/admin/coupons', icon: ChefHat },
       { label: 'Delivery', href: '/admin/delivery', icon: Truck },
       { label: 'Riders', href: '/admin/riders', icon: Truck },
+      { label: 'Rider payouts', href: '/admin/rider-payouts', icon: Wallet },
     ],
   },
   {
@@ -50,9 +51,7 @@ const navigation = [
   {
     label: 'Growth',
     items: [
-      { label: 'Customers', href: '/admin/customers', icon: Users },
-      { label: 'Promotions', href: '/admin/promotions', icon: Megaphone },
-      { label: 'Content Management', href: '/admin/content', icon: FileText },
+      { label: 'Coupons', href: '/admin/coupons', icon: ChefHat },
       {
         label: 'Reports & Analytics',
         href: '/admin/reports',
@@ -63,7 +62,7 @@ const navigation = [
   {
     label: 'Administration',
     items: [
-      { label: 'Staff Management', href: '/admin/staff', icon: UserCog },
+      { label: 'Customers', href: '/admin/customers', icon: Users },
       { label: 'Settings', href: '/admin/settings', icon: Settings },
     ],
   },

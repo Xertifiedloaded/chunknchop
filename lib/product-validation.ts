@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import type { ZodError } from 'zod';
-import { productCategories } from '@/lib/catalog';
 
 const MAX_PRICE_KOBO = 1_000_000_000;
 
@@ -41,7 +40,17 @@ const shape = {
   unit: z.string().trim().min(1).max(40),
   imageUrl,
   badge,
-  category: z.enum(productCategories),
+  category: z.string().trim().min(1).max(50),
+  productType: z.enum(['standard', 'meatbox']).default('standard'),
+  bundleItems: z
+    .array(
+      z.object({
+        name: z.string().trim().min(1).max(80),
+        quantity: z.number().int().min(1).max(999),
+      }),
+    )
+    .max(30)
+    .default([]),
   published: z.boolean(),
   discountPercent: z.coerce.number().int().min(0).max(100).default(0),
   discountStartsAt: z.coerce.date().nullable().optional().default(null),
@@ -68,7 +77,15 @@ function validateDiscountDates(
 export const productInputSchema = z
   .object({ ...shape, published: z.boolean().default(false) })
   .strict()
-  .superRefine(validateDiscountDates);
+  .superRefine((value, ctx) => {
+    validateDiscountDates(value, ctx);
+    if (value.productType === 'meatbox' && !value.bundleItems?.length)
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['bundleItems'],
+        message: 'Add at least one meatbox item',
+      });
+  });
 
 export const productPatchSchema = z
   .object(shape)

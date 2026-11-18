@@ -7,6 +7,7 @@ import { hasSameOrigin } from '@/lib/admin-api';
 import { prisma } from '@/lib/prisma';
 import { findMongoDocument, findMongoDocuments } from '@/lib/mongo-collections';
 import { publishOrderEvent } from '@/lib/pusher';
+import { notifyUsers } from '@/lib/notifications';
 
 type OrderParticipant = {
   _id: string;
@@ -110,6 +111,17 @@ export async function POST(request: Request, { params }: RouteContext) {
     createdAt: new Date().toISOString(),
   };
   await prisma.$runCommandRaw({ insert: 'OrderMessage', documents: [message], ordered: true });
+  const recipientId = message.senderRole === 'customer' ? order.riderId : order.userId;
+  if (recipientId)
+    await notifyUsers([recipientId], {
+      title: `New message about ${orderNumber}`,
+      body: `${message.senderName}: ${message.message.slice(0, 120)}`,
+      url:
+        message.senderRole === 'customer'
+          ? '/rider'
+          : `/account/orders/${encodeURIComponent(orderNumber)}/track`,
+      tag: `chat-${orderNumber}`,
+    }).catch(() => undefined);
   await publishOrderEvent(orderNumber, 'chat.message', {
     id: message._id,
     senderRole: message.senderRole,

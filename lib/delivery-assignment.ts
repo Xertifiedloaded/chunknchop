@@ -35,8 +35,10 @@ export function distanceKm(
 export async function assignPaidOrderAutomatically(orderNumber: string) {
   const { findMongoDocument, updateMongoDocument } = await import('@/lib/mongo-collections');
   const { publishOrderEvent } = await import('@/lib/pusher');
+  const { notifyUsers } = await import('@/lib/notifications');
   type Stored = {
     _id: string;
+    userId?: string;
     paymentStatus?: string;
     status?: string;
     riderId?: string;
@@ -114,6 +116,19 @@ export async function assignPaidOrderAutomatically(orderNumber: string) {
     );
     if ((result as { n?: number }).n !== 1) continue;
     await prisma.riderProfile.update({ where: { id: rider.id }, data: { isAvailable: false } });
+    await notifyUsers([rider.userId], {
+      title: 'New delivery assigned',
+      body: `Order ${orderNumber} has been assigned to you.`,
+      url: '/rider',
+      tag: `assigned-rider-${orderNumber}`,
+    }).catch(() => undefined);
+    if (order.userId)
+      await notifyUsers([order.userId], {
+        title: 'Rider assigned',
+        body: `${rider.user.name} has been assigned to your order ${orderNumber}.`,
+        url: `/account/orders/${encodeURIComponent(orderNumber)}/track`,
+        tag: `assigned-customer-${orderNumber}`,
+      }).catch(() => undefined);
     await publishOrderEvent(orderNumber, 'delivery.assigned', {
       orderNumber,
       status: 'assigned',

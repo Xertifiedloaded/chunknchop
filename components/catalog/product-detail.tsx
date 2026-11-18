@@ -68,6 +68,26 @@ export default function ProductDetail({ product }: { product: CatalogProduct }) 
           <p className="mb-[25px] max-w-[420px] text-[12px] leading-[1.9] text-[#77736d]">
             {product.description}
           </p>
+          {product.productType === 'meatbox' && product.bundleItems?.length ? (
+            <div className="mb-[25px] rounded-xl border border-[#e6e4de] bg-white p-4">
+              <p className="mb-3 text-[9px] font-bold uppercase tracking-[0.14em] text-[#77736d]">
+                Inside this meatbox
+              </p>
+              <ul className="grid gap-2 sm:grid-cols-2">
+                {product.bundleItems.map((item, index) => (
+                  <li
+                    key={`${item.name}-${index}`}
+                    className="flex items-center justify-between gap-3 rounded-lg bg-[#faf8f4] px-3 py-2.5"
+                  >
+                    <span className="text-[11px] font-medium text-[#39312b]">{item.name}</span>
+                    <span className="shrink-0 rounded-full bg-[#f1e7dc] px-2.5 py-1 text-[10px] font-bold text-[#8f5738]">
+                      × {item.quantity}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
 
           <div className="h-px w-full bg-[#e6e4de]" />
 

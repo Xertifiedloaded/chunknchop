@@ -40,7 +40,7 @@ export async function POST(req: Request, { params }: Ctx) {
     return NextResponse.json({ error: `Order is already ${order.status}` }, { status: 409 });
 
   const at = new Date().toISOString();
-   
+
   const result = await updateMongoDocument(
     'StoreOrder',
     { _id: orderNumber, status: order.status ?? '' },

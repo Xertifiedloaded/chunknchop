@@ -153,12 +153,10 @@ export default function AccountClient({ user }: { user: AccountUser }) {
   const isAdmin = user.role === 'admin';
   const isCustomer = !isRider && !isAdmin;
 
-   
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [loading, setLoading] = useState(isCustomer);
   const [addressError, setAddressError] = useState('');
 
-   
   const [rider, setRider] = useState<RiderProfile | null>(null);
   const [registerOpen, setRegisterOpen] = useState(false);
   const [riderLoading, setRiderLoading] = useState(isRider);

@@ -2,6 +2,7 @@ import { createHmac, timingSafeEqual } from 'node:crypto';
 import { prisma } from '@/lib/prisma';
 import { deleteMongoDocument } from '@/lib/mongo-collections';
 import { assignPaidOrderAutomatically } from '@/lib/delivery-assignment';
+import { notifyAdmins } from '@/lib/notifications';
 
 export const PAYSTACK_CURRENCY = 'NGN';
 
@@ -296,6 +297,12 @@ export async function verifyAndRecordPaystackPayment(reference: string) {
   const paid = latest?.paymentStatus === 'paid';
 
   if (paid) {
+    await notifyAdmins({
+      title: 'New customer order',
+      body: `A new paid order ${order._id} has been placed.`,
+      url: '/admin/orders',
+      tag: `new-order-${order._id}`,
+    }).catch(() => undefined);
     await assignPaidOrderAutomatically(order._id).catch(() => undefined);
     await recordCouponRedemption(order);
 

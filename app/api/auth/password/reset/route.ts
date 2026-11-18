@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import {
   clearSession,
@@ -15,10 +14,7 @@ export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
   if (!hasSameOrigin(request)) {
-    return NextResponse.json(
-      { error: 'Request could not be verified.' },
-      { status: 403 },
-    );
+    return NextResponse.json({ error: 'Request could not be verified.' }, { status: 403 });
   }
 
   const body = await request.json().catch(() => null);
@@ -31,14 +27,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-   
-  if (
-    !(await takeRateLimit(
-      `password-reset:${requestIp(request)}`,
-      10,
-      15 * 60_000,
-    ))
-  ) {
+  if (!(await takeRateLimit(`password-reset:${requestIp(request)}`, 10, 15 * 60_000))) {
     return NextResponse.json(
       { error: 'Too many attempts. Request another code later.' },
       { status: 429 },
@@ -57,7 +46,6 @@ export async function POST(request: NextRequest) {
   try {
     await createOrUpdateCredential(userId, body.password);
 
-     
     await prisma.session.deleteMany({ where: { userId } });
 
     const response = NextResponse.json({ ok: true });

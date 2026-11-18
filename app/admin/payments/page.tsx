@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
@@ -88,9 +87,7 @@ export default function AdminPaymentsPage() {
       setPayments(data.payments ?? []);
       setAnalytics(data.analytics ?? null);
     } catch (e) {
-      setError(
-        e instanceof Error ? e.message : 'Unable to load payments',
-      );
+      setError(e instanceof Error ? e.message : 'Unable to load payments');
     } finally {
       setLoading(false);
     }
@@ -101,10 +98,7 @@ export default function AdminPaymentsPage() {
     return () => clearTimeout(timer);
   }, [load]);
 
-  const max = Math.max(
-    1,
-    ...(analytics?.daily ?? []).map((day) => day.revenueCents),
-  );
+  const max = Math.max(1, ...(analytics?.daily ?? []).map((day) => day.revenueCents));
 
   const stats = [
     {
@@ -140,7 +134,6 @@ export default function AdminPaymentsPage() {
   return (
     <main className="min-h-screen bg-[#f8f8f6] px-3 py-5 text-[#302b27] sm:px-5 lg:px-7 lg:py-7">
       <div className="mx-auto max-w-[1440px] space-y-5">
-
         <header className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div>
             <div className="mb-1.5 flex items-center gap-2">
@@ -164,10 +157,7 @@ export default function AdminPaymentsPage() {
             disabled={loading}
             className="inline-flex h-9 items-center justify-center gap-2 self-start rounded-md border border-[#e9e5df] bg-white px-3.5 text-[11px] font-semibold text-[#5d554d] shadow-sm transition hover:border-[#d6c9bd] hover:bg-[#fdfbf9] disabled:opacity-60 sm:self-auto"
           >
-            <RefreshCw
-              size={13}
-              className={loading ? 'animate-spin' : ''}
-            />
+            <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
             Refresh data
           </button>
         </header>
@@ -203,9 +193,7 @@ export default function AdminPaymentsPage() {
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="text-[10px] font-medium text-[#89837b]">
-                      {item.label}
-                    </p>
+                    <p className="text-[10px] font-medium text-[#89837b]">{item.label}</p>
                     <p className="mt-2 text-[21px] font-semibold tracking-[-0.045em] text-[#302b27]">
                       {item.value}
                     </p>
@@ -234,9 +222,7 @@ export default function AdminPaymentsPage() {
               <div>
                 <div className="flex items-center gap-2">
                   <TrendingUp size={15} className="text-[#c8552b]" />
-                  <h2 className="text-[12px] font-semibold text-[#37312c]">
-                    Revenue overview
-                  </h2>
+                  <h2 className="text-[12px] font-semibold text-[#37312c]">Revenue overview</h2>
                 </div>
                 <p className="mt-1 text-[10px] text-[#999188]">
                   Daily successful payment collections
@@ -281,34 +267,16 @@ export default function AdminPaymentsPage() {
               <span className="flex size-7 items-center justify-center rounded-md bg-[#fff2eb] text-[#c8552b]">
                 <CreditCard size={14} />
               </span>
-              <h2 className="text-[12px] font-semibold text-[#37312c]">
-                Payment summary
-              </h2>
+              <h2 className="text-[12px] font-semibold text-[#37312c]">Payment summary</h2>
             </div>
 
-            <p className="mt-1 text-[10px] text-[#999188]">
-              Performance for selected period
-            </p>
+            <p className="mt-1 text-[10px] text-[#999188]">Performance for selected period</p>
 
             <div className="mt-5 space-y-4">
-              <Metric
-                label="Average payment"
-                value={naira(analytics?.averagePaymentCents ?? 0)}
-              />
-              <Metric
-                label="Total transactions"
-                value={analytics?.totalCount ?? 0}
-              />
-              <Metric
-                label="Successful"
-                value={analytics?.paidCount ?? 0}
-                tone="green"
-              />
-              <Metric
-                label="Failed"
-                value={analytics?.failedCount ?? 0}
-                tone="red"
-              />
+              <Metric label="Average payment" value={naira(analytics?.averagePaymentCents ?? 0)} />
+              <Metric label="Total transactions" value={analytics?.totalCount ?? 0} />
+              <Metric label="Successful" value={analytics?.paidCount ?? 0} tone="green" />
+              <Metric label="Failed" value={analytics?.failedCount ?? 0} tone="red" />
             </div>
           </div>
         </section>
@@ -318,9 +286,7 @@ export default function AdminPaymentsPage() {
           <div className="flex flex-col gap-3 border-b border-[#f0ede9] p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-[12px] font-semibold text-[#37312c]">
-                  All transactions
-                </h2>
+                <h2 className="text-[12px] font-semibold text-[#37312c]">All transactions</h2>
                 <span className="rounded-full bg-[#f5f2ee] px-2 py-0.5 text-[9px] font-semibold text-[#777067]">
                   {payments.length}
                 </span>
@@ -344,22 +310,14 @@ export default function AdminPaymentsPage() {
                 />
               </div>
 
-              <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                className={input}
-              >
+              <select value={status} onChange={(e) => setStatus(e.target.value)} className={input}>
                 <option value="all">All statuses</option>
                 <option value="paid">Paid</option>
                 <option value="pending">Pending</option>
                 <option value="failed">Failed</option>
               </select>
 
-              <select
-                value={range}
-                onChange={(e) => setRange(e.target.value)}
-                className={input}
-              >
+              <select value={range} onChange={(e) => setRange(e.target.value)} className={input}>
                 <option value="7">Last 7 days</option>
                 <option value="30">Last 30 days</option>
                 <option value="90">Last 90 days</option>
@@ -372,18 +330,14 @@ export default function AdminPaymentsPage() {
           {loading ? (
             <div className="flex flex-col items-center justify-center gap-2 py-16">
               <RefreshCw size={18} className="animate-spin text-[#c8552b]" />
-              <p className="text-[10px] text-[#999188]">
-                Loading transactions...
-              </p>
+              <p className="text-[10px] text-[#999188]">Loading transactions...</p>
             </div>
           ) : payments.length === 0 ? (
             <div className="flex flex-col items-center justify-center px-5 py-16 text-center">
               <span className="mb-3 flex size-11 items-center justify-center rounded-full bg-[#f7f4f0] text-[#aaa097]">
                 <CreditCard size={19} />
               </span>
-              <p className="text-[12px] font-semibold text-[#4a443e]">
-                No transactions found
-              </p>
+              <p className="text-[12px] font-semibold text-[#4a443e]">No transactions found</p>
               <p className="mt-1 max-w-[260px] text-[10px] leading-5 text-[#a29b92]">
                 No payment records match your current search and filters.
               </p>
@@ -393,38 +347,32 @@ export default function AdminPaymentsPage() {
               <table className="w-full min-w-[850px] text-left">
                 <thead className="bg-[#faf9f7]">
                   <tr>
-                    {[
-                      'Product',
-                      'Customer',
-                      'Payment reference',
-                      'Amount',
-                      'Status',
-                      'Date',
-                    ].map((heading) => (
-                      <th
-                        key={heading}
-                        className="whitespace-nowrap px-4 py-3 text-[9px] font-semibold uppercase tracking-[0.09em] text-[#969087]"
-                      >
-                        {heading}
-                      </th>
-                    ))}
+                    {['Product', 'Customer', 'Payment reference', 'Amount', 'Status', 'Date'].map(
+                      (heading) => (
+                        <th
+                          key={heading}
+                          className="whitespace-nowrap px-4 py-3 text-[9px] font-semibold uppercase tracking-[0.09em] text-[#969087]"
+                        >
+                          {heading}
+                        </th>
+                      ),
+                    )}
                   </tr>
                 </thead>
 
                 <tbody className="divide-y divide-[#f2efeb]">
                   {payments.map((payment) => {
                     const paymentStatus = (
-                      payment.paymentStatus ?? payment.status ?? 'pending'
+                      payment.paymentStatus ??
+                      payment.status ??
+                      'pending'
                     ).toLowerCase();
 
                     const isPaid = paymentStatus === 'paid';
                     const isFailed = paymentStatus === 'failed';
 
                     return (
-                      <tr
-                        key={payment.id}
-                        className="transition-colors hover:bg-[#fdfbf9]"
-                      >
+                      <tr key={payment.id} className="transition-colors hover:bg-[#fdfbf9]">
                         {}
                         <td className="px-4 py-3.5">
                           <div className="flex min-w-[190px] flex-col gap-2">
@@ -485,9 +433,7 @@ export default function AdminPaymentsPage() {
 
                         {}
                         <td className="max-w-[170px] truncate px-4 py-3.5 text-[10px] text-[#898178]">
-                          {payment.paymentReference ||
-                            payment.paymentTransactionId ||
-                            '—'}
+                          {payment.paymentReference || payment.paymentTransactionId || '—'}
                         </td>
 
                         {}
@@ -508,11 +454,7 @@ export default function AdminPaymentsPage() {
                           >
                             <span
                               className={`size-1 rounded-full ${
-                                isPaid
-                                  ? 'bg-[#438052]'
-                                  : isFailed
-                                    ? 'bg-[#bd4e45]'
-                                    : 'bg-[#c18b34]'
+                                isPaid ? 'bg-[#438052]' : isFailed ? 'bg-[#bd4e45]' : 'bg-[#c18b34]'
                               }`}
                             />
                             {paymentStatus}
@@ -540,9 +482,7 @@ export default function AdminPaymentsPage() {
               Showing {payments.length} transaction
               {payments.length === 1 ? '' : 's'}
             </p>
-            <p className="text-[9px] text-[#b0aaa2]">
-              ChunknChop Finance
-            </p>
+            <p className="text-[9px] text-[#b0aaa2]">ChunknChop Finance</p>
           </div>
         </section>
       </div>
@@ -568,9 +508,7 @@ function Metric({
   return (
     <div className="flex items-center justify-between gap-3 border-b border-[#f1eeea] pb-3 last:border-0 last:pb-0">
       <span className="text-[10px] text-[#89837b]">{label}</span>
-      <span className={`text-[12px] font-semibold tabular-nums ${valueTone[tone]}`}>
-        {value}
-      </span>
+      <span className={`text-[12px] font-semibold tabular-nums ${valueTone[tone]}`}>{value}</span>
     </div>
   );
 }

@@ -6,6 +6,6 @@ export function destinationForRole(role: string | undefined | null) {
       return '/rider';
     case 'customer':
     default:
-      return '/account/orders';
+      return '/account';
   }
 }

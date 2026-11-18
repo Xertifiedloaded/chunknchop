@@ -376,7 +376,6 @@ export default function AdminOrders() {
 
   const orders = useMemo(() => data?.orders ?? [], [data]);
 
-   
   const statusCounts = useMemo(() => {
     return {
       all: orders.length,
@@ -399,7 +398,6 @@ export default function AdminOrders() {
     };
   }, [orders]);
 
-   
   const stats = useMemo(
     () => ({
       total: orders.length,
@@ -423,7 +421,6 @@ export default function AdminOrders() {
     [orders],
   );
 
-   
   const filteredOrders = useMemo(() => {
     const query = search.trim().toLowerCase();
 
@@ -488,7 +485,6 @@ export default function AdminOrders() {
     });
   }, [orders, activeStatus, search, showUnassignedOnly]);
 
-   
   const totalPages = Math.max(1, Math.ceil(filteredOrders.length / pageSize));
 
   const currentPage = Math.min(page, totalPages);
@@ -531,7 +527,6 @@ export default function AdminOrders() {
     setMessage('');
   }
 
-   
   function exportOrders() {
     const headers = [
       'Order Number',
@@ -579,7 +574,6 @@ export default function AdminOrders() {
     URL.revokeObjectURL(url);
   }
 
-   
   async function assignRider(event: FormEvent<HTMLFormElement>, orderNumber: string) {
     event.preventDefault();
 

@@ -1,4 +1,3 @@
-
 import Link from 'next/link';
 
 const deliverySteps = [
@@ -75,14 +74,12 @@ export default function DeliveryInfoPage() {
 
           <h1 className="mt-4 max-w-[700px] text-4xl font-black leading-tight tracking-[-1.5px] sm:text-5xl">
             From our preparation
-            <span className="block text-brand">
-              to your doorstep.
-            </span>
+            <span className="block text-brand">to your doorstep.</span>
           </h1>
 
           <p className="mt-5 max-w-[470px] text-[12px] leading-[2] text-[#b4a69d]">
-            Everything you need to know about ordering, delivery,
-            receiving your products and getting support from ChunkNChop.
+            Everything you need to know about ordering, delivery, receiving your products and
+            getting support from ChunkNChop.
           </p>
 
           <Link
@@ -108,14 +105,13 @@ export default function DeliveryInfoPage() {
             </h2>
 
             <p className="mt-4 text-[11px] leading-[2] text-[#766c65]">
-              At ChunkNChop, we want ordering your preferred meat products
-              to be straightforward. From checkout to delivery, we aim to
-              keep you informed about your order.
+              At ChunkNChop, we want ordering your preferred meat products to be straightforward.
+              From checkout to delivery, we aim to keep you informed about your order.
             </p>
 
             <p className="mt-3 text-[11px] leading-[2] text-[#766c65]">
-              Delivery availability, charges and estimated arrival times
-              depend on your location and the details of your order.
+              Delivery availability, charges and estimated arrival times depend on your location and
+              the details of your order.
             </p>
           </div>
 
@@ -124,9 +120,7 @@ export default function DeliveryInfoPage() {
               Before You Order
             </span>
 
-            <h3 className="mt-3 text-xl font-black">
-              Check your delivery details.
-            </h3>
+            <h3 className="mt-3 text-xl font-black">Check your delivery details.</h3>
 
             <ul className="mt-5 space-y-4">
               {[
@@ -139,9 +133,7 @@ export default function DeliveryInfoPage() {
                   <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand/15 text-[10px] font-bold text-[#a87358]">
                     {index + 1}
                   </span>
-                  <span className="text-[11px] leading-[1.8] text-[#665b54]">
-                    {item}
-                  </span>
+                  <span className="text-[11px] leading-[1.8] text-[#665b54]">{item}</span>
                 </li>
               ))}
             </ul>
@@ -176,13 +168,9 @@ export default function DeliveryInfoPage() {
                   {step.number}
                 </span>
 
-                <h3 className="mt-5 text-[13px] font-bold">
-                  {step.title}
-                </h3>
+                <h3 className="mt-5 text-[13px] font-bold">{step.title}</h3>
 
-                <p className="mt-2 text-[10px] leading-[1.9] text-[#81766e]">
-                  {step.description}
-                </p>
+                <p className="mt-2 text-[10px] leading-[1.9] text-[#81766e]">{step.description}</p>
               </div>
             ))}
           </div>
@@ -202,32 +190,26 @@ export default function DeliveryInfoPage() {
 
           <div className="mt-7 grid gap-4 md:grid-cols-3">
             <div className="rounded-2xl border border-[#eae5de] bg-white p-5">
-              <h3 className="text-[13px] font-bold">
-                Delivery Address
-              </h3>
+              <h3 className="text-[13px] font-bold">Delivery Address</h3>
               <p className="mt-2 text-[11px] leading-[1.9] text-[#81766e]">
-                Double-check your address and contact details before
-                confirming your order to help avoid delivery delays.
+                Double-check your address and contact details before confirming your order to help
+                avoid delivery delays.
               </p>
             </div>
 
             <div className="rounded-2xl border border-[#eae5de] bg-white p-5">
-              <h3 className="text-[13px] font-bold">
-                Receiving Your Order
-              </h3>
+              <h3 className="text-[13px] font-bold">Receiving Your Order</h3>
               <p className="mt-2 text-[11px] leading-[1.9] text-[#81766e]">
-                Arrange for someone to be available at the delivery
-                address to receive and check your order.
+                Arrange for someone to be available at the delivery address to receive and check
+                your order.
               </p>
             </div>
 
             <div className="rounded-2xl border border-[#eae5de] bg-white p-5">
-              <h3 className="text-[13px] font-bold">
-                Order Issues
-              </h3>
+              <h3 className="text-[13px] font-bold">Order Issues</h3>
               <p className="mt-2 text-[11px] leading-[1.9] text-[#81766e]">
-                If anything is wrong with your delivery, contact our
-                support team with your order details as soon as possible.
+                If anything is wrong with your delivery, contact our support team with your order
+                details as soon as possible.
               </p>
             </div>
           </div>
@@ -278,13 +260,11 @@ export default function DeliveryInfoPage() {
               Need Assistance?
             </span>
 
-            <h2 className="mt-3 text-xl font-black sm:text-2xl">
-              We're here to help.
-            </h2>
+            <h2 className="mt-3 text-xl font-black sm:text-2xl">We're here to help.</h2>
 
             <p className="mt-2 max-w-[420px] text-[11px] leading-[1.9] text-[#b4a69d]">
-              Have a question about your delivery or an existing order?
-              Get in touch with our support team.
+              Have a question about your delivery or an existing order? Get in touch with our
+              support team.
             </p>
           </div>
 

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -165,8 +164,8 @@ export default function FAQsPage() {
           </h1>
 
           <p className="mx-auto mt-4 max-w-[480px] text-[12px] leading-[2] text-[#b4a69d]">
-            Find answers to common questions about shopping, payments,
-            delivery and your ChunkNChop orders.
+            Find answers to common questions about shopping, payments, delivery and your ChunkNChop
+            orders.
           </p>
 
           <div className="mx-auto mt-8 flex max-w-[460px] items-center gap-3 rounded-xl border border-white/10 bg-white/[0.06] px-4 py-3">
@@ -200,9 +199,7 @@ export default function FAQsPage() {
                         <Icon size={17} />
                       </div>
 
-                      <h2 className="text-[14px] font-bold">
-                        {group.title}
-                      </h2>
+                      <h2 className="text-[14px] font-bold">{group.title}</h2>
                     </div>
 
                     <div className="overflow-hidden rounded-2xl border border-[#eae5de] bg-white">
@@ -217,9 +214,7 @@ export default function FAQsPage() {
                           >
                             <button
                               type="button"
-                              onClick={() =>
-                                setOpenQuestion(isOpen ? null : questionId)
-                              }
+                              onClick={() => setOpenQuestion(isOpen ? null : questionId)}
                               aria-expanded={isOpen}
                               className="flex w-full items-center justify-between gap-4 px-4 py-4 text-left transition hover:bg-[#faf9f6] sm:px-5"
                             >
@@ -253,9 +248,7 @@ export default function FAQsPage() {
           ) : (
             <div className="rounded-2xl border border-dashed border-[#ded6cc] px-5 py-12 text-center">
               <Search size={24} className="mx-auto text-[#a87358]" />
-              <h2 className="mt-4 text-[14px] font-bold">
-                No matching questions
-              </h2>
+              <h2 className="mt-4 text-[14px] font-bold">No matching questions</h2>
               <p className="mt-2 text-[11px] text-[#766c65]">
                 Try another search or contact our support team.
               </p>
@@ -279,9 +272,7 @@ export default function FAQsPage() {
                 </span>
               </div>
 
-              <h3 className="mt-3 text-lg font-bold">
-                We're happy to help.
-              </h3>
+              <h3 className="mt-3 text-lg font-bold">We're happy to help.</h3>
 
               <p className="mt-2 text-[11px] text-[#a49a91]">
                 Get in touch with our team for further assistance.

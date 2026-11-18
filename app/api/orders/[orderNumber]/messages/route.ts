@@ -6,6 +6,7 @@ import { getSession } from '@/lib/auth';
 import { hasSameOrigin } from '@/lib/admin-api';
 import { prisma } from '@/lib/prisma';
 import { findMongoDocument, findMongoDocuments } from '@/lib/mongo-collections';
+import { publishOrderEvent } from '@/lib/pusher';
 
 type OrderParticipant = {
   _id: string;
@@ -109,6 +110,13 @@ export async function POST(request: Request, { params }: RouteContext) {
     createdAt: new Date().toISOString(),
   };
   await prisma.$runCommandRaw({ insert: 'OrderMessage', documents: [message], ordered: true });
+  await publishOrderEvent(orderNumber, 'chat.message', {
+    id: message._id,
+    senderRole: message.senderRole,
+    senderName: message.senderName,
+    message: message.message,
+    createdAt: message.createdAt,
+  }).catch(() => undefined);
   return NextResponse.json(
     {
       message: {

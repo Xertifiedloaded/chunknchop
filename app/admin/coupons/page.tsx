@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from 'react';
@@ -93,9 +92,7 @@ export default function AdminCouponsPage() {
 
       setCoupons(data.coupons ?? []);
     } catch (e) {
-      setError(
-        e instanceof Error ? e.message : 'Could not load coupons',
-      );
+      setError(e instanceof Error ? e.message : 'Could not load coupons');
     } finally {
       setLoading(false);
     }
@@ -119,17 +116,12 @@ export default function AdminCouponsPage() {
       code: coupon.code,
       discountType: coupon.discountType,
       discountValue: String(
-        coupon.discountType === 'fixed'
-          ? coupon.discountValue / 100
-          : coupon.discountValue,
+        coupon.discountType === 'fixed' ? coupon.discountValue / 100 : coupon.discountValue,
       ),
       minOrderNaira: String((coupon.minOrderCents ?? 0) / 100),
       maxDiscountNaira:
-        coupon.maxDiscountCents == null
-          ? ''
-          : String(coupon.maxDiscountCents / 100),
-      usageLimit:
-        coupon.usageLimit == null ? '' : String(coupon.usageLimit),
+        coupon.maxDiscountCents == null ? '' : String(coupon.maxDiscountCents / 100),
+      usageLimit: coupon.usageLimit == null ? '' : String(coupon.usageLimit),
       startsAt: coupon.startsAt?.slice(0, 10) ?? '',
       expiresAt: coupon.expiresAt?.slice(0, 10) ?? '',
       active: coupon.active !== false,
@@ -152,15 +144,11 @@ export default function AdminCouponsPage() {
         form.discountType === 'fixed'
           ? Math.round(Number(form.discountValue) * 100)
           : Math.round(Number(form.discountValue)),
-      minOrderCents: Math.round(
-        Number(form.minOrderNaira || 0) * 100,
-      ),
+      minOrderCents: Math.round(Number(form.minOrderNaira || 0) * 100),
       maxDiscountCents: form.maxDiscountNaira
         ? Math.round(Number(form.maxDiscountNaira) * 100)
         : null,
-      usageLimit: form.usageLimit
-        ? Number(form.usageLimit)
-        : null,
+      usageLimit: form.usageLimit ? Number(form.usageLimit) : null,
       startsAt: form.startsAt || null,
       expiresAt: form.expiresAt || null,
       active: form.active,
@@ -168,9 +156,7 @@ export default function AdminCouponsPage() {
 
     try {
       const response = await fetch(
-        editing
-          ? `/api/admin/coupons/${editing.id}`
-          : '/api/admin/coupons',
+        editing ? `/api/admin/coupons/${editing.id}` : '/api/admin/coupons',
         {
           method: editing ? 'PATCH' : 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -189,20 +175,14 @@ export default function AdminCouponsPage() {
 
       await load();
     } catch (e) {
-      setError(
-        e instanceof Error ? e.message : 'Could not save coupon',
-      );
+      setError(e instanceof Error ? e.message : 'Could not save coupon');
     } finally {
       setSaving(false);
     }
   };
 
   const remove = async (coupon: Coupon) => {
-    if (
-      !window.confirm(
-        `Delete coupon ${coupon.code}? This cannot be undone.`,
-      )
-    ) {
+    if (!window.confirm(`Delete coupon ${coupon.code}? This cannot be undone.`)) {
       return;
     }
 
@@ -210,10 +190,7 @@ export default function AdminCouponsPage() {
     setNotice('');
 
     try {
-      const response = await fetch(
-        `/api/admin/coupons/${coupon.id}`,
-        { method: 'DELETE' },
-      );
+      const response = await fetch(`/api/admin/coupons/${coupon.id}`, { method: 'DELETE' });
 
       const data = await response.json();
 
@@ -224,9 +201,7 @@ export default function AdminCouponsPage() {
       setNotice(`${coupon.code} deleted successfully.`);
       await load();
     } catch (e) {
-      setError(
-        e instanceof Error ? e.message : 'Could not delete coupon',
-      );
+      setError(e instanceof Error ? e.message : 'Could not delete coupon');
     }
   };
 
@@ -235,14 +210,11 @@ export default function AdminCouponsPage() {
     setNotice('');
 
     try {
-      const response = await fetch(
-        `/api/admin/coupons/${coupon.id}`,
-        {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ active: !coupon.active }),
-        },
-      );
+      const response = await fetch(`/api/admin/coupons/${coupon.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ active: !coupon.active }),
+      });
 
       const data = await response.json();
 
@@ -250,15 +222,11 @@ export default function AdminCouponsPage() {
         throw new Error(data.error || 'Could not update coupon');
       }
 
-      setNotice(
-        `${coupon.code} ${!coupon.active ? 'activated' : 'deactivated'}.`,
-      );
+      setNotice(`${coupon.code} ${!coupon.active ? 'activated' : 'deactivated'}.`);
 
       await load();
     } catch (e) {
-      setError(
-        e instanceof Error ? e.message : 'Could not update coupon',
-      );
+      setError(e instanceof Error ? e.message : 'Could not update coupon');
     }
   };
 
@@ -269,15 +237,12 @@ export default function AdminCouponsPage() {
   const activeCount = coupons.filter((c) => c.active !== false).length;
 
   const expiredCount = coupons.filter(
-    (c) =>
-      c.active === false ||
-      (c.expiresAt && Date.parse(c.expiresAt) < Date.now()),
+    (c) => c.active === false || (c.expiresAt && Date.parse(c.expiresAt) < Date.now()),
   ).length;
 
   return (
     <main className="min-h-screen bg-[#f8f8f6] px-3 py-5 text-[#302b27] sm:px-5 lg:px-7 lg:py-7">
       <div className="mx-auto max-w-[1440px] space-y-5">
-
         {}
         <header className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div>
@@ -365,9 +330,7 @@ export default function AdminCouponsPage() {
           <div className="flex flex-col gap-3 border-b border-[#f0ede9] p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-[12px] font-semibold text-[#37312c]">
-                  Coupon list
-                </h2>
+                <h2 className="text-[12px] font-semibold text-[#37312c]">Coupon list</h2>
                 <span className="rounded-full bg-[#f5f2ee] px-2 py-0.5 text-[9px] font-semibold text-[#777067]">
                   {visible.length}
                 </span>
@@ -399,10 +362,7 @@ export default function AdminCouponsPage() {
                 className="flex size-10 shrink-0 items-center justify-center rounded-md border border-[#eae6e0] bg-white text-[#716960] transition hover:bg-[#faf8f5] disabled:opacity-50"
                 aria-label="Refresh coupons"
               >
-                <RefreshCw
-                  size={14}
-                  className={loading ? 'animate-spin' : ''}
-                />
+                <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
               </button>
             </div>
           </div>
@@ -410,9 +370,7 @@ export default function AdminCouponsPage() {
           {loading ? (
             <div className="flex flex-col items-center justify-center gap-2 py-16">
               <RefreshCw size={17} className="animate-spin text-[#c8552b]" />
-              <p className="text-[10px] text-[#999188]">
-                Loading coupons...
-              </p>
+              <p className="text-[10px] text-[#999188]">Loading coupons...</p>
             </div>
           ) : visible.length === 0 ? (
             <div className="flex flex-col items-center justify-center px-5 py-16 text-center">
@@ -465,17 +423,12 @@ export default function AdminCouponsPage() {
 
                 <tbody className="divide-y divide-[#f2efeb]">
                   {visible.map((coupon) => {
-                    const expired =
-                      !!coupon.expiresAt &&
-                      Date.parse(coupon.expiresAt) < Date.now();
+                    const expired = !!coupon.expiresAt && Date.parse(coupon.expiresAt) < Date.now();
 
                     const isActive = coupon.active !== false && !expired;
 
                     return (
-                      <tr
-                        key={coupon.id}
-                        className="transition-colors hover:bg-[#fdfbf9]"
-                      >
+                      <tr key={coupon.id} className="transition-colors hover:bg-[#fdfbf9]">
                         {}
                         <td className="px-4 py-3.5">
                           <div className="flex items-center gap-2.5">
@@ -526,8 +479,7 @@ export default function AdminCouponsPage() {
                                 style={{
                                   width: `${Math.min(
                                     100,
-                                    ((coupon.usageCount ?? 0) /
-                                      Math.max(1, coupon.usageLimit)) *
+                                    ((coupon.usageCount ?? 0) / Math.max(1, coupon.usageLimit)) *
                                       100,
                                   )}%`,
                                 }}
@@ -541,21 +493,17 @@ export default function AdminCouponsPage() {
                           <div className="flex items-center gap-1.5 text-[10px] text-[#716960]">
                             <CalendarDays size={12} className="text-[#a49b92]" />
                             {coupon.expiresAt
-                              ? new Date(coupon.expiresAt).toLocaleDateString(
-                                  'en-NG',
-                                  {
-                                    day: 'numeric',
-                                    month: 'short',
-                                    year: 'numeric',
-                                  },
-                                )
+                              ? new Date(coupon.expiresAt).toLocaleDateString('en-NG', {
+                                  day: 'numeric',
+                                  month: 'short',
+                                  year: 'numeric',
+                                })
                               : 'No expiry'}
                           </div>
 
                           {coupon.startsAt && (
                             <p className="mt-1 text-[9px] text-[#aaa39b]">
-                              Starts{' '}
-                              {new Date(coupon.startsAt).toLocaleDateString('en-NG')}
+                              Starts {new Date(coupon.startsAt).toLocaleDateString('en-NG')}
                             </p>
                           )}
                         </td>
@@ -615,9 +563,7 @@ export default function AdminCouponsPage() {
               Showing {visible.length} of {coupons.length} coupons
             </p>
 
-            <p className="text-[9px] text-[#b0aaa2]">
-              ChunknChop Promotions
-            </p>
+            <p className="text-[9px] text-[#b0aaa2]">ChunknChop Promotions</p>
           </div>
         </section>
       </div>
@@ -724,12 +670,8 @@ export default function AdminCouponsPage() {
                     max={form.discountType === 'percentage' ? 100 : undefined}
                     step={form.discountType === 'percentage' ? 1 : 0.01}
                     value={form.discountValue}
-                    onChange={(e) =>
-                      setForm({ ...form, discountValue: e.target.value })
-                    }
-                    placeholder={
-                      form.discountType === 'percentage' ? '10' : '1000'
-                    }
+                    onChange={(e) => setForm({ ...form, discountValue: e.target.value })}
+                    placeholder={form.discountType === 'percentage' ? '10' : '1000'}
                     className={inputClass}
                   />
                 </Field>
@@ -740,9 +682,7 @@ export default function AdminCouponsPage() {
                     min="0"
                     step="0.01"
                     value={form.minOrderNaira}
-                    onChange={(e) =>
-                      setForm({ ...form, minOrderNaira: e.target.value })
-                    }
+                    onChange={(e) => setForm({ ...form, minOrderNaira: e.target.value })}
                     className={inputClass}
                   />
                 </Field>
@@ -762,9 +702,7 @@ export default function AdminCouponsPage() {
                     min="0"
                     step="0.01"
                     value={form.maxDiscountNaira}
-                    onChange={(e) =>
-                      setForm({ ...form, maxDiscountNaira: e.target.value })
-                    }
+                    onChange={(e) => setForm({ ...form, maxDiscountNaira: e.target.value })}
                     placeholder="No maximum"
                     className={inputClass}
                   />
@@ -776,9 +714,7 @@ export default function AdminCouponsPage() {
                     min="1"
                     step="1"
                     value={form.usageLimit}
-                    onChange={(e) =>
-                      setForm({ ...form, usageLimit: e.target.value })
-                    }
+                    onChange={(e) => setForm({ ...form, usageLimit: e.target.value })}
                     placeholder="Unlimited"
                     className={inputClass}
                   />
@@ -797,9 +733,7 @@ export default function AdminCouponsPage() {
                   <input
                     type="date"
                     value={form.startsAt}
-                    onChange={(e) =>
-                      setForm({ ...form, startsAt: e.target.value })
-                    }
+                    onChange={(e) => setForm({ ...form, startsAt: e.target.value })}
                     className={inputClass}
                   />
                 </Field>
@@ -808,9 +742,7 @@ export default function AdminCouponsPage() {
                   <input
                     type="date"
                     value={form.expiresAt}
-                    onChange={(e) =>
-                      setForm({ ...form, expiresAt: e.target.value })
-                    }
+                    onChange={(e) => setForm({ ...form, expiresAt: e.target.value })}
                     className={inputClass}
                   />
                 </Field>
@@ -820,9 +752,7 @@ export default function AdminCouponsPage() {
             {}
             <div className="flex items-center justify-between gap-3 rounded-md border border-[#eeeae5] bg-[#fdfcfb] px-3.5 py-3">
               <div>
-                <p className="text-[11px] font-semibold text-[#514a43]">
-                  Coupon availability
-                </p>
+                <p className="text-[11px] font-semibold text-[#514a43]">Coupon availability</p>
                 <p className="mt-0.5 text-[9px] text-[#999188]">
                   Allow customers to redeem this coupon.
                 </p>
@@ -832,9 +762,7 @@ export default function AdminCouponsPage() {
                 type="button"
                 role="switch"
                 aria-checked={form.active}
-                onClick={() =>
-                  setForm({ ...form, active: !form.active })
-                }
+                onClick={() => setForm({ ...form, active: !form.active })}
                 className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${
                   form.active ? 'bg-[#c8552b]' : 'bg-[#d6d0c9]'
                 }`}
@@ -863,14 +791,8 @@ export default function AdminCouponsPage() {
                 disabled={saving}
                 className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-[#c8552b] px-5 text-[10px] font-semibold text-white transition hover:bg-[#ad4725] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {saving && (
-                  <RefreshCw size={12} className="animate-spin" />
-                )}
-                {saving
-                  ? 'Saving...'
-                  : editing
-                    ? 'Save changes'
-                    : 'Create coupon'}
+                {saving && <RefreshCw size={12} className="animate-spin" />}
+                {saving ? 'Saving...' : editing ? 'Save changes' : 'Create coupon'}
                 {!saving && <ChevronRight size={13} />}
               </button>
             </div>
@@ -904,9 +826,7 @@ function Stat({
     <div className="rounded-lg border border-[#ece9e4] bg-white p-4 shadow-[0_2px_9px_rgba(35,30,25,0.025)] transition hover:border-[#e0d8cf]">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-[10px] font-medium text-[#89837b]">
-            {label}
-          </p>
+          <p className="text-[10px] font-medium text-[#89837b]">{label}</p>
           <p className="mt-2 text-[23px] font-semibold tracking-[-0.045em] text-[#302b27]">
             {value}
           </p>
@@ -917,25 +837,15 @@ function Stat({
         </span>
       </div>
 
-      <p className="mt-3 text-[9px] text-[#a19b93]">
-        {description}
-      </p>
+      <p className="mt-3 text-[9px] text-[#a19b93]">{description}</p>
     </div>
   );
 }
 
-function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: ReactNode;
-}) {
+function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <label className="block min-w-0">
-      <span className="mb-1.5 block text-[10px] font-semibold text-[#716960]">
-        {label}
-      </span>
+      <span className="mb-1.5 block text-[10px] font-semibold text-[#716960]">{label}</span>
       {children}
     </label>
   );

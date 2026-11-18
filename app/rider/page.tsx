@@ -23,7 +23,6 @@ export default async function RiderPage() {
 
   return (
     <main className="min-h-screen bg-[#f8f8f6] text-[#24231f]">
-
       <RiderDashboard name={session.user.name} />
     </main>
   );

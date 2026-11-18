@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   ArrowLeft,
   ArrowRight,
@@ -14,6 +14,8 @@ import {
   LoaderCircle,
   Tag,
   X,
+  MapPin,
+  Plus,
 } from 'lucide-react';
 
 import { useAuth } from '@/components/auth/auth-provider';
@@ -34,13 +36,36 @@ type CouponValidationResponse = {
 type DeliveryMethod = 'home' | 'pickup';
 
 type Address = {
+  id?: string;
+  label?: string;
   fullName: string;
   phone: string;
   addressLine1: string;
   addressLine2: string;
+  area?: string;
   city: string;
   region: string;
   postalCode: string;
+  instructions?: string;
+};
+
+type DeliveryZone = {
+  id: string;
+  name: string;
+  city: string;
+  state: string;
+  deliveryFeeCents: number;
+  active: boolean;
+};
+
+type DeliverySchedule = {
+  id: string;
+  date: string;
+  label?: string;
+  startTime: string;
+  endTime: string;
+  available: boolean;
+  remainingCapacity?: number;
 };
 
 type AppliedCoupon = {
@@ -53,12 +78,12 @@ const initialAddress: Address = {
   phone: '',
   addressLine1: '',
   addressLine2: '',
+  area: '',
   city: '',
   region: '',
   postalCode: '',
+  instructions: '',
 };
-
-const HOME_DELIVERY_FEE = 950;
 
 const steps = [
   'Cart Review',
@@ -69,36 +94,7 @@ const steps = [
   'Payment',
 ];
 
-const timeSlots = [
-  { value: '8:00 AM – 10:00 AM', label: 'Early morning', fee: 0 },
-  { value: '10:00 AM – 12:00 PM', label: 'Late morning', fee: 0 },
-  { value: '12:00 PM – 2:00 PM', label: 'Midday', fee: 0 },
-  { value: '2:00 PM – 4:00 PM', label: 'Afternoon', fee: 0 },
-  { value: '4:00 PM – 6:00 PM', label: 'Early evening', fee: 250 },
-  { value: '6:00 PM – 8:00 PM', label: 'Evening', fee: 400 },
-];
-
-const deliveryMethods = [
-  {
-    value: 'home' as const,
-    title: 'Home delivery',
-    price: formatPrice(HOME_DELIVERY_FEE * 100),
-    description: 'Delivered by a ChunknChop rider and kept chilled until it reaches you.',
-    note: 'Arrives in a 2-hour window',
-    Icon: Truck,
-  },
-  {
-    value: 'pickup' as const,
-    title: 'Store pickup',
-    price: 'Free',
-    description: 'Collect from a ChunknChop counter. Kept fresh until you arrive.',
-    note: 'Ready for collection',
-    Icon: Store,
-  },
-];
-
 const container = 'mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-8';
-
 const card = 'border border-[#eae7e1] bg-white';
 
 const primaryButton =
@@ -114,20 +110,6 @@ const labelClass = 'flex min-w-0 flex-col gap-1.5 text-[10px] font-semibold text
 
 const sectionLabel = 'mb-3 text-[9px] font-bold tracking-[0.13em] text-[#88847d]';
 
-function getDateOptions() {
-  return Array.from({ length: 8 }, (_, index) => {
-    const date = new Date();
-    date.setDate(date.getDate() + index);
-
-    return {
-      value: date.toLocaleDateString('en-CA'),
-      day: date.toLocaleDateString('en-GB', { weekday: 'short' }),
-      number: date.getDate(),
-      month: date.toLocaleDateString('en-GB', { month: 'short' }),
-    };
-  });
-}
-
 function itemLabel(count: number) {
   return `${count} ${count === 1 ? 'item' : 'items'}`;
 }
@@ -140,19 +122,43 @@ function FullPage({ children }: { children: ReactNode }) {
   );
 }
 
+function formatDate(date: string) {
+  return new Date(`${date.slice(0, 10)}T12:00:00`).toLocaleDateString('en-GB', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+  });
+}
+
+function formatSlot(slot: DeliverySchedule) {
+  return `${slot.startTime} – ${slot.endTime}`;
+}
+
 export default function CheckoutPageClient() {
   const { user, isLoading: sessionPending } = useAuth();
 
   const { items, subtotalCents, cartCount, isLoading: cartLoading } = useCart();
 
-  const dates = useMemo(() => getDateOptions(), []);
-
   const [step, setStep] = useState(2);
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('home');
+
   const [address, setAddress] = useState<Address>(initialAddress);
-  const [selectedDate, setSelectedDate] = useState(() => dates[0].value);
-  const [selectedSlot, setSelectedSlot] = useState(timeSlots[1].value);
+  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState('');
+
+  const [zones, setZones] = useState<DeliveryZone[]>([]);
+  const [selectedZoneId, setSelectedZoneId] = useState('');
+
+  const [schedules, setSchedules] = useState<DeliverySchedule[]>([]);
+  const [selectedScheduleId, setSelectedScheduleId] = useState('');
+
+  const [loadingAddresses, setLoadingAddresses] = useState(false);
+  const [loadingZones, setLoadingZones] = useState(false);
+  const [loadingSchedules, setLoadingSchedules] = useState(false);
+
+  const [editingAddress, setEditingAddress] = useState(true);
   const [notes, setNotes] = useState('');
+
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -163,32 +169,275 @@ export default function CheckoutPageClient() {
 
   const checkoutRequestId = useRef<string | null>(null);
 
-  const selectedTimeSlot = timeSlots.find((slot) => slot.value === selectedSlot);
+  const selectedZone = zones.find((zone) => zone.id === selectedZoneId);
 
-  const deliveryFee =
-    deliveryMethod === 'pickup' ? 0 : HOME_DELIVERY_FEE + (selectedTimeSlot?.fee ?? 0);
+  const selectedSchedule = schedules.find((schedule) => schedule.id === selectedScheduleId);
 
-  const deliveryLabel = deliveryFee ? formatPrice(deliveryFee * 100) : 'Free';
+  const deliveryFeeCents = deliveryMethod === 'pickup' ? 0 : (selectedZone?.deliveryFeeCents ?? 0);
+
+  const deliveryLabel =
+    deliveryMethod === 'pickup'
+      ? 'Free'
+      : selectedZone
+        ? formatPrice(deliveryFeeCents)
+        : 'Select delivery area';
 
   const couponDiscountCents = appliedCoupon?.discountCents ?? 0;
 
-  const totalCents = Math.max(0, subtotalCents - couponDiscountCents + deliveryFee * 100);
+  const totalCents = Math.max(0, subtotalCents - couponDiscountCents + deliveryFeeCents);
 
   const showAddress = deliveryMethod === 'home';
 
-  function invalidateCheckoutRequest() {
+  const invalidateCheckoutRequest = useCallback(() => {
     checkoutRequestId.current = null;
-  }
+  }, []);
 
-  function updateAddress(field: keyof Address, value: string) {
-    setAddress((current) => ({ ...current, [field]: value }));
-    invalidateCheckoutRequest();
-  }
+  const updateAddress = useCallback(
+    (field: keyof Address, value: string) => {
+      setAddress((current) => ({
+        ...current,
+        [field]: value,
+      }));
 
-  function goToStep(nextStep: number) {
+      invalidateCheckoutRequest();
+    },
+    [invalidateCheckoutRequest],
+  );
+
+  const goToStep = useCallback((nextStep: number) => {
     setError('');
     setStep(nextStep);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
+  const fetchAddresses = useCallback(async () => {
+    setLoadingAddresses(true);
+
+    try {
+      const response = await fetch('/api/account/addresses', {
+        credentials: 'include',
+        cache: 'no-store',
+      });
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          setAddresses([]);
+          return;
+        }
+
+        throw new Error('Unable to load saved addresses.');
+      }
+
+      const result = await response.json();
+
+      const list: Address[] = Array.isArray(result)
+        ? result
+        : Array.isArray(result.addresses)
+          ? result.addresses
+          : [];
+
+      setAddresses(list);
+
+      const defaultAddress =
+        list.find((item) => item.id && item.id === result.defaultAddressId) ||
+        list.find((item) => (item as Address & { isDefault?: boolean }).isDefault) ||
+        list[0];
+
+      if (defaultAddress) {
+        setAddress({
+          ...initialAddress,
+          ...defaultAddress,
+        });
+
+        setSelectedAddressId(defaultAddress.id ?? '');
+        setEditingAddress(false);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to load saved addresses.');
+    } finally {
+      setLoadingAddresses(false);
+    }
+  }, []);
+
+  const fetchZones = useCallback(async (city: string, state: string) => {
+    if (!city.trim() || !state.trim()) {
+      setZones([]);
+      setSelectedZoneId('');
+      return;
+    }
+
+    setLoadingZones(true);
+
+    try {
+      const params = new URLSearchParams({
+        city: city.trim(),
+        state: state.trim(),
+      });
+
+      const response = await fetch(`/api/delivery/checkout-options?${params.toString()}`, {
+        credentials: 'include',
+        cache: 'no-store',
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result?.error || 'Unable to load delivery areas.');
+      }
+
+      const list: DeliveryZone[] = Array.isArray(result.zones)
+        ? result.zones.filter((zone: DeliveryZone) => zone.active)
+        : [];
+
+      setZones(list);
+
+      setSelectedZoneId((current) => (list.some((zone) => zone.id === current) ? current : ''));
+    } catch (err) {
+      setZones([]);
+      setSelectedZoneId('');
+
+      setError(err instanceof Error ? err.message : 'Unable to load delivery areas.');
+    } finally {
+      setLoadingZones(false);
+    }
+  }, []);
+
+  const fetchSchedules = useCallback(async () => {
+    if (!selectedZoneId) {
+      setSchedules([]);
+      setSelectedScheduleId('');
+      return;
+    }
+
+    setLoadingSchedules(true);
+
+    try {
+      const params = new URLSearchParams({
+        zoneId: selectedZoneId,
+      });
+
+      const response = await fetch(`/api/delivery/checkout-options?${params.toString()}`, {
+        credentials: 'include',
+        cache: 'no-store',
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result?.error || 'Unable to load delivery schedules.');
+      }
+
+      const list: DeliverySchedule[] = Array.isArray(result.schedules)
+        ? result.schedules.filter(
+            (slot: DeliverySchedule) =>
+              slot.available &&
+              (slot.remainingCapacity === undefined || slot.remainingCapacity > 0),
+          )
+        : [];
+
+      setSchedules(list);
+
+      setSelectedScheduleId((current) => (list.some((slot) => slot.id === current) ? current : ''));
+    } catch (err) {
+      setSchedules([]);
+      setSelectedScheduleId('');
+
+      setError(err instanceof Error ? err.message : 'Unable to load delivery schedules.');
+    } finally {
+      setLoadingSchedules(false);
+    }
+  }, [selectedZoneId]);
+
+  useEffect(() => {
+    if (user) {
+      void fetchAddresses();
+    }
+  }, [user, fetchAddresses]);
+
+  useEffect(() => {
+    if (showAddress) {
+      void fetchZones(address.city, address.region);
+    }
+  }, [showAddress, address.city, address.region, fetchZones]);
+
+  useEffect(() => {
+    if (showAddress && selectedZoneId) {
+      void fetchSchedules();
+    } else {
+      setSchedules([]);
+      setSelectedScheduleId('');
+    }
+  }, [showAddress, selectedZoneId, fetchSchedules]);
+
+  const selectedAddress = useMemo(
+    () => addresses.find((item) => item.id === selectedAddressId),
+    [addresses, selectedAddressId],
+  );
+
+  function chooseAddress(item: Address) {
+    setAddress({
+      ...initialAddress,
+      ...item,
+    });
+
+    setSelectedAddressId(item.id ?? '');
+    setEditingAddress(false);
+    setSelectedZoneId('');
+    setSelectedScheduleId('');
+    invalidateCheckoutRequest();
+  }
+
+  function startNewAddress() {
+    setAddress(initialAddress);
+    setSelectedAddressId('');
+    setEditingAddress(true);
+    setSelectedZoneId('');
+    setSelectedScheduleId('');
+    invalidateCheckoutRequest();
+  }
+
+  async function saveAddress() {
+    if (!validateAddress()) return;
+
+    try {
+      const response = await fetch(
+        selectedAddressId
+          ? `/api/account/addresses/${selectedAddressId}`
+          : '/api/account/addresses',
+        {
+          method: selectedAddressId ? 'PATCH' : 'POST',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            ...address,
+            label: address.label || 'Home',
+          }),
+        },
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result?.error || 'Unable to save your address.');
+      }
+
+      const saved: Address = result.address ?? result;
+
+      setAddress({
+        ...initialAddress,
+        ...saved,
+      });
+
+      setSelectedAddressId(saved.id ?? '');
+      setEditingAddress(false);
+
+      await fetchAddresses();
+      setError('');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to save your address.');
+    }
   }
 
   function validateAddress() {
@@ -198,11 +447,12 @@ export default function CheckoutPageClient() {
       'addressLine1',
       'city',
       'region',
-      'postalCode',
+      'area',
     ];
 
-    if (requiredFields.some((field) => !address[field].trim())) {
-      setError('Please complete all required delivery address fields.');
+    if (requiredFields.some((field) => !String(address[field] ?? '').trim())) {
+      setError('Please complete your name, phone, street address, area, city and state.');
+
       return false;
     }
 
@@ -224,8 +474,34 @@ export default function CheckoutPageClient() {
     return true;
   }
 
+  function validateDelivery() {
+    if (showAddress && !selectedZoneId) {
+      setError('Please select an available delivery area.');
+      return false;
+    }
+
+    if (showAddress && !selectedScheduleId) {
+      setError('Please select an available delivery date and time.');
+      return false;
+    }
+
+    return true;
+  }
+
   function next() {
-    if (step === 3 && showAddress && !validateAddress()) return;
+    if (step === 3 && showAddress) {
+      if (!validateAddress()) return;
+
+      if (!selectedZoneId) {
+        setError('Please select your delivery area.');
+        return;
+      }
+    }
+
+    if (step === 4 && showAddress && !validateDelivery()) {
+      return;
+    }
+
     goToStep(step + 1);
   }
 
@@ -243,7 +519,9 @@ export default function CheckoutPageClient() {
     try {
       const response = await fetch('/api/coupons/validate', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({ code }),
       });
 
@@ -273,15 +551,12 @@ export default function CheckoutPageClient() {
       });
 
       setCouponInput(result.code);
-      setCouponError('');
       invalidateCheckoutRequest();
-    } catch (couponRequestError) {
+    } catch (err) {
       setAppliedCoupon(null);
-      setCouponError(
-        couponRequestError instanceof Error
-          ? couponRequestError.message
-          : 'Unable to apply this coupon.',
-      );
+
+      setCouponError(err instanceof Error ? err.message : 'Unable to apply this coupon.');
+
       invalidateCheckoutRequest();
     } finally {
       setCouponLoading(false);
@@ -301,21 +576,37 @@ export default function CheckoutPageClient() {
       return;
     }
 
+    if (showAddress && !validateDelivery()) {
+      goToStep(4);
+      return;
+    }
+
     if (submitting) return;
 
     setSubmitting(true);
     setError('');
+
     checkoutRequestId.current ??= crypto.randomUUID();
 
     try {
       const response = await fetch('/api/checkout', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
           ...address,
           deliveryMethod,
-          deliveryDate: selectedDate,
-          deliveryWindow: selectedSlot,
+
+          zoneId: showAddress ? selectedZoneId : undefined,
+
+          scheduleId: showAddress ? selectedScheduleId : undefined,
+
+          deliveryDate: showAddress ? selectedSchedule?.date : undefined,
+
+          deliveryWindow:
+            showAddress && selectedSchedule ? formatSlot(selectedSchedule) : undefined,
+
           deliveryNotes: notes,
           couponCode: appliedCoupon?.code,
           checkoutRequestId: checkoutRequestId.current,
@@ -335,11 +626,9 @@ export default function CheckoutPageClient() {
       }
 
       window.location.assign(checkout.authorizationUrl);
-    } catch (requestError) {
+    } catch (err) {
       setError(
-        requestError instanceof Error
-          ? requestError.message
-          : 'We couldn’t place your order. Please try again.',
+        err instanceof Error ? err.message : 'We couldn’t place your order. Please try again.',
       );
     } finally {
       setSubmitting(false);
@@ -362,10 +651,13 @@ export default function CheckoutPageClient() {
       <FullPage>
         <div className="w-full max-w-md text-center">
           <p className="mb-2 text-[9px] font-bold tracking-[0.15em] text-brand">SIGN IN REQUIRED</p>
+
           <h1 className="m-0 font-heading text-2xl font-semibold">Sign in to check out.</h1>
+
           <p className="mt-3 text-[12px] leading-6 text-[#77736d]">
             Your bag is saved to your account. Sign in to continue with your order.
           </p>
+
           <Link href="/sign-in?returnTo=/checkout" className={`${primaryButton} mt-5`}>
             Sign in to continue <ArrowRight size={13} />
           </Link>
@@ -379,7 +671,9 @@ export default function CheckoutPageClient() {
       <FullPage>
         <div className="w-full max-w-md text-center">
           <h1 className="m-0 font-heading text-2xl font-semibold">Your bag is empty.</h1>
+
           <p className="mt-2 text-[12px] text-[#77736d]">Add some cuts before starting checkout.</p>
+
           <Link href="/shop" className={`${primaryButton} mt-5`}>
             Explore the cuts <ArrowRight size={13} />
           </Link>
@@ -396,18 +690,15 @@ export default function CheckoutPageClient() {
     3: {
       title: showAddress ? 'Where should we deliver?' : 'Your pickup details',
       text: showAddress
-        ? 'Add the address where you would like your order delivered.'
+        ? 'Select a saved address or add a new delivery address.'
         : 'No address is needed for store pickup.',
     },
-    4: showAddress
-      ? {
-          title: 'Pick a delivery window',
-          text: 'Choose your preferred day and two-hour delivery window.',
-        }
-      : {
-          title: 'Add a note',
-          text: 'Leave any instructions for our butchers.',
-        },
+    4: {
+      title: showAddress ? 'Pick a delivery window' : 'Add a note',
+      text: showAddress
+        ? 'Choose an available date and time configured by ChunkNChop.'
+        : 'Leave any instructions for our butchers.',
+    },
     5: {
       title: 'One last look',
       text: 'Confirm your order details before you pay.',
@@ -461,18 +752,26 @@ export default function CheckoutPageClient() {
       optional: true,
     },
     {
+      field: 'area',
+      label: 'Area / neighbourhood',
+      autoComplete: 'address-level3',
+      maxLength: 100,
+      placeholder: 'e.g. Kuto, Ibara, Oke-Ilewo',
+      full: true,
+    },
+    {
       field: 'city',
       label: 'City',
       autoComplete: 'address-level2',
       maxLength: 80,
-      placeholder: 'City',
+      placeholder: 'Abeokuta',
     },
     {
       field: 'region',
       label: 'State / region',
       autoComplete: 'address-level1',
       maxLength: 80,
-      placeholder: 'State',
+      placeholder: 'Ogun State',
     },
     {
       field: 'postalCode',
@@ -481,6 +780,7 @@ export default function CheckoutPageClient() {
       maxLength: 20,
       placeholder: 'Postal code',
       full: true,
+      optional: true,
     },
   ];
 
@@ -492,6 +792,7 @@ export default function CheckoutPageClient() {
           aria-label="Checkout progress"
         >
           <span className="absolute top-3 right-[8.33%] left-[8.33%] h-px bg-[#e9e6df]" />
+
           {steps.map((label, index) => {
             const number = index + 1;
             const completed = number < step;
@@ -514,6 +815,7 @@ export default function CheckoutPageClient() {
                 >
                   {completed ? <Check size={11} /> : number}
                 </span>
+
                 <span
                   className={`hidden max-w-full px-1 text-center text-[9px] leading-tight md:block ${
                     active ? 'font-semibold text-[#24231f]' : 'text-[#88847d]'
@@ -533,9 +835,11 @@ export default function CheckoutPageClient() {
                 <span className="h-px w-4 bg-brand" />
                 STEP {step} OF 6 · {steps[step - 1].toUpperCase()}
               </p>
+
               <h1 className="m-0 font-heading text-[23px] leading-tight font-semibold tracking-tight sm:text-[27px]">
                 {stepContent[step].title}
               </h1>
+
               <p className="mt-1.5 mb-0 max-w-xl text-[11px] leading-5 text-[#77736d]">
                 {stepContent[step].text}
               </p>
@@ -552,7 +856,22 @@ export default function CheckoutPageClient() {
 
             {step === 2 && (
               <div className="space-y-2.5" role="radiogroup" aria-label="Delivery method">
-                {deliveryMethods.map(({ value, title, price, description, note, Icon }) => {
+                {[
+                  {
+                    value: 'home' as const,
+                    title: 'Home delivery',
+                    description: 'Delivered by a ChunkNChop rider to your selected address.',
+                    note: 'Choose an admin-approved delivery schedule.',
+                    Icon: Truck,
+                  },
+                  {
+                    value: 'pickup' as const,
+                    title: 'Store pickup',
+                    description: 'Collect from a ChunkNChop counter. Kept fresh until you arrive.',
+                    note: 'Collection details will be confirmed after ordering.',
+                    Icon: Store,
+                  },
+                ].map(({ value, title, description, note, Icon }) => {
                   const selected = deliveryMethod === value;
 
                   return (
@@ -563,6 +882,8 @@ export default function CheckoutPageClient() {
                       aria-checked={selected}
                       onClick={() => {
                         setDeliveryMethod(value);
+                        setSelectedZoneId('');
+                        setSelectedScheduleId('');
                         invalidateCheckoutRequest();
                       }}
                       className={`${card} w-full cursor-pointer p-3.5 text-left transition-colors sm:p-4 ${
@@ -577,19 +898,27 @@ export default function CheckoutPageClient() {
                         >
                           {selected && <span className="h-2 w-2 rounded-full bg-brand" />}
                         </span>
+
                         <span className="flex h-8 w-8 shrink-0 items-center justify-center bg-[#fff2eb] text-brand">
                           <Icon size={15} />
                         </span>
+
                         <span className="min-w-0 flex-1">
                           <span className="flex flex-wrap items-center justify-between gap-2">
                             <strong className="text-[11px] font-semibold">{title}</strong>
-                            <strong className="text-[11px] font-semibold">{price}</strong>
+
+                            <strong className="text-[11px] font-semibold">
+                              {value === 'pickup' ? 'Free' : 'Zone-based pricing'}
+                            </strong>
                           </span>
+
                           <span className="mt-1 block text-[10px] leading-5 text-[#77736d]">
                             {description}
                           </span>
+
                           <span className="mt-1.5 flex items-center gap-1 text-[9px] text-[#88847d]">
-                            <Clock3 size={11} /> {note}
+                            <Clock3 size={11} />
+                            {note}
                           </span>
                         </span>
                       </span>
@@ -602,50 +931,216 @@ export default function CheckoutPageClient() {
             {step === 3 && (
               <div className={`${card} p-4 sm:p-5`}>
                 {showAddress ? (
-                  <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
-                    {textFields.map(
-                      ({
-                        field,
-                        label,
-                        autoComplete,
-                        maxLength,
-                        placeholder,
-                        type,
-                        full,
-                        optional,
-                      }) => (
-                        <label
-                          key={field}
-                          className={`${labelClass} ${full ? 'sm:col-span-2' : ''}`}
-                        >
-                          <span>
-                            {label}
-                            {optional ? (
-                              <span className="font-normal text-[#88847d]"> (optional)</span>
-                            ) : (
-                              ' *'
+                  <div className="space-y-4">
+                    {loadingAddresses ? (
+                      <div className="flex items-center gap-2 text-[11px] text-[#77736d]">
+                        <LoaderCircle size={14} className="animate-spin" />
+                        Loading saved addresses...
+                      </div>
+                    ) : (
+                      <>
+                        {addresses.length > 0 && !editingAddress && (
+                          <div className="space-y-2">
+                            <p className={sectionLabel}>SAVED ADDRESSES</p>
+
+                            {addresses.map((item) => (
+                              <button
+                                type="button"
+                                key={item.id}
+                                onClick={() => chooseAddress(item)}
+                                className={`flex w-full items-start gap-3 border p-3 text-left transition-colors ${
+                                  selectedAddressId === item.id
+                                    ? 'border-brand bg-[#fffaf7]'
+                                    : 'border-[#e9e6df] hover:border-brand'
+                                }`}
+                              >
+                                <MapPin size={15} className="mt-0.5 shrink-0 text-brand" />
+
+                                <span className="min-w-0 flex-1">
+                                  <strong className="block text-[10px] font-semibold">
+                                    {item.label || 'Saved address'}
+                                  </strong>
+
+                                  <span className="mt-1 block text-[10px] leading-5 text-[#77736d]">
+                                    {item.fullName} · {item.addressLine1}
+                                    {item.area ? `, ${item.area}` : ''}, {item.city}, {item.region}
+                                  </span>
+                                </span>
+
+                                {selectedAddressId === item.id && (
+                                  <Check size={14} className="shrink-0 text-brand" />
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+
+                        {!editingAddress && (
+                          <div className="flex flex-wrap items-center gap-3">
+                            <button
+                              type="button"
+                              onClick={startNewAddress}
+                              className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-brand"
+                            >
+                              <Plus size={13} />
+                              Add new address
+                            </button>
+
+                            {selectedAddressId && (
+                              <button
+                                type="button"
+                                onClick={() => setEditingAddress(true)}
+                                className={editLink}
+                              >
+                                Edit selected address
+                              </button>
                             )}
-                          </span>
-                          <input
-                            className={inputClass}
-                            value={address[field]}
-                            onChange={(event) => updateAddress(field, event.target.value)}
-                            type={type ?? 'text'}
-                            autoComplete={autoComplete}
-                            maxLength={maxLength}
-                            placeholder={placeholder}
-                          />
-                        </label>
-                      ),
+                          </div>
+                        )}
+
+                        {editingAddress && (
+                          <div className="space-y-3.5">
+                            <div className="flex items-center justify-between">
+                              <p className={sectionLabel}>
+                                {selectedAddressId ? 'EDIT ADDRESS' : 'NEW DELIVERY ADDRESS'}
+                              </p>
+
+                              {addresses.length > 0 && (
+                                <button
+                                  type="button"
+                                  onClick={() => setEditingAddress(false)}
+                                  className={editLink}
+                                >
+                                  Cancel
+                                </button>
+                              )}
+                            </div>
+
+                            <label className={labelClass}>
+                              Address label
+                              <select
+                                className={inputClass}
+                                value={address.label || 'Home'}
+                                onChange={(event) => updateAddress('label', event.target.value)}
+                              >
+                                <option value="Home">Home</option>
+                                <option value="Office">Office</option>
+                                <option value="Other">Other</option>
+                              </select>
+                            </label>
+
+                            <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
+                              {textFields.map(
+                                ({
+                                  field,
+                                  label,
+                                  autoComplete,
+                                  maxLength,
+                                  placeholder,
+                                  type,
+                                  full,
+                                  optional,
+                                }) => (
+                                  <label
+                                    key={field}
+                                    className={`${labelClass} ${full ? 'sm:col-span-2' : ''}`}
+                                  >
+                                    <span>
+                                      {label}
+                                      {optional ? (
+                                        <span className="font-normal text-[#88847d]">
+                                          {' '}
+                                          (optional)
+                                        </span>
+                                      ) : (
+                                        ' *'
+                                      )}
+                                    </span>
+
+                                    <input
+                                      className={inputClass}
+                                      value={String(address[field] ?? '')}
+                                      onChange={(event) => updateAddress(field, event.target.value)}
+                                      type={type ?? 'text'}
+                                      autoComplete={autoComplete}
+                                      maxLength={maxLength}
+                                      placeholder={placeholder}
+                                    />
+                                  </label>
+                                ),
+                              )}
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => void saveAddress()}
+                              className={primaryButton}
+                            >
+                              <Check size={12} />
+                              Save address
+                            </button>
+                          </div>
+                        )}
+                      </>
                     )}
+
+                    <div className="border-t border-[#e9e6df] pt-4">
+                      <p className={sectionLabel}>DELIVERY AREA</p>
+
+                      <p className="mb-2 text-[10px] leading-5 text-[#77736d]">
+                        Available delivery zones and prices are managed by ChunkNChop.
+                      </p>
+
+                      {loadingZones ? (
+                        <div className="flex items-center gap-2 text-[10px] text-[#77736d]">
+                          <LoaderCircle size={13} className="animate-spin" />
+                          Checking delivery zones...
+                        </div>
+                      ) : zones.length > 0 ? (
+                        <select
+                          className={inputClass}
+                          value={selectedZoneId}
+                          onChange={(event) => {
+                            setSelectedZoneId(event.target.value);
+                            setSelectedScheduleId('');
+                            invalidateCheckoutRequest();
+                          }}
+                        >
+                          <option value="">Select your delivery area</option>
+
+                          {zones.map((zone) => (
+                            <option key={zone.id} value={zone.id}>
+                              {zone.name} — {formatPrice(zone.deliveryFeeCents)}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <p className="border border-amber-200 bg-amber-50 p-3 text-[10px] leading-5 text-amber-800">
+                          {address.city && address.region
+                            ? 'No active delivery zone is available for this location. Please contact ChunkNChop.'
+                            : 'Enter your city and state to check available delivery zones.'}
+                        </p>
+                      )}
+
+                      {selectedZone && (
+                        <p className="mt-2 text-[10px] text-[#77736d]">
+                          Delivery to {selectedZone.name}:{' '}
+                          <strong className="text-[#24231f]">
+                            {formatPrice(selectedZone.deliveryFeeCents)}
+                          </strong>
+                        </p>
+                      )}
+                    </div>
                   </div>
                 ) : (
                   <div className="flex items-start gap-3">
                     <span className="flex h-9 w-9 shrink-0 items-center justify-center bg-[#fff2eb] text-brand">
                       <Store size={16} />
                     </span>
+
                     <div>
                       <h2 className="m-0 text-[11px] font-semibold">Store pickup</h2>
+
                       <p className="mt-1 mb-0 text-[10px] leading-5 text-[#77736d]">
                         No delivery address is needed for store pickup.
                       </p>
@@ -660,61 +1155,128 @@ export default function CheckoutPageClient() {
                 {showAddress && (
                   <>
                     <div>
-                      <p className={sectionLabel}>DATE</p>
-                      <div className="grid grid-cols-4 gap-2 sm:grid-cols-8">
-                        {dates.map((date) => (
-                          <button
-                            type="button"
-                            key={date.value}
-                            onClick={() => {
-                              setSelectedDate(date.value);
-                              invalidateCheckoutRequest();
-                            }}
-                            aria-pressed={selectedDate === date.value}
-                            className={`flex min-h-[66px] cursor-pointer flex-col items-center justify-center border transition-colors ${
-                              selectedDate === date.value
-                                ? 'border-brand bg-brand text-white'
-                                : 'border-[#e9e6df] bg-white text-[#514f49] hover:border-brand'
-                            }`}
-                          >
-                            <span className="text-[9px]">{date.day}</span>
-                            <strong className="my-0.5 text-sm font-semibold">{date.number}</strong>
-                            <span className="text-[9px]">{date.month}</span>
-                          </button>
-                        ))}
-                      </div>
+                      <p className={sectionLabel}>AVAILABLE DELIVERY DATES</p>
+
+                      {loadingSchedules ? (
+                        <div className="flex items-center gap-2 text-[10px] text-[#77736d]">
+                          <LoaderCircle size={13} className="animate-spin" />
+                          Loading delivery dates...
+                        </div>
+                      ) : schedules.length > 0 ? (
+                        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                          {[
+                            ...new Set(schedules.map((schedule) => schedule.date.slice(0, 10))),
+                          ].map((date) => {
+                            const selected = schedules.some(
+                              (schedule) =>
+                                schedule.id === selectedScheduleId &&
+                                schedule.date.slice(0, 10) === date,
+                            );
+
+                            return (
+                              <button
+                                type="button"
+                                key={date}
+                                onClick={() => {
+                                  const first = schedules.find(
+                                    (schedule) => schedule.date.slice(0, 10) === date,
+                                  );
+
+                                  setSelectedScheduleId(first?.id ?? '');
+                                  invalidateCheckoutRequest();
+                                }}
+                                aria-pressed={selected}
+                                className={`border p-3 text-left transition-colors ${
+                                  selected
+                                    ? 'border-brand bg-brand text-white'
+                                    : 'border-[#e9e6df] bg-white hover:border-brand'
+                                }`}
+                              >
+                                <span className="block text-[9px]">
+                                  {new Date(`${date}T12:00:00`).toLocaleDateString('en-GB', {
+                                    weekday: 'short',
+                                  })}
+                                </span>
+
+                                <strong className="my-1 block text-[12px] font-semibold">
+                                  {new Date(`${date}T12:00:00`).toLocaleDateString('en-GB', {
+                                    day: 'numeric',
+                                    month: 'short',
+                                  })}
+                                </strong>
+
+                                <span className="text-[9px]">
+                                  {
+                                    schedules.filter(
+                                      (schedule) => schedule.date.slice(0, 10) === date,
+                                    ).length
+                                  }{' '}
+                                  available slots
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p className="border border-amber-200 bg-amber-50 p-3 text-[10px] leading-5 text-amber-800">
+                          No delivery schedules are currently available for this zone. Please try
+                          another area or contact us.
+                        </p>
+                      )}
                     </div>
 
                     <div>
-                      <p className={sectionLabel}>TIME SLOT</p>
-                      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                        {timeSlots.map((slot) => (
-                          <button
-                            type="button"
-                            key={slot.value}
-                            onClick={() => {
-                              setSelectedSlot(slot.value);
-                              invalidateCheckoutRequest();
-                            }}
-                            aria-pressed={selectedSlot === slot.value}
-                            className={`${card} flex min-w-0 cursor-pointer items-center justify-between gap-3 px-3 py-3 text-left transition-colors ${
-                              selectedSlot === slot.value ? 'border-brand' : 'hover:border-brand'
-                            }`}
-                          >
-                            <span className="min-w-0">
-                              <strong className="block text-[10px] font-semibold">
-                                {slot.value}
-                              </strong>
-                              <span className="mt-1 block text-[9px] text-[#88847d]">
-                                {slot.label}
-                              </span>
-                            </span>
-                            <span className="shrink-0 text-[9px] font-semibold text-brand">
-                              {slot.fee ? `+${formatPrice(slot.fee * 100)}` : 'Free'}
-                            </span>
-                          </button>
-                        ))}
-                      </div>
+                      <p className={sectionLabel}>AVAILABLE TIME SLOTS</p>
+
+                      {selectedSchedule ? (
+                        <div className="space-y-2">
+                          {schedules
+                            .filter(
+                              (schedule) =>
+                                schedule.date.slice(0, 10) === selectedSchedule.date.slice(0, 10),
+                            )
+                            .map((schedule) => (
+                              <button
+                                type="button"
+                                key={schedule.id}
+                                onClick={() => {
+                                  setSelectedScheduleId(schedule.id);
+                                  invalidateCheckoutRequest();
+                                }}
+                                aria-pressed={selectedScheduleId === schedule.id}
+                                className={`${card} flex w-full min-w-0 items-center justify-between gap-3 px-3 py-3 text-left transition-colors ${
+                                  selectedScheduleId === schedule.id
+                                    ? 'border-brand'
+                                    : 'hover:border-brand'
+                                }`}
+                              >
+                                <span className="flex min-w-0 items-center gap-2">
+                                  <Clock3 size={14} className="shrink-0 text-brand" />
+
+                                  <span className="min-w-0">
+                                    <strong className="block text-[10px] font-semibold">
+                                      {formatSlot(schedule)}
+                                    </strong>
+
+                                    <span className="mt-1 block text-[9px] text-[#88847d]">
+                                      {schedule.label || 'Scheduled delivery'}
+                                    </span>
+                                  </span>
+                                </span>
+
+                                {selectedScheduleId === schedule.id ? (
+                                  <Check size={14} className="shrink-0 text-brand" />
+                                ) : (
+                                  <span className="text-[9px] text-[#88847d]">Select</span>
+                                )}
+                              </button>
+                            ))}
+                        </div>
+                      ) : (
+                        <p className="text-[10px] text-[#88847d]">
+                          Select a delivery date to view available times.
+                        </p>
+                      )}
                     </div>
                   </>
                 )}
@@ -723,6 +1285,7 @@ export default function CheckoutPageClient() {
                   {showAddress
                     ? 'Notes for the butcher or driver (optional)'
                     : 'Notes for the butcher (optional)'}
+
                   <textarea
                     value={notes}
                     onChange={(event) => {
@@ -743,13 +1306,16 @@ export default function CheckoutPageClient() {
                 <section className={`${card} p-4`}>
                   <div className="mb-3 flex items-center justify-between gap-3">
                     <h2 className="m-0 text-[11px] font-semibold">Your cuts</h2>
+
                     <Link
                       href="/cart"
                       className="inline-flex items-center gap-1 text-[10px] font-semibold text-brand"
                     >
-                      <Pencil size={11} /> Edit bag
+                      <Pencil size={11} />
+                      Edit bag
                     </Link>
                   </div>
+
                   <div className="space-y-3">
                     {items.map(({ product, quantity }) => (
                       <div key={product.slug} className="flex min-w-0 items-center gap-2.5">
@@ -758,12 +1324,15 @@ export default function CheckoutPageClient() {
                           alt={product.name}
                           className="h-10 w-10 shrink-0 border border-[#f0eee9] bg-[#f4f1ec] object-cover"
                         />
+
                         <div className="min-w-0 flex-1">
                           <p className="m-0 truncate text-[10px] font-medium">{product.name}</p>
+
                           <p className="mt-0.5 mb-0 text-[9px] text-[#88847d]">
                             {quantity} × {formatPrice(product.priceCents)}
                           </p>
                         </div>
+
                         <strong className="shrink-0 text-[10px] font-semibold">
                           {formatPrice(product.priceCents * quantity)}
                         </strong>
@@ -774,22 +1343,28 @@ export default function CheckoutPageClient() {
 
                 <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
                   <section className={`${card} min-w-0 p-3.5`}>
-                    <div className="mb-2.5 flex items-center justify-between gap-2">
+                    <div className="mb-2.5 flex items-center justify-between gap-3">
                       <h2 className="m-0 text-[9px] font-bold tracking-[0.1em] text-[#88847d]">
                         {showAddress ? 'DELIVERY ADDRESS' : 'COLLECTION'}
                       </h2>
+
                       <button type="button" onClick={() => goToStep(3)} className={editLink}>
                         Edit
                       </button>
                     </div>
+
                     {showAddress ? (
                       <div className="break-words text-[10px] leading-[1.8] text-[#77736d]">
                         <p className="m-0 font-semibold text-[#24231f]">{address.fullName}</p>
+
                         <p className="m-0">{address.addressLine1}</p>
+
                         {address.addressLine2 && <p className="m-0">{address.addressLine2}</p>}
+
                         <p className="m-0">
-                          {address.city}, {address.region} {address.postalCode}
+                          {address.area}, {address.city}, {address.region}
                         </p>
+
                         <p className="m-0">{address.phone}</p>
                       </div>
                     ) : (
@@ -802,14 +1377,21 @@ export default function CheckoutPageClient() {
                       <h2 className="m-0 text-[9px] font-bold tracking-[0.1em] text-[#88847d]">
                         DELIVERY METHOD
                       </h2>
+
                       <button type="button" onClick={() => goToStep(2)} className={editLink}>
                         Edit
                       </button>
                     </div>
+
                     <p className="m-0 text-[10px] font-medium">
                       {showAddress ? 'Home delivery' : 'Store pickup'}
                     </p>
+
                     <p className="mt-1 mb-0 text-[10px] text-[#77736d]">{deliveryLabel}</p>
+
+                    {selectedZone && (
+                      <p className="mt-1 text-[9px] text-[#88847d]">{selectedZone.name}</p>
+                    )}
                   </section>
 
                   <section className={`${card} min-w-0 p-3.5 sm:col-span-2`}>
@@ -817,26 +1399,30 @@ export default function CheckoutPageClient() {
                       <h2 className="m-0 text-[9px] font-bold tracking-[0.1em] text-[#88847d]">
                         SCHEDULE
                       </h2>
+
                       <button type="button" onClick={() => goToStep(4)} className={editLink}>
                         Edit
                       </button>
                     </div>
-                    {showAddress ? (
+
+                    {showAddress && selectedSchedule ? (
                       <>
                         <p className="m-0 text-[10px] font-medium">
-                          {new Date(`${selectedDate}T12:00:00`).toLocaleDateString('en-GB', {
-                            weekday: 'long',
-                            month: 'long',
-                            day: 'numeric',
-                          })}
+                          {formatDate(selectedSchedule.date)}
                         </p>
-                        <p className="mt-1 mb-0 text-[10px] text-[#77736d]">{selectedSlot}</p>
+
+                        <p className="mt-1 mb-0 text-[10px] text-[#77736d]">
+                          {formatSlot(selectedSchedule)}
+                        </p>
                       </>
                     ) : (
                       <p className="m-0 text-[10px] text-[#77736d]">
-                        We’ll confirm your collection time after you order.
+                        {showAddress
+                          ? 'No delivery schedule selected.'
+                          : 'Collection time will be confirmed after your order.'}
                       </p>
                     )}
+
                     {notes && (
                       <p className="mt-2.5 mb-0 break-words border-t border-[#e9e6df] pt-2.5 text-[10px] leading-5 text-[#77736d]">
                         Note: {notes}
@@ -849,15 +1435,18 @@ export default function CheckoutPageClient() {
                       <div className="flex items-center justify-between gap-3">
                         <div className="flex min-w-0 items-center gap-2">
                           <Tag size={13} className="shrink-0 text-green-700" />
+
                           <div className="min-w-0">
                             <p className="m-0 text-[10px] font-semibold text-green-800">
                               {appliedCoupon.code}
                             </p>
+
                             <p className="mt-0.5 mb-0 text-[9px] text-[#77736d]">
                               Coupon discount applied
                             </p>
                           </div>
                         </div>
+
                         <strong className="shrink-0 text-[10px] text-green-700">
                           -{formatPrice(appliedCoupon.discountCents)}
                         </strong>
@@ -873,9 +1462,11 @@ export default function CheckoutPageClient() {
                 <div className="flex h-10 w-10 items-center justify-center bg-[#fff2eb] text-brand">
                   <ShieldCheck size={20} />
                 </div>
+
                 <h2 className="mt-3 mb-0 font-heading text-base font-semibold">
                   Secure payment with Paystack
                 </h2>
+
                 <p className="mt-1.5 mb-0 max-w-lg text-[11px] leading-5 text-[#77736d]">
                   You’ll be redirected to Paystack to pay securely in Nigerian naira.
                 </p>
@@ -885,23 +1476,29 @@ export default function CheckoutPageClient() {
                     <span className="text-[#77736d]">Order items</span>
                     <span>{cartCount}</span>
                   </div>
+
                   <div className="flex items-center justify-between gap-3">
                     <span className="text-[#77736d]">Subtotal</span>
                     <span>{formatPrice(subtotalCents)}</span>
                   </div>
+
                   {appliedCoupon && (
                     <div className="flex items-center justify-between gap-3 text-green-700">
                       <span>Coupon ({appliedCoupon.code})</span>
                       <span>-{formatPrice(appliedCoupon.discountCents)}</span>
                     </div>
                   )}
+
                   <div className="flex items-center justify-between gap-3">
                     <span className="text-[#77736d]">Delivery</span>
                     <span>{deliveryLabel}</span>
                   </div>
+
                   <div className="border-t border-[#e9e6df]" />
+
                   <div className="flex items-center justify-between gap-3">
                     <strong className="text-[11px]">Total</strong>
+
                     <strong className="font-heading text-lg font-bold">
                       {formatPrice(totalCents)}
                     </strong>
@@ -916,7 +1513,8 @@ export default function CheckoutPageClient() {
                   href="/cart"
                   className="inline-flex items-center gap-1.5 text-[10px] font-medium text-[#77736d] hover:text-brand"
                 >
-                  <ArrowLeft size={12} /> Back
+                  <ArrowLeft size={12} />
+                  Back
                 </Link>
               ) : (
                 <button
@@ -924,7 +1522,8 @@ export default function CheckoutPageClient() {
                   onClick={() => goToStep(step - 1)}
                   className="inline-flex cursor-pointer items-center gap-1.5 border-0 bg-transparent p-0 text-[10px] font-medium text-[#77736d] hover:text-brand"
                 >
-                  <ArrowLeft size={12} /> Back
+                  <ArrowLeft size={12} />
+                  Back
                 </button>
               )}
 
@@ -935,13 +1534,14 @@ export default function CheckoutPageClient() {
                   className={`${primaryButton} flex-1 sm:flex-none`}
                 >
                   {step === 5 ? 'Continue to payment' : 'Continue'}
+
                   <ArrowRight size={12} />
                 </button>
               ) : (
                 <button
                   type="button"
-                  disabled={submitting}
-                  onClick={placeOrder}
+                  disabled={submitting || (showAddress && (!selectedZoneId || !selectedScheduleId))}
+                  onClick={() => void placeOrder()}
                   className={`${primaryButton} flex-1 sm:flex-none`}
                 >
                   {submitting ? (
@@ -951,7 +1551,8 @@ export default function CheckoutPageClient() {
                     </>
                   ) : (
                     <>
-                      Proceed to Paystack <ArrowRight size={12} />
+                      Proceed to Paystack
+                      <ArrowRight size={12} />
                     </>
                   )}
                 </button>
@@ -962,6 +1563,7 @@ export default function CheckoutPageClient() {
           <aside className={`${card} min-w-0 p-3.5 sm:p-4 lg:p-4`}>
             <div className="mb-3 flex items-center justify-between gap-3">
               <h2 className="m-0 font-heading text-sm font-semibold">Order summary</h2>
+
               <span className="text-[9px] text-[#88847d]">{itemLabel(cartCount)}</span>
             </div>
 
@@ -973,12 +1575,15 @@ export default function CheckoutPageClient() {
                     alt={product.name}
                     className="h-9 w-9 shrink-0 border border-[#f0eee9] bg-[#f4f1ec] object-cover"
                   />
+
                   <div className="min-w-0 flex-1">
                     <p className="m-0 truncate text-[10px] font-medium">{product.name}</p>
+
                     <p className="mt-0.5 mb-0 text-[9px] text-[#88847d]">
                       {quantity} × {formatPrice(product.priceCents)}
                     </p>
                   </div>
+
                   <strong className="shrink-0 text-[10px] font-medium">
                     {formatPrice(product.priceCents * quantity)}
                   </strong>
@@ -991,6 +1596,7 @@ export default function CheckoutPageClient() {
             <div className="space-y-2.5">
               <div className="flex items-center gap-1.5">
                 <Tag size={12} className="text-brand" />
+
                 <h3 className="m-0 text-[10px] font-semibold">Have a coupon code?</h3>
               </div>
 
@@ -998,15 +1604,18 @@ export default function CheckoutPageClient() {
                 <div className="flex min-w-0 items-center justify-between gap-2 border border-green-200 bg-green-50 p-2.5">
                   <div className="flex min-w-0 items-center gap-2">
                     <Check size={13} className="shrink-0 text-green-700" />
+
                     <div className="min-w-0">
                       <p className="m-0 truncate text-[10px] font-semibold text-green-800">
                         {appliedCoupon.code}
                       </p>
+
                       <p className="mt-0.5 mb-0 text-[9px] text-green-700">
                         Saved {formatPrice(appliedCoupon.discountCents)}
                       </p>
                     </div>
                   </div>
+
                   <button
                     type="button"
                     onClick={removeCoupon}
@@ -1037,6 +1646,7 @@ export default function CheckoutPageClient() {
                     autoComplete="off"
                     className="min-w-0 flex-1 border border-[#e9e6df] bg-white px-2.5 py-2 text-[10px] uppercase outline-none placeholder:normal-case placeholder:text-[#aaa69e] focus:border-brand"
                   />
+
                   <button
                     type="button"
                     disabled={couponLoading || !couponInput.trim()}
@@ -1066,6 +1676,7 @@ export default function CheckoutPageClient() {
               {appliedCoupon && (
                 <div className="flex items-center justify-between gap-3 text-green-700">
                   <span className="min-w-0 truncate">Coupon ({appliedCoupon.code})</span>
+
                   <span className="shrink-0">-{formatPrice(appliedCoupon.discountCents)}</span>
                 </div>
               )}
@@ -1074,12 +1685,20 @@ export default function CheckoutPageClient() {
                 <span className="text-[#77736d]">Delivery</span>
                 <span>{deliveryLabel}</span>
               </div>
+
+              {selectedZone && (
+                <div className="flex items-center justify-between gap-3 text-[9px] text-[#88847d]">
+                  <span>Delivery zone</span>
+                  <span>{selectedZone.name}</span>
+                </div>
+              )}
             </div>
 
             <div className="my-3.5 border-t border-[#e9e6df]" />
 
             <div className="flex items-center justify-between gap-2">
               <strong className="text-[11px]">Total</strong>
+
               <strong className="font-heading text-lg font-bold">{formatPrice(totalCents)}</strong>
             </div>
 

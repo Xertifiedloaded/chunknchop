@@ -200,12 +200,10 @@ export default function AdminShell({
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
-   
   useEffect(() => {
     setOpen(false);
   }, [pathname]);
 
-   
   useEffect(() => {
     if (!open) return;
 
@@ -224,7 +222,6 @@ export default function AdminShell({
     };
   }, [open]);
 
-   
   useEffect(() => {
     const media = window.matchMedia('(min-width: 1024px)');
 

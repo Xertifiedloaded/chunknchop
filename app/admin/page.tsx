@@ -683,7 +683,7 @@ export default function DashboardOverview({ name = 'Admin' }: { name?: string })
                   <li key={a.label}>
                     <button
                       type="button"
-                      className="group flex min-h-10 w-full items-center gap-2.5 rounded-lg border border-[#eeeae6] px-2.5 py-2 text-left transition hover:border-[#e8c5b7] hover:bg-[#fffaf7]"
+                      className="group flex min-h-10 w-full items-center gap-2.5 rounded-lg border border-white px-2.5 py-2 text-left transition hover:border-[#e8c5b7] hover:bg-[#fffaf7]"
                     >
                       <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-orange-50 text-[#C8552B]">
                         <Icon size={14} />
@@ -828,15 +828,12 @@ export default function DashboardOverview({ name = 'Admin' }: { name?: string })
               </p>
             ) : (
               <ol className="relative mt-4">
-                <span
-                  className="absolute bottom-3 left-[13px] top-3 w-px bg-[#eeeae6]"
-                  aria-hidden
-                />
+                <span className="absolute bottom-3 left-[13px] top-3 w-px bg-white" aria-hidden />
 
                 {(recentActivity.length ? recentActivity : []).map((a, i) => (
                   <li
                     key={a.initials + i}
-                    className="relative flex items-start gap-2.5 pb-3.5 last:pb-0"
+                    className="relative flex shadow-xs bg-white border-b border-gray-200 p-4 items-start gap-2.5 pb-3.5 last:pb-0"
                   >
                     <span
                       className={`relative z-10 flex size-[27px] shrink-0 items-center justify-center rounded-full text-[9px] font-semibold text-white ring-[3px] ring-white ${a.bg}`}

@@ -68,7 +68,6 @@ export default function CartPage() {
         ) : items.length === 0 ? (
           <EmptyCart />
         ) : (
-          
           <div className="grid grid-cols-1 items-start gap-7 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-9 xl:grid-cols-[minmax(0,1fr)_350px] xl:gap-12">
             {}
             <div className="min-w-0">

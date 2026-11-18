@@ -1,6 +1,7 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { prisma } from '@/lib/prisma';
 import { deleteMongoDocument } from '@/lib/mongo-collections';
+import { assignPaidOrderAutomatically } from '@/lib/delivery-assignment';
 
 export const PAYSTACK_CURRENCY = 'NGN';
 
@@ -32,6 +33,8 @@ type StoredOrder = {
   paymentStatus?: string;
   paymentReference?: string;
   couponId?: string | null;
+  deliveryScheduleId?: string | null;
+  scheduleReservationReleased?: boolean;
 };
 
 type MongoCursor<T> = {
@@ -182,9 +185,8 @@ export async function verifyAndRecordPaystackPayment(reference: string) {
     throw new Error('Order not found for this payment');
   }
 
-   
-   
   if (order.paymentStatus === 'paid') {
+    await assignPaidOrderAutomatically(order._id).catch(() => undefined);
     await recordCouponRedemption(order);
 
     if (order.userId) {
@@ -212,7 +214,7 @@ export async function verifyAndRecordPaystackPayment(reference: string) {
     if (verifiedIdentity && ['failed', 'abandoned'].includes(transaction.status ?? '')) {
       const failedAt = new Date().toISOString();
 
-      await prisma.$runCommandRaw({
+      const failedUpdate = await prisma.$runCommandRaw({
         update: 'StoreOrder',
         updates: [
           {
@@ -220,12 +222,14 @@ export async function verifyAndRecordPaystackPayment(reference: string) {
               _id: order._id,
               paymentReference: reference,
               paymentStatus: { $ne: 'paid' },
+              scheduleReservationReleased: { $ne: true },
             },
             u: {
               $set: {
                 paymentStatus: 'failed',
                 status: 'payment_failed',
                 paymentFailedAt: failedAt,
+                scheduleReservationReleased: true,
               },
               $push: {
                 statusHistory: {
@@ -240,6 +244,14 @@ export async function verifyAndRecordPaystackPayment(reference: string) {
           },
         ],
       });
+      if ((failedUpdate as { n?: number }).n === 1 && order.deliveryScheduleId) {
+        await prisma.deliverySchedule
+          .updateMany({
+            where: { id: order.deliveryScheduleId, bookedCount: { gt: 0 } },
+            data: { bookedCount: { decrement: 1 } },
+          })
+          .catch(() => undefined);
+      }
     }
 
     return {
@@ -280,12 +292,11 @@ export async function verifyAndRecordPaystackPayment(reference: string) {
     ],
   });
 
-   
-   
   const latest = await getStoredOrder(order._id);
   const paid = latest?.paymentStatus === 'paid';
 
   if (paid) {
+    await assignPaidOrderAutomatically(order._id).catch(() => undefined);
     await recordCouponRedemption(order);
 
     if (order.userId) {

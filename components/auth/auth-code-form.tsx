@@ -14,9 +14,9 @@ function internalDestination(value: string) {
     const destination = new URL(value, window.location.origin);
     return destination.origin === window.location.origin
       ? `${destination.pathname}${destination.search}${destination.hash}`
-      : '/account/orders';
+      : '/account';
   } catch {
-    return '/account/orders';
+    return '/account';
   }
 }
 

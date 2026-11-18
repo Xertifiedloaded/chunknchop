@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
@@ -85,9 +84,7 @@ export default function AdminUsersPage() {
         },
       );
     } catch (error) {
-      setError(
-        error instanceof Error ? error.message : 'Unable to load users.',
-      );
+      setError(error instanceof Error ? error.message : 'Unable to load users.');
     } finally {
       setLoading(false);
     }
@@ -125,9 +122,7 @@ export default function AdminUsersPage() {
 
       await load();
     } catch (error) {
-      setInviteError(
-        error instanceof Error ? error.message : 'Could not send invitation.',
-      );
+      setInviteError(error instanceof Error ? error.message : 'Could not send invitation.');
     } finally {
       setSending(false);
     }
@@ -141,9 +136,7 @@ export default function AdminUsersPage() {
             <p className="text-[10px] font-bold uppercase tracking-[.16em] text-[#C8552B]">
               People management
             </p>
-            <h1 className="mt-1 text-[22px] font-bold tracking-tight">
-              Users
-            </h1>
+            <h1 className="mt-1 text-[22px] font-bold tracking-tight">Users</h1>
             <p className="mt-1 text-[12px] text-[#898078]">
               Manage customers, administrators and delivery riders.
             </p>
@@ -224,13 +217,9 @@ export default function AdminUsersPage() {
           </div>
 
           {loading ? (
-            <p className="p-10 text-center text-[12px] text-[#898078]">
-              Loading users…
-            </p>
+            <p className="p-10 text-center text-[12px] text-[#898078]">Loading users…</p>
           ) : users.length === 0 ? (
-            <p className="p-10 text-center text-[12px] text-[#898078]">
-              No users found.
-            </p>
+            <p className="p-10 text-center text-[12px] text-[#898078]">No users found.</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[650px] text-left">
@@ -250,17 +239,13 @@ export default function AdminUsersPage() {
                       <td className="px-4 py-3">
                         <div className="flex min-w-0 items-center gap-2.5">
                           <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-orange-50 text-[12px] font-bold text-[#C8552B]">
-                            {(user.name || user.email || 'U')
-                              .slice(0, 1)
-                              .toUpperCase()}
+                            {(user.name || user.email || 'U').slice(0, 1).toUpperCase()}
                           </span>
                           <div className="min-w-0">
                             <p className="truncate text-[12px] font-semibold">
                               {user.name || 'Unnamed user'}
                             </p>
-                            <p className="truncate text-[11px] text-[#99918a]">
-                              {user.email}
-                            </p>
+                            <p className="truncate text-[11px] text-[#99918a]">{user.email}</p>
                           </div>
                         </div>
                       </td>
@@ -369,11 +354,10 @@ export default function AdminUsersPage() {
               </label>
 
               <div className="rounded-lg border border-[#f0ece8] bg-[#faf9f7] p-3">
-                <p className="text-[11px] font-semibold text-[#514b46]">
-                  What happens next?
-                </p>
+                <p className="text-[11px] font-semibold text-[#514b46]">What happens next?</p>
                 <p className="mt-1 text-[11px] leading-5 text-[#898078]">
-                  The recipient gets an eight-digit email code. They will use it to verify their invitation, enter their name and create a password.
+                  The recipient gets an eight-digit email code. They will use it to verify their
+                  invitation, enter their name and create a password.
                 </p>
               </div>
 
@@ -384,7 +368,10 @@ export default function AdminUsersPage() {
               )}
 
               {inviteSuccess && (
-                <p role="status" className="flex items-start gap-2 rounded-lg bg-emerald-50 p-3 text-[11px] text-emerald-700">
+                <p
+                  role="status"
+                  className="flex items-start gap-2 rounded-lg bg-emerald-50 p-3 text-[11px] text-emerald-700"
+                >
                   <CheckCircle2 size={15} className="mt-0.5 shrink-0" />
                   {inviteSuccess}
                 </p>
@@ -443,9 +430,7 @@ function Stat({
           <Icon size={15} />
         </span>
       </div>
-      <p className="mt-2 text-[22px] font-bold tracking-tight">
-        {value.toLocaleString('en-NG')}
-      </p>
+      <p className="mt-2 text-[22px] font-bold tracking-tight">{value.toLocaleString('en-NG')}</p>
     </div>
   );
 }

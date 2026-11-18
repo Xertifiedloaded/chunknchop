@@ -1,16 +1,7 @@
-
-import {
-  createHmac,
-  randomInt,
-  timingSafeEqual,
-} from 'node:crypto';
+import { createHmac, randomInt, timingSafeEqual } from 'node:crypto';
 
 import { prisma } from '@/lib/prisma';
-import {
-  hashToken,
-  isValidEmail,
-  normalizeEmail,
-} from '@/lib/auth';
+import { hashToken, isValidEmail, normalizeEmail } from '@/lib/auth';
 
 type CodePurpose = 'verify' | 'reset' | 'invite';
 
@@ -20,28 +11,17 @@ const MAX_OTP_ATTEMPTS = 5;
 
 function codeHash(code: string): string {
   const pepper =
-    process.env.AUTH_TOKEN_PEPPER ||
-    process.env.BETTER_AUTH_SECRET ||
-    process.env.MONGODB_URI;
+    process.env.AUTH_TOKEN_PEPPER || process.env.BETTER_AUTH_SECRET || process.env.MONGODB_URI;
 
   if (!pepper) {
-    throw new Error(
-      'Authentication token secret is not configured.',
-    );
+    throw new Error('Authentication token secret is not configured.');
   }
 
-  return createHmac('sha256', pepper)
-    .update(code)
-    .digest('hex');
+  return createHmac('sha256', pepper).update(code).digest('hex');
 }
 
-function rateIdentifier(
-  email: string,
-  purpose: CodePurpose,
-): string {
-  return `email-code:${purpose}:${hashToken(
-    normalizeEmail(email),
-  )}`;
+function rateIdentifier(email: string, purpose: CodePurpose): string {
+  return `email-code:${purpose}:${hashToken(normalizeEmail(email))}`;
 }
 
 function getSiteUrl(): string | null {
@@ -52,10 +32,7 @@ function getSiteUrl(): string | null {
   try {
     const url = new URL(rawUrl);
 
-    if (
-      process.env.NODE_ENV === 'production' &&
-      url.protocol !== 'https:'
-    ) {
+    if (process.env.NODE_ENV === 'production' && url.protocol !== 'https:') {
       return null;
     }
 
@@ -64,14 +41,6 @@ function getSiteUrl(): string | null {
     return null;
   }
 }
-
-
-
-
-
-
-
-
 
 async function sendEmailCode(
   email: string,
@@ -83,7 +52,6 @@ async function sendEmailCode(
   const publicKey = process.env.EMAILJS_PUBLIC_KEY;
   const privateKey = process.env.EMAILJS_PRIVATE_KEY;
 
-   
   const templateId =
     purpose === 'reset'
       ? process.env.EMAILJS_RESET_TEMPLATE_ID
@@ -107,15 +75,12 @@ async function sendEmailCode(
     const siteUrl = getSiteUrl();
 
     if (!siteUrl) {
-      console.error(
-        '[emailjs] A valid NEXT_PUBLIC_SITE_URL is required for invitations.',
-      );
+      console.error('[emailjs] A valid NEXT_PUBLIC_SITE_URL is required for invitations.');
 
       return false;
     }
 
-    inviteUrl =
-      `${siteUrl}/invite/accept?email=${encodeURIComponent(email)}`;
+    inviteUrl = `${siteUrl}/invite/accept?email=${encodeURIComponent(email)}`;
   }
 
   const templateParams = {
@@ -143,18 +108,15 @@ async function sendEmailCode(
   };
 
   try {
-    const response = await fetch(
-      'https://api.emailjs.com/api/v1.0/email/send',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-        signal: AbortSignal.timeout(15_000),
-        cache: 'no-store',
+    const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
       },
-    );
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(15_000),
+      cache: 'no-store',
+    });
 
     const responseText = await response.text();
 
@@ -187,12 +149,6 @@ async function sendEmailCode(
   }
 }
 
-
-
-
-
-
-
 export async function issueEmailCode(
   rawEmail: string,
   name: string,
@@ -203,11 +159,6 @@ export async function issueEmailCode(
   if (!isValidEmail(email)) {
     return false;
   }
-
-  
-
-
-
 
   if (purpose === 'reset') {
     const user = await prisma.user.findUnique({
@@ -229,8 +180,7 @@ export async function issueEmailCode(
 
     if (
       user.resetOtpCreatedAt &&
-      now.getTime() - user.resetOtpCreatedAt.getTime() <
-        OTP_RESEND_INTERVAL_MS
+      now.getTime() - user.resetOtpCreatedAt.getTime() < OTP_RESEND_INTERVAL_MS
     ) {
       return false;
     }
@@ -239,9 +189,7 @@ export async function issueEmailCode(
     let hash = '';
 
     for (let attempt = 0; attempt < 10; attempt += 1) {
-      const candidate = String(
-        randomInt(10_000_000, 100_000_000),
-      );
+      const candidate = String(randomInt(10_000_000, 100_000_000));
 
       const candidateHash = codeHash(candidate);
 
@@ -262,9 +210,7 @@ export async function issueEmailCode(
     }
 
     if (!code || !hash) {
-      console.error(
-        '[auth-email] Could not generate a unique reset OTP.',
-      );
+      console.error('[auth-email] Could not generate a unique reset OTP.');
 
       return false;
     }
@@ -275,20 +221,13 @@ export async function issueEmailCode(
       },
       data: {
         resetOtpHash: hash,
-        resetOtpExpiresAt: new Date(
-          now.getTime() + OTP_EXPIRY_MS,
-        ),
+        resetOtpExpiresAt: new Date(now.getTime() + OTP_EXPIRY_MS),
         resetOtpCreatedAt: now,
         resetOtpAttempts: 0,
       },
     });
 
-    const sent = await sendEmailCode(
-      user.email,
-      user.name || name || 'Customer',
-      code,
-      'reset',
-    );
+    const sent = await sendEmailCode(user.email, user.name || name || 'Customer', code, 'reset');
 
     if (!sent) {
       await prisma.user.updateMany({
@@ -308,15 +247,8 @@ export async function issueEmailCode(
     return sent;
   }
 
-  
-
-
-
-
   if (purpose === 'invite' && !getSiteUrl()) {
-    console.error(
-      '[auth-email] Cannot issue invitation without a valid NEXT_PUBLIC_SITE_URL.',
-    );
+    console.error('[auth-email] Cannot issue invitation without a valid NEXT_PUBLIC_SITE_URL.');
 
     return false;
   }
@@ -333,11 +265,7 @@ export async function issueEmailCode(
     },
   });
 
-  if (
-    previous &&
-    now.getTime() - previous.createdAt.getTime() <
-      OTP_RESEND_INTERVAL_MS
-  ) {
+  if (previous && now.getTime() - previous.createdAt.getTime() < OTP_RESEND_INTERVAL_MS) {
     return false;
   }
 
@@ -347,13 +275,9 @@ export async function issueEmailCode(
     },
   });
 
-  const code = String(
-    randomInt(10_000_000, 100_000_000),
-  );
+  const code = String(randomInt(10_000_000, 100_000_000));
 
-  const expiresAt = new Date(
-    now.getTime() + OTP_EXPIRY_MS,
-  );
+  const expiresAt = new Date(now.getTime() + OTP_EXPIRY_MS);
 
   await prisma.verification.create({
     data: {
@@ -366,12 +290,7 @@ export async function issueEmailCode(
     },
   });
 
-  const sent = await sendEmailCode(
-    email,
-    name,
-    code,
-    purpose,
-  );
+  const sent = await sendEmailCode(email, name, code, purpose);
 
   if (!sent) {
     await prisma.verification.deleteMany({
@@ -384,24 +303,15 @@ export async function issueEmailCode(
   return sent;
 }
 
-
-
-
-
 export async function consumeEmailCode(
   rawEmail: string,
   purpose: CodePurpose,
   rawCode: unknown,
 ): Promise<boolean> {
   const email = normalizeEmail(rawEmail);
-  const code =
-    typeof rawCode === 'string' ? rawCode.trim() : '';
+  const code = typeof rawCode === 'string' ? rawCode.trim() : '';
 
-  if (
-    !isValidEmail(email) ||
-    !/^\d{8}$/.test(code) ||
-    purpose === 'reset'
-  ) {
+  if (!isValidEmail(email) || !/^\d{8}$/.test(code) || purpose === 'reset') {
     return false;
   }
 
@@ -467,7 +377,6 @@ export async function consumeEmailCode(
     attempts: attempts + 1,
   });
 
-   
   const attemptResult = await prisma.verification.updateMany({
     where: {
       id: record.id,
@@ -489,8 +398,7 @@ export async function consumeEmailCode(
   const expectedHash = Buffer.from(stored.hash, 'hex');
 
   const matches =
-    candidateHash.length === expectedHash.length &&
-    timingSafeEqual(candidateHash, expectedHash);
+    candidateHash.length === expectedHash.length && timingSafeEqual(candidateHash, expectedHash);
 
   if (!matches) {
     if (attempts + 1 >= MAX_OTP_ATTEMPTS) {
@@ -505,7 +413,6 @@ export async function consumeEmailCode(
     return false;
   }
 
-   
   await prisma.verification.deleteMany({
     where: {
       id: record.id,
@@ -516,15 +423,8 @@ export async function consumeEmailCode(
   return true;
 }
 
-
-
-
-
-export async function consumePasswordResetOtp(
-  rawCode: unknown,
-): Promise<string | null> {
-  const code =
-    typeof rawCode === 'string' ? rawCode.trim() : '';
+export async function consumePasswordResetOtp(rawCode: unknown): Promise<string | null> {
+  const code = typeof rawCode === 'string' ? rawCode.trim() : '';
 
   if (!/^\d{8}$/.test(code)) {
     return null;

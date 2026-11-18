@@ -29,10 +29,8 @@ export default function Header() {
 
   const accountRef = useRef<HTMLDivElement>(null);
 
-   
   const cartCount = items?.reduce((total, item) => total + (Number(item.quantity) || 0), 0) ?? 0;
 
-   
   const normalizedRole = String(user?.role ?? '')
     .trim()
     .toUpperCase();
@@ -67,7 +65,6 @@ export default function Header() {
     setAccountOpen(false);
   }
 
-   
   useEffect(() => {
     void refreshSession();
 
@@ -86,7 +83,6 @@ export default function Header() {
     };
   }, [refreshSession]);
 
-   
   useEffect(() => {
     function handlePointerDown(event: MouseEvent) {
       if (accountRef.current && !accountRef.current.contains(event.target as Node)) {

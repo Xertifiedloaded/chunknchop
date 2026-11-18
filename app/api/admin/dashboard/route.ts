@@ -301,8 +301,6 @@ export async function GET() {
     const paidOrderCount = paid?.count ?? 0;
     const revenueCents = asNumber(paid?.revenueCents);
 
-     
-     
     const rawProductSales = result?.productSalesAll ?? [];
     const productIds = [
       ...new Set(

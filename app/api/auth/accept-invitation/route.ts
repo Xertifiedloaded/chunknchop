@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import {
   createSession,
@@ -17,10 +16,7 @@ export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
   if (!hasSameOrigin(request)) {
-    return NextResponse.json(
-      { error: 'Request could not be verified.' },
-      { status: 403 },
-    );
+    return NextResponse.json({ error: 'Request could not be verified.' }, { status: 403 });
   }
 
   const body = await request.json().catch(() => null);
@@ -38,18 +34,15 @@ export async function POST(request: NextRequest) {
     !validPassword(password)
   ) {
     return NextResponse.json(
-      { error: 'Enter your name, valid email, 8-digit invitation code and a password of at least 12 characters.' },
+      {
+        error:
+          'Enter your name, valid email, 8-digit invitation code and a password of at least 12 characters.',
+      },
       { status: 400 },
     );
   }
 
-  if (
-    !(await takeRateLimit(
-      `accept-invite:${email}:${requestIp(request)}`,
-      10,
-      15 * 60_000,
-    ))
-  ) {
+  if (!(await takeRateLimit(`accept-invite:${email}:${requestIp(request)}`, 10, 15 * 60_000))) {
     return NextResponse.json(
       { error: 'Too many attempts. Please request a new invitation.' },
       { status: 429 },
@@ -73,7 +66,10 @@ export async function POST(request: NextRequest) {
     !(await consumeEmailCode(email, 'invite', code))
   ) {
     return NextResponse.json(
-      { error: 'The invitation code is invalid or expired. Contact the administrator for a new invitation.' },
+      {
+        error:
+          'The invitation code is invalid or expired. Contact the administrator for a new invitation.',
+      },
       { status: 400 },
     );
   }
@@ -120,7 +116,10 @@ export async function POST(request: NextRequest) {
     console.error('[accept-invitation] failed', error);
 
     return NextResponse.json(
-      { error: 'We could not finish setting up your account. Please contact the administrator for a new invitation.' },
+      {
+        error:
+          'We could not finish setting up your account. Please contact the administrator for a new invitation.',
+      },
       { status: 500 },
     );
   }

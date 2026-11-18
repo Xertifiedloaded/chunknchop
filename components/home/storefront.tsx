@@ -297,7 +297,7 @@ export default function Storefront({ products }: { products: CatalogProduct[] })
               href="#shop"
               className="inline-flex min-h-12 items-center gap-5 bg-[#f8f6f0] px-5 text-[11px] font-bold tracking-[0.12em] text-[#24231f] transition-colors duration-200 hover:bg-brand"
             >
-              SHOP THE COLLECTION <ArrowUpRight size={16} />
+              SHOP BY CUT <ArrowUpRight size={16} />
             </Link>
 
             <div className="mt-10 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-[#e6e1db]">

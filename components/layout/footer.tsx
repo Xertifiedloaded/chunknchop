@@ -1,4 +1,3 @@
-
 import Link from 'next/link';
 
 const shopLinks = [
@@ -17,15 +16,11 @@ const helpLinks = [
 
 export default function Footer() {
   return (
-    <footer className="bg-[#0f0b0a] px-6 py-12 lg:px-12">
-      <div className="mx-auto grid max-w-271 grid-cols-2 gap-10 lg:grid-cols-4">
-
+    <footer className="bg-[#0f0b0a] px-6 py-12 ">
+      <div className="mx-auto grid max-w-7xl grid-cols-2 gap-10 lg:grid-cols-4">
         {}
         <div className="col-span-2 lg:col-span-1">
-          <Link
-            href="/"
-            className="inline-block font-black tracking-[-1px] text-white"
-          >
+          <Link href="/" className="inline-block font-black tracking-[-1px] text-white">
             ChunkN <span className="text-[#b9aaa0]">CHOP</span>
           </Link>
 
@@ -36,9 +31,7 @@ export default function Footer() {
 
         {}
         <div>
-          <h3 className="text-xs font-bold tracking-[1px] text-[#a99b90]">
-            SHOP
-          </h3>
+          <h3 className="text-xs font-bold tracking-[1px] text-[#a99b90]">SHOP</h3>
 
           <div className="mt-4 space-y-3">
             {shopLinks.map((item) => (
@@ -55,9 +48,7 @@ export default function Footer() {
 
         {}
         <div>
-          <h3 className="text-xs font-bold tracking-[1px] text-[#a99b90]">
-            HELP
-          </h3>
+          <h3 className="text-xs font-bold tracking-[1px] text-[#a99b90]">HELP</h3>
 
           <div className="mt-4 space-y-3">
             {helpLinks.map((item) => (
@@ -74,15 +65,10 @@ export default function Footer() {
 
         {}
         <div>
-          <h3 className="text-xs font-bold tracking-[1px] text-[#a99b90]">
-            CONTACT
-          </h3>
+          <h3 className="text-xs font-bold tracking-[1px] text-[#a99b90]">CONTACT</h3>
 
           <div className="mt-4 space-y-3 text-xs text-[#9b8e83]">
-            <a
-              href="tel:+2340000000000"
-              className="block transition hover:text-white"
-            >
+            <a href="tel:+2340000000000" className="block transition hover:text-white">
               [PHONE]
             </a>
 
@@ -93,10 +79,7 @@ export default function Footer() {
               [EMAIL]
             </a>
 
-            <Link
-              href="/contact"
-              className="inline-block transition hover:text-white"
-            >
+            <Link href="/contact" className="inline-block transition hover:text-white">
               Customer Support
             </Link>
           </div>
@@ -104,7 +87,7 @@ export default function Footer() {
       </div>
 
       {}
-      <div className="mx-auto mt-12 flex max-w-271 flex-col gap-3 border-t border-white/5 pt-5 text-center text-[10px] text-[#6c615a] sm:flex-row sm:items-center sm:justify-between sm:text-left">
+      <div className="mx-auto mt-12 flex max-w-7xl flex-col gap-3 border-t border-white/5 pt-5 text-center text-[10px] text-[#6c615a] sm:flex-row sm:items-center sm:justify-between sm:text-left">
         <p>© {new Date().getFullYear()} ChunkNChop. All rights reserved.</p>
 
         <div className="flex items-center justify-center gap-5">

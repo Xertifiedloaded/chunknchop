@@ -55,10 +55,6 @@ const emptyDraft: ProductDraft = {
   published: false,
 };
 
-
-
-
-
 async function fetchProducts(url: string): Promise<AdminProductResponse> {
   const response = await fetch(url, { cache: 'no-store' });
 

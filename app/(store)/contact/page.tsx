@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, type FormEvent } from 'react';
@@ -19,9 +18,7 @@ export default function ContactPage() {
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const subject = encodeURIComponent(
-      form.subject || 'Customer enquiry - ChunkNChop',
-    );
+    const subject = encodeURIComponent(form.subject || 'Customer enquiry - ChunkNChop');
 
     const body = encodeURIComponent(
       `Hello ChunkNChop,\n\nName: ${form.name}\nEmail: ${form.email}\n\nMessage:\n${form.message}`,
@@ -56,7 +53,6 @@ export default function ContactPage() {
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#faf9f6] text-[#201a17]">
-
       {}
       <section className="relative overflow-hidden bg-[#100d0b] px-5 py-16 text-white sm:px-8 sm:py-20 lg:px-12">
         <div className="pointer-events-none absolute -right-32 -top-32 h-80 w-80 rounded-full bg-[#a45d3d]/15 blur-[100px]" />
@@ -72,8 +68,7 @@ export default function ContactPage() {
           </h1>
 
           <p className="mt-4 max-w-[440px] text-[12px] leading-[2] text-[#b4a69d]">
-            Have a question about an order, delivery or our products?
-            We're happy to hear from you.
+            Have a question about an order, delivery or our products? We're happy to hear from you.
           </p>
         </div>
       </section>
@@ -81,7 +76,6 @@ export default function ContactPage() {
       {}
       <section className="px-5 py-14 sm:px-8 sm:py-16 lg:px-12">
         <div className="mx-auto grid max-w-[1100px] gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:gap-14">
-
           {}
           <div>
             <span className="text-[10px] font-bold uppercase tracking-[2px] text-[#a87358]">
@@ -93,9 +87,8 @@ export default function ContactPage() {
             </h2>
 
             <p className="mt-3 max-w-[380px] text-[11px] leading-[2] text-[#766c65]">
-              Whether you need help with an order, have a product enquiry or
-              simply want to know more about ChunkNChop, our team is ready
-              to assist.
+              Whether you need help with an order, have a product enquiry or simply want to know
+              more about ChunkNChop, our team is ready to assist.
             </p>
 
             <div className="mt-8 space-y-4">
@@ -104,11 +97,7 @@ export default function ContactPage() {
                   key={item.title}
                   href={item.href}
                   target={item.title === 'WhatsApp' ? '_blank' : undefined}
-                  rel={
-                    item.title === 'WhatsApp'
-                      ? 'noopener noreferrer'
-                      : undefined
-                  }
+                  rel={item.title === 'WhatsApp' ? 'noopener noreferrer' : undefined}
                   className="group flex items-start gap-4 rounded-2xl border border-[#eae5de] bg-white p-4 transition hover:border-brand/50 hover:shadow-md hover:shadow-[#241914]/5"
                 >
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-sm font-bold text-[#a87358]">
@@ -116,9 +105,7 @@ export default function ContactPage() {
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    <h3 className="text-[12px] font-bold">
-                      {item.title}
-                    </h3>
+                    <h3 className="text-[12px] font-bold">{item.title}</h3>
 
                     <p className="mt-1 break-words text-[11px] font-semibold text-[#a87358]">
                       {item.value}
@@ -143,14 +130,11 @@ export default function ContactPage() {
                   ◷
                 </span>
 
-                <h3 className="text-[12px] font-bold">
-                  Customer Support
-                </h3>
+                <h3 className="text-[12px] font-bold">Customer Support</h3>
               </div>
 
               <p className="mt-2 text-[11px] leading-[1.9] text-[#766c65]">
-                Contact us through email or WhatsApp for assistance with
-                your orders and enquiries.
+                Contact us through email or WhatsApp for assistance with your orders and enquiries.
               </p>
             </div>
 
@@ -181,9 +165,7 @@ export default function ContactPage() {
           {/* Contact form */}
           <div className="rounded-2xl border border-[#eae5de] bg-white p-5 shadow-sm shadow-[#241914]/[0.02] sm:p-8">
             <div>
-              <h2 className="text-lg font-black tracking-[-0.5px]">
-                Send us a message
-              </h2>
+              <h2 className="text-lg font-black tracking-[-0.5px]">Send us a message</h2>
 
               <p className="mt-2 text-[11px] leading-relaxed text-[#91867d]">
                 Fill in the details below and we'll help you with your enquiry.
@@ -207,9 +189,7 @@ export default function ContactPage() {
                   minLength={2}
                   maxLength={100}
                   value={form.name}
-                  onChange={(event) =>
-                    setForm({ ...form, name: event.target.value })
-                  }
+                  onChange={(event) => setForm({ ...form, name: event.target.value })}
                   placeholder="Enter your full name"
                   className="h-11 w-full rounded-xl border border-[#eae5de] bg-[#faf9f6] px-4 text-[11px] outline-none transition placeholder:text-[#b1a79f] focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/10"
                 />
@@ -230,9 +210,7 @@ export default function ContactPage() {
                   required
                   maxLength={254}
                   value={form.email}
-                  onChange={(event) =>
-                    setForm({ ...form, email: event.target.value })
-                  }
+                  onChange={(event) => setForm({ ...form, email: event.target.value })}
                   placeholder="you@example.com"
                   className="h-11 w-full rounded-xl border border-[#eae5de] bg-[#faf9f6] px-4 text-[11px] outline-none transition placeholder:text-[#b1a79f] focus:border-[#bd8b70] focus:bg-white focus:ring-2 focus:ring-[#bd8b70]/10"
                 />
@@ -250,9 +228,7 @@ export default function ContactPage() {
                   id="contact-subject"
                   required
                   value={form.subject}
-                  onChange={(event) =>
-                    setForm({ ...form, subject: event.target.value })
-                  }
+                  onChange={(event) => setForm({ ...form, subject: event.target.value })}
                   className="h-11 w-full rounded-xl border border-[#eae5de] bg-[#faf9f6] px-4 text-[11px] outline-none transition focus:border-[#bd8b70] focus:bg-white"
                 >
                   <option value="" disabled>
@@ -262,9 +238,7 @@ export default function ContactPage() {
                   <option value="Delivery enquiry">Delivery enquiry</option>
                   <option value="Product enquiry">Product enquiry</option>
                   <option value="Payment issue">Payment issue</option>
-                  <option value="Refund or cancellation">
-                    Refund or cancellation
-                  </option>
+                  <option value="Refund or cancellation">Refund or cancellation</option>
                   <option value="General enquiry">General enquiry</option>
                   <option value="Other">Other</option>
                 </select>
@@ -285,9 +259,7 @@ export default function ContactPage() {
                   maxLength={3000}
                   rows={5}
                   value={form.message}
-                  onChange={(event) =>
-                    setForm({ ...form, message: event.target.value })
-                  }
+                  onChange={(event) => setForm({ ...form, message: event.target.value })}
                   placeholder="Tell us how we can help..."
                   className="w-full resize-y rounded-xl border border-[#eae5de] bg-[#faf9f6] px-4 py-3 text-[11px] leading-[1.8] outline-none transition placeholder:text-[#b1a79f] focus:border-[#bd8b70] focus:bg-white focus:ring-2 focus:ring-[#bd8b70]/10"
                 />
@@ -306,8 +278,7 @@ export default function ContactPage() {
               </button>
 
               <p className="text-center text-[10px] leading-relaxed text-[#a49a91]">
-                Your email application will open with your message prepared
-                for sending.
+                Your email application will open with your message prepared for sending.
               </p>
             </form>
           </div>
@@ -323,9 +294,7 @@ export default function ContactPage() {
             </span>
 
             <div>
-              <h3 className="text-[13px] font-bold">
-                Looking for a quick answer?
-              </h3>
+              <h3 className="text-[13px] font-bold">Looking for a quick answer?</h3>
 
               <p className="mt-1 text-[11px] text-[#766c65]">
                 Visit our frequently asked questions page.

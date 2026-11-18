@@ -1,13 +1,6 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 
-import {
-  hasSameOrigin,
-  isValidEmail,
-  normalizeEmail,
-  requestIp,
-  takeRateLimit,
-} from '@/lib/auth';
+import { hasSameOrigin, isValidEmail, normalizeEmail, requestIp, takeRateLimit } from '@/lib/auth';
 
 import { requireAdminApi } from '@/lib/admin-api';
 import { issueEmailCode } from '@/lib/auth-email';
@@ -25,16 +18,10 @@ const allowedRoles = ['customer', 'admin', 'rider'] as const;
 type AllowedRole = (typeof allowedRoles)[number];
 
 function isAllowedRole(role: unknown): role is AllowedRole {
-  return (
-    typeof role === 'string' &&
-    allowedRoles.includes(role as AllowedRole)
-  );
+  return typeof role === 'string' && allowedRoles.includes(role as AllowedRole);
 }
 
-function json(
-  data: Record<string, unknown>,
-  status = 200,
-) {
+function json(data: Record<string, unknown>, status = 200) {
   return NextResponse.json(data, {
     status,
     headers: responseHeaders,
@@ -51,13 +38,9 @@ export async function GET(request: NextRequest) {
   try {
     const url = new URL(request.url);
 
-    const q = (url.searchParams.get('q') ?? '')
-      .trim()
-      .toLowerCase();
+    const q = (url.searchParams.get('q') ?? '').trim().toLowerCase();
 
-    const role = (
-      url.searchParams.get('role') ?? 'all'
-    ).toLowerCase();
+    const role = (url.searchParams.get('role') ?? 'all').toLowerCase();
 
     const users = await prisma.user.findMany({
       select: {
@@ -75,12 +58,10 @@ export async function GET(request: NextRequest) {
     });
 
     const filtered = users.filter((user) => {
-      const searchableText =
-        `${user.name} ${user.email} ${user.id}`.toLowerCase();
+      const searchableText = `${user.name} ${user.email} ${user.id}`.toLowerCase();
 
       return (
-        (!q || searchableText.includes(q)) &&
-        (role === 'all' || user.role.toLowerCase() === role)
+        (!q || searchableText.includes(q)) && (role === 'all' || user.role.toLowerCase() === role)
       );
     });
 
@@ -94,15 +75,9 @@ export async function GET(request: NextRequest) {
 
       summary: {
         total: users.length,
-        customers: users.filter(
-          (user) => user.role.toLowerCase() === 'customer',
-        ).length,
-        admins: users.filter(
-          (user) => user.role.toLowerCase() === 'admin',
-        ).length,
-        riders: users.filter(
-          (user) => user.role.toLowerCase() === 'rider',
-        ).length,
+        customers: users.filter((user) => user.role.toLowerCase() === 'customer').length,
+        admins: users.filter((user) => user.role.toLowerCase() === 'admin').length,
+        riders: users.filter((user) => user.role.toLowerCase() === 'rider').length,
       },
     });
   } catch (error) {
@@ -150,27 +125,18 @@ export async function POST(request: NextRequest) {
   if (!isValidEmail(email) || !isAllowedRole(role)) {
     return json(
       {
-        error:
-          'Enter a valid email address and select a valid account role.',
+        error: 'Enter a valid email address and select a valid account role.',
       },
       400,
     );
   }
 
-  const rateLimitKey =
-    `admin-invite:${access.user.id}:${requestIp(request)}`;
+  const rateLimitKey = `admin-invite:${access.user.id}:${requestIp(request)}`;
 
-  if (
-    !(await takeRateLimit(
-      rateLimitKey,
-      20,
-      60 * 60_000,
-    ))
-  ) {
+  if (!(await takeRateLimit(rateLimitKey, 20, 60 * 60_000))) {
     return json(
       {
-        error:
-          'You have sent too many invitations. Please try again later.',
+        error: 'You have sent too many invitations. Please try again later.',
       },
       429,
     );
@@ -200,9 +166,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-     
-    const displayName =
-      email.split('@')[0].slice(0, 80) || 'New user';
+    const displayName = email.split('@')[0].slice(0, 80) || 'New user';
 
     const user = await prisma.user.create({
       data: {
@@ -221,20 +185,11 @@ export async function POST(request: NextRequest) {
 
     createdUserId = user.id;
 
-     
-    const sent = await issueEmailCode(
-      user.email,
-      user.name,
-      'invite',
-    );
+    const sent = await issueEmailCode(user.email, user.name, 'invite');
 
     if (!sent) {
-      console.error(
-        '[admin-users] EmailJS did not accept invitation:',
-        user.email,
-      );
+      console.error('[admin-users] EmailJS did not accept invitation:', user.email);
 
-       
       await prisma.user.deleteMany({
         where: {
           id: user.id,
@@ -253,13 +208,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.info(
-      '[admin-users] Invitation accepted by EmailJS:',
-      {
-        email: user.email,
-        role: user.role,
-      },
-    );
+    console.info('[admin-users] Invitation accepted by EmailJS:', {
+      email: user.email,
+      role: user.role,
+    });
 
     return json(
       {
@@ -276,7 +228,6 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('[admin-users] POST failed:', error);
 
-     
     if (createdUserId) {
       try {
         await prisma.user.deleteMany({
@@ -286,17 +237,13 @@ export async function POST(request: NextRequest) {
           },
         });
       } catch (cleanupError) {
-        console.error(
-          '[admin-users] Pending account cleanup failed:',
-          cleanupError,
-        );
+        console.error('[admin-users] Pending account cleanup failed:', cleanupError);
       }
     }
 
     return json(
       {
-        error:
-          'Could not create or invite this account. Please try again.',
+        error: 'Could not create or invite this account. Please try again.',
       },
       500,
     );

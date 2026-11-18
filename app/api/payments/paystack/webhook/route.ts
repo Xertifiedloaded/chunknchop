@@ -14,7 +14,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid webhook payload' }, { status: 400 });
   }
 
-  if (event.event === 'charge.success' && typeof event.data?.reference === 'string') {
+  if (
+    ['charge.success', 'charge.failed'].includes(String(event.event)) &&
+    typeof event.data?.reference === 'string'
+  ) {
     try {
       await verifyAndRecordPaystackPayment(event.data.reference);
     } catch {

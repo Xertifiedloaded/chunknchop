@@ -8,19 +8,21 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(auto()) @map("_id") @db.ObjectId
-  name          String
-  email         String    @unique
-  emailVerified Boolean   @default(false)
-  image         String?
-  role          String    @default("customer")
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  sessions      Session[]
-  accounts      Account[]
+  id                 String             @id @default(auto()) @map("_id") @db.ObjectId
+  name               String
+  email              String             @unique
+  emailVerified      Boolean            @default(false)
+  image              String?
+  role               String             @default("customer")
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  sessions           Session[]
+  accounts           Account[]
   resetOtpHash       String?
-resetOtpExpiresAt  DateTime?
-resetOtpAttempts   Int       @default(0)
+  resetOtpExpiresAt  DateTime?
+  resetOtpAttempts   Int                @default(0)
+  addresses          CustomerAddress[]
+  riderProfile       RiderProfile?
 }
 
 model Session {
@@ -33,7 +35,6 @@ model Session {
   userAgent String?
   userId    String   @db.ObjectId
   user      User     @relation(fields: [userId], references: [id])
-
   @@index([userId])
 }
 
@@ -52,7 +53,6 @@ model Account {
   password              String?
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
-
   @@unique([providerId, accountId])
   @@index([userId])
 }
@@ -64,28 +64,26 @@ model Verification {
   expiresAt  DateTime
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
-
   @@index([identifier])
 }
 
 model Product {
-  id                 String    @id @default(auto()) @map("_id") @db.ObjectId
-  slug               String    @unique
-  name               String
-  description        String
-  cut                String
-  priceCents         Int
-  unit               String
-  imageUrl           String
-  badge              String?
-  category           String
-  published          Boolean   @default(false)
-  discountPercent    Int       @default(0)
-  discountStartsAt   DateTime?
-  discountEndsAt     DateTime?
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
-
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  slug             String   @unique
+  name             String
+  description      String
+  cut              String
+  priceCents       Int
+  unit             String
+  imageUrl         String
+  badge            String?
+  category         String
+  published        Boolean  @default(false)
+  discountPercent  Int      @default(0)
+  discountStartsAt DateTime?
+  discountEndsAt   DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
   @@index([published, category])
   @@index([createdAt])
   @@index([discountPercent, discountStartsAt, discountEndsAt])
@@ -106,9 +104,9 @@ model Coupon {
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt
   redemptions          CouponRedemption[]
-
   @@index([active, startsAt, expiresAt])
 }
+
 model CouponRedemption {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   orderNumber String   @unique
@@ -122,4 +120,95 @@ model NewsletterSubscription {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   email     String   @unique
   createdAt DateTime @default(now())
+}
+
+model CustomerAddress {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String   @db.ObjectId
+  user          User     @relation(fields: [userId], references: [id])
+  label         String
+  fullName      String
+  phone         String
+  addressLine1  String
+  addressLine2  String?
+  area          String
+  city          String
+  state         String
+  postalCode    String?
+  instructions  String?
+  latitude      Float?
+  longitude     Float?
+  isDefault     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  @@index([userId])
+  @@index([city, state])
+}
+
+model RiderProfile {
+  id                 String      @id @default(auto()) @map("_id") @db.ObjectId
+  userId             String      @unique @db.ObjectId
+  user               User        @relation(fields: [userId], references: [id])
+  phone              String
+  photoUrl           String?
+  residentialAddress String
+  vehicleType        String
+  vehicleBrand       String?
+  vehicleModel       String?
+  vehicleColor       String
+  plateNumber        String
+  licenseNumber      String?
+  licenseImageUrl    String?
+  verificationStatus String      @default("pending")
+  isActive           Boolean     @default(false)
+  isAvailable        Boolean     @default(false)
+  currentLatitude    Float?
+  currentLongitude   Float?
+  locationUpdatedAt  DateTime?
+  zones              RiderZone[]
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+  @@index([isActive, isAvailable, verificationStatus])
+}
+
+model DeliveryZone {
+  id               String      @id @default(auto()) @map("_id") @db.ObjectId
+  name             String
+  state            String
+  city             String
+  deliveryFeeCents Int
+  active           Boolean     @default(true)
+  riders           RiderZone[]
+  schedules        DeliverySchedule[]
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  @@unique([name, city, state])
+  @@index([active, city, state])
+}
+
+model RiderZone {
+  id        String       @id @default(auto()) @map("_id") @db.ObjectId
+  riderId   String       @db.ObjectId
+  zoneId    String       @db.ObjectId
+  rider     RiderProfile @relation(fields: [riderId], references: [id])
+  zone      DeliveryZone @relation(fields: [zoneId], references: [id])
+  createdAt DateTime     @default(now())
+  @@unique([riderId, zoneId])
+  @@index([zoneId])
+}
+
+
+model DeliverySchedule {
+  id          String       @id @default(auto()) @map("_id") @db.ObjectId
+  zoneId      String       @db.ObjectId
+  zone        DeliveryZone @relation(fields: [zoneId], references: [id])
+  startsAt    DateTime
+  endsAt      DateTime
+  capacity    Int          @default(10)
+  bookedCount Int          @default(0)
+  active      Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([zoneId, active, startsAt])
 }

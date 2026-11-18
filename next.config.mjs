@@ -3,9 +3,9 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  async redirects() {
-    return [{ source: '/account', destination: '/account/orders', permanent: true }];
-  },
+  // async redirects() {
+  //   return [{ source: '/account', destination: '/account/orders', permanent: true }];
+  // },
   async headers() {
     return [
       {

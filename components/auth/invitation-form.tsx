@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, type FormEvent } from 'react';
@@ -45,9 +44,7 @@ export function InvitationForm({ email: initialEmail }: { email: string }) {
       const result = await response.json().catch(() => null);
 
       if (!response.ok) {
-        throw new Error(
-          result?.error || 'We could not complete your invitation.',
-        );
+        throw new Error(result?.error || 'We could not complete your invitation.');
       }
 
       setSuccess('Your account has been created successfully.');
@@ -89,8 +86,7 @@ export function InvitationForm({ email: initialEmail }: { email: string }) {
         </div>
 
         <h1 className="font-heading text-[25px] font-semibold leading-[1.2] tracking-[-0.045em] text-[#24231f] sm:text-[28px]">
-          Complete your{' '}
-          <em className="font-normal text-[#e86b3e]">invitation.</em>
+          Complete your <em className="font-normal text-[#e86b3e]">invitation.</em>
         </h1>
 
         <p className="mt-2.5 max-w-[330px] text-[12px] leading-[1.7] text-[#817c74]">
@@ -176,9 +172,7 @@ export function InvitationForm({ email: initialEmail }: { email: string }) {
             className="mt-1 flex h-11 w-full items-center justify-between rounded-sm bg-[#e86b3e] px-4 text-[10px] font-bold tracking-[0.12em] text-white transition-colors duration-200 hover:bg-[#c65330] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e86b3e] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <span className="flex items-center gap-2">
-              {pending && (
-                <LoaderCircle size={14} className="animate-spin" />
-              )}
+              {pending && <LoaderCircle size={14} className="animate-spin" />}
               {pending ? 'SETTING UP ACCOUNT' : 'VERIFY AND CREATE ACCOUNT'}
             </span>
             {!pending && <ArrowRight size={15} />}

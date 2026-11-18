@@ -47,6 +47,23 @@ type Address = {
   region: string;
   postalCode: string;
   instructions?: string;
+  isDefault?: boolean;
+};
+
+type ApiAddress = {
+  id?: string;
+  label?: string | null;
+  fullName?: string | null;
+  phone?: string | null;
+  addressLine1?: string | null;
+  addressLine2?: string | null;
+  area?: string | null;
+  city?: string | null;
+  state?: string | null;
+  region?: string | null;
+  postalCode?: string | null;
+  instructions?: string | null;
+  isDefault?: boolean;
 };
 
 type DeliveryZone = {
@@ -114,6 +131,36 @@ function itemLabel(count: number) {
   return `${count} ${count === 1 ? 'item' : 'items'}`;
 }
 
+function normalizeAddress(raw: ApiAddress): Address {
+  return {
+    ...initialAddress,
+    id: raw.id,
+    label: raw.label ?? '',
+    fullName: raw.fullName ?? '',
+    phone: raw.phone ?? '',
+    addressLine1: raw.addressLine1 ?? '',
+    addressLine2: raw.addressLine2 ?? '',
+    area: raw.area ?? '',
+    city: raw.city ?? '',
+    region: raw.state ?? raw.region ?? '',
+    postalCode: raw.postalCode ?? '',
+    instructions: raw.instructions ?? '',
+    isDefault: raw.isDefault,
+  };
+}
+
+function firstDetail(details: unknown): string | undefined {
+  if (!details || typeof details !== 'object') return undefined;
+
+  for (const [key, value] of Object.entries(details as Record<string, unknown>)) {
+    if (Array.isArray(value) && typeof value[0] === 'string') {
+      return `${key}: ${value[0]}`;
+    }
+  }
+
+  return undefined;
+}
+
 function FullPage({ children }: { children: ReactNode }) {
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#f8f8f6] px-5 text-[#24231f]">
@@ -155,6 +202,7 @@ export default function CheckoutPageClient() {
   const [loadingAddresses, setLoadingAddresses] = useState(false);
   const [loadingZones, setLoadingZones] = useState(false);
   const [loadingSchedules, setLoadingSchedules] = useState(false);
+  const [savingAddress, setSavingAddress] = useState(false);
 
   const [editingAddress, setEditingAddress] = useState(true);
   const [notes, setNotes] = useState('');
@@ -210,7 +258,7 @@ export default function CheckoutPageClient() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
-  const fetchAddresses = useCallback(async () => {
+  const fetchAddresses = useCallback(async (preferId?: string) => {
     setLoadingAddresses(true);
 
     try {
@@ -230,26 +278,25 @@ export default function CheckoutPageClient() {
 
       const result = await response.json();
 
-      const list: Address[] = Array.isArray(result)
+      const rawList: ApiAddress[] = Array.isArray(result)
         ? result
-        : Array.isArray(result.addresses)
+        : Array.isArray(result?.addresses)
           ? result.addresses
           : [];
 
+      const list = rawList.map(normalizeAddress);
+
       setAddresses(list);
 
-      const defaultAddress =
-        list.find((item) => item.id && item.id === result.defaultAddressId) ||
-        list.find((item) => (item as Address & { isDefault?: boolean }).isDefault) ||
+      const chosen =
+        (preferId ? list.find((item) => item.id === preferId) : undefined) ||
+        list.find((item) => item.id && item.id === result?.defaultAddressId) ||
+        list.find((item) => item.isDefault) ||
         list[0];
 
-      if (defaultAddress) {
-        setAddress({
-          ...initialAddress,
-          ...defaultAddress,
-        });
-
-        setSelectedAddressId(defaultAddress.id ?? '');
+      if (chosen) {
+        setAddress(chosen);
+        setSelectedAddressId(chosen.id ?? '');
         setEditingAddress(false);
       }
     } catch (err) {
@@ -279,13 +326,13 @@ export default function CheckoutPageClient() {
         cache: 'no-store',
       });
 
-      const result = await response.json();
+      const result = await response.json().catch(() => null);
 
       if (!response.ok) {
         throw new Error(result?.error || 'Unable to load delivery areas.');
       }
 
-      const list: DeliveryZone[] = Array.isArray(result.zones)
+      const list: DeliveryZone[] = Array.isArray(result?.zones)
         ? result.zones.filter((zone: DeliveryZone) => zone.active)
         : [];
 
@@ -321,13 +368,13 @@ export default function CheckoutPageClient() {
         cache: 'no-store',
       });
 
-      const result = await response.json();
+      const result = await response.json().catch(() => null);
 
       if (!response.ok) {
         throw new Error(result?.error || 'Unable to load delivery schedules.');
       }
 
-      const list: DeliverySchedule[] = Array.isArray(result.schedules)
+      const list: DeliverySchedule[] = Array.isArray(result?.schedules)
         ? result.schedules.filter(
             (slot: DeliverySchedule) =>
               slot.available &&
@@ -355,9 +402,13 @@ export default function CheckoutPageClient() {
   }, [user, fetchAddresses]);
 
   useEffect(() => {
-    if (showAddress) {
+    if (!showAddress) return;
+
+    const timer = setTimeout(() => {
       void fetchZones(address.city, address.region);
-    }
+    }, 400);
+
+    return () => clearTimeout(timer);
   }, [showAddress, address.city, address.region, fetchZones]);
 
   useEffect(() => {
@@ -369,10 +420,27 @@ export default function CheckoutPageClient() {
     }
   }, [showAddress, selectedZoneId, fetchSchedules]);
 
+  useEffect(() => {
+    if (!showAddress || selectedZoneId || zones.length === 0) return;
+
+    const area = (address.area ?? '').trim().toLowerCase();
+
+    const pick =
+      zones.find((zone) => zone.name.trim().toLowerCase() === area) ??
+      (zones.length === 1 ? zones[0] : undefined);
+
+    if (pick) {
+      setSelectedZoneId(pick.id);
+      invalidateCheckoutRequest();
+    }
+  }, [zones, address.area, selectedZoneId, showAddress, invalidateCheckoutRequest]);
+
   const selectedAddress = useMemo(
     () => addresses.find((item) => item.id === selectedAddressId),
     [addresses, selectedAddressId],
   );
+
+  void selectedAddress;
 
   function chooseAddress(item: Address) {
     setAddress({
@@ -397,9 +465,25 @@ export default function CheckoutPageClient() {
   }
 
   async function saveAddress() {
-    if (!validateAddress()) return;
+    if (!validateAddress() || savingAddress) return;
+
+    setSavingAddress(true);
 
     try {
+      const payload = {
+        label: address.label || 'Home',
+        fullName: address.fullName,
+        phone: address.phone,
+        addressLine1: address.addressLine1,
+        addressLine2: address.addressLine2 ?? '',
+        area: address.area ?? '',
+        city: address.city,
+        state: address.region,
+        postalCode: address.postalCode ?? '',
+        instructions: address.instructions ?? '',
+        isDefault: address.isDefault ?? addresses.length === 0,
+      };
+
       const response = await fetch(
         selectedAddressId
           ? `/api/account/addresses/${selectedAddressId}`
@@ -410,33 +494,29 @@ export default function CheckoutPageClient() {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            ...address,
-            label: address.label || 'Home',
-          }),
+          body: JSON.stringify(payload),
         },
       );
 
-      const result = await response.json();
+      const result = await response.json().catch(() => null);
 
       if (!response.ok) {
         throw new Error(result?.error || 'Unable to save your address.');
       }
 
-      const saved: Address = result.address ?? result;
+      const saved = normalizeAddress((result?.address ?? result) as ApiAddress);
 
-      setAddress({
-        ...initialAddress,
-        ...saved,
-      });
-
+      setAddress(saved);
       setSelectedAddressId(saved.id ?? '');
       setEditingAddress(false);
-
-      await fetchAddresses();
       setError('');
+      invalidateCheckoutRequest();
+
+      await fetchAddresses(saved.id);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to save your address.');
+    } finally {
+      setSavingAddress(false);
     }
   }
 
@@ -493,7 +573,11 @@ export default function CheckoutPageClient() {
       if (!validateAddress()) return;
 
       if (!selectedZoneId) {
-        setError('Please select your delivery area.');
+        setError(
+          zones.length === 0
+            ? 'We don’t deliver to this city and state yet. Check your address or contact ChunkNChop.'
+            : 'Please select your delivery area from the list below.',
+        );
         return;
       }
     }
@@ -589,34 +673,44 @@ export default function CheckoutPageClient() {
     checkoutRequestId.current ??= crypto.randomUUID();
 
     try {
+      const base = {
+        deliveryMethod,
+        deliveryNotes: notes,
+        couponCode: appliedCoupon?.code,
+        checkoutRequestId: checkoutRequestId.current,
+      };
+
+      const body = showAddress
+        ? {
+            ...base,
+            fullName: address.fullName,
+            phone: address.phone,
+            addressLine1: address.addressLine1,
+            addressLine2: address.addressLine2 ?? '',
+            area: address.area ?? '',
+            city: address.city,
+            state: address.region,
+            postalCode: address.postalCode ?? '',
+            zoneId: selectedZoneId,
+            deliverySlotId: selectedScheduleId,
+          }
+        : base;
+
       const response = await fetch('/api/checkout', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          ...address,
-          deliveryMethod,
-
-          zoneId: showAddress ? selectedZoneId : undefined,
-
-          scheduleId: showAddress ? selectedScheduleId : undefined,
-
-          deliveryDate: showAddress ? selectedSchedule?.date : undefined,
-
-          deliveryWindow:
-            showAddress && selectedSchedule ? formatSlot(selectedSchedule) : undefined,
-
-          deliveryNotes: notes,
-          couponCode: appliedCoupon?.code,
-          checkoutRequestId: checkoutRequestId.current,
-        }),
+        body: JSON.stringify(body),
       });
 
       const result = await response.json().catch(() => null);
 
       if (!response.ok) {
-        throw new Error(result?.error || 'We couldn’t place your order. Please try again.');
+        const detail = firstDetail(result?.details);
+        const message = result?.error || 'We couldn’t place your order. Please try again.';
+
+        throw new Error(detail ? `${message} (${detail})` : message);
       }
 
       const checkout = result as CheckoutResponse;
@@ -755,7 +849,7 @@ export default function CheckoutPageClient() {
       field: 'area',
       label: 'Area / neighbourhood',
       autoComplete: 'address-level3',
-      maxLength: 100,
+      maxLength: 80,
       placeholder: 'e.g. Kuto, Ibara, Oke-Ilewo',
       full: true,
     },
@@ -1008,7 +1102,15 @@ export default function CheckoutPageClient() {
                               {addresses.length > 0 && (
                                 <button
                                   type="button"
-                                  onClick={() => setEditingAddress(false)}
+                                  onClick={() => {
+                                    setEditingAddress(false);
+
+                                    const original = addresses.find(
+                                      (item) => item.id === selectedAddressId,
+                                    );
+
+                                    if (original) setAddress(original);
+                                  }}
                                   className={editLink}
                                 >
                                   Cancel
@@ -1073,10 +1175,15 @@ export default function CheckoutPageClient() {
 
                             <button
                               type="button"
+                              disabled={savingAddress}
                               onClick={() => void saveAddress()}
                               className={primaryButton}
                             >
-                              <Check size={12} />
+                              {savingAddress ? (
+                                <LoaderCircle size={12} className="animate-spin" />
+                              ) : (
+                                <Check size={12} />
+                              )}
                               Save address
                             </button>
                           </div>

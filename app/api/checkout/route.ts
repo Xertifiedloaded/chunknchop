@@ -21,6 +21,7 @@ import {
 } from '@/lib/paystack';
 
 const deliveryMethods = ['home', 'pickup'] as const;
+const objectId = /^[a-f\d]{24}$/i;
 
 const checkoutSchema = z
   .object({
@@ -37,12 +38,11 @@ const checkoutSchema = z
     postalCode: z.string().trim().max(20).default(''),
 
     deliveryMethod: z.enum(deliveryMethods).default('home'),
+
+    zoneId: z.string().regex(objectId).optional(),
+    deliverySlotId: z.string().regex(objectId).optional(),
     deliveryDate: z.string().optional(),
     deliveryWindow: z.string().max(80).optional(),
-    deliverySlotId: z
-      .string()
-      .regex(/^[a-f\d]{24}$/i)
-      .optional(),
 
     deliveryNotes: z.string().trim().max(500).default(''),
 
@@ -124,6 +124,14 @@ const checkoutSchema = z
         });
       }
 
+      if (!data.zoneId) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['zoneId'],
+          message: 'Choose a delivery area',
+        });
+      }
+
       if (!data.deliverySlotId) {
         context.addIssue({
           code: z.ZodIssueCode.custom,
@@ -133,7 +141,7 @@ const checkoutSchema = z
       }
     }
 
-    if (data.deliveryDate && !/^\d{4}-\d{2}-\d{2}$/.test(data.deliveryDate)) {
+    if (data.deliveryDate && !/^\d{4}-\d{2}-\d{2}/.test(data.deliveryDate)) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['deliveryDate'],
@@ -388,21 +396,10 @@ export async function POST(request: Request) {
   }
 
   const deliveryZone =
-    data.deliveryMethod === 'home'
+    data.deliveryMethod === 'home' && data.zoneId
       ? await prisma.deliveryZone.findFirst({
           where: {
-            name: {
-              equals: data.area,
-              mode: 'insensitive',
-            },
-            city: {
-              equals: data.city,
-              mode: 'insensitive',
-            },
-            state: {
-              equals: deliveryState,
-              mode: 'insensitive',
-            },
+            id: data.zoneId,
             active: true,
           },
         })
@@ -412,7 +409,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         error:
-          'Home delivery is not configured for this area yet. Choose a supported delivery zone or contact us.',
+          'That delivery area is no longer available. Choose another delivery area or contact us.',
       },
       { status: 400 },
     );
@@ -492,6 +489,7 @@ export async function POST(request: Request) {
     state: data.deliveryMethod === 'home' ? deliveryState : '',
     region: data.deliveryMethod === 'home' ? deliveryState : '',
     postalCode: data.deliveryMethod === 'home' ? data.postalCode : '',
+    zoneName: deliveryZone?.name ?? null,
     deliveryNotes: data.deliveryNotes,
     deliverySlotId: deliverySlot?.id ?? null,
     deliveryDate: deliverySlot?.startsAt.toISOString() ?? null,

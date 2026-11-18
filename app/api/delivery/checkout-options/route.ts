@@ -8,6 +8,7 @@ const TIME_ZONE = 'Africa/Lagos';
 
 const noStore = { headers: { 'Cache-Control': 'private, no-store' } };
 
+ 
 const dateFormatter = new Intl.DateTimeFormat('en-CA', {
   timeZone: TIME_ZONE,
   year: 'numeric',
@@ -24,9 +25,14 @@ function formatTime(date: Date) {
   });
 }
 
+
 function stripState(value: string) {
   return value.replace(/\s+state$/i, '').trim();
 }
+
+
+
+
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -49,7 +55,7 @@ export async function GET(request: Request) {
     });
 
     const schedules = rows
-
+       
       .filter((row) => row.bookedCount < row.capacity)
       .map((row) => ({
         id: row.id,
@@ -66,17 +72,16 @@ export async function GET(request: Request) {
   const city = searchParams.get('city')?.trim();
   const state = searchParams.get('state')?.trim();
 
-  if (!city || !state) {
-    return NextResponse.json({ zones: [] }, noStore);
-  }
-
+   
   const rows = await prisma.deliveryZone.findMany({
     where: {
       active: true,
-      city: { equals: city, mode: 'insensitive' },
-      state: { contains: stripState(state), mode: 'insensitive' },
+      ...(city ? { city: { equals: city, mode: 'insensitive' as const } } : {}),
+      ...(state
+        ? { state: { contains: stripState(state), mode: 'insensitive' as const } }
+        : {}),
     },
-    orderBy: { name: 'asc' },
+    orderBy: [{ state: 'asc' }, { city: 'asc' }, { name: 'asc' }],
   });
 
   const zones = rows.map((zone) => ({

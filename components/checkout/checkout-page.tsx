@@ -35,6 +35,7 @@ type CouponValidationResponse = {
 
 type DeliveryMethod = 'home' | 'pickup';
 
+
 type Address = {
   id?: string;
   label?: string;
@@ -49,6 +50,7 @@ type Address = {
   instructions?: string;
   isDefault?: boolean;
 };
+
 
 type ApiAddress = {
   id?: string;
@@ -131,6 +133,7 @@ function itemLabel(count: number) {
   return `${count} ${count === 1 ? 'item' : 'items'}`;
 }
 
+
 function normalizeAddress(raw: ApiAddress): Address {
   return {
     ...initialAddress,
@@ -148,6 +151,7 @@ function normalizeAddress(raw: ApiAddress): Address {
     isDefault: raw.isDefault,
   };
 }
+
 
 function firstDetail(details: unknown): string | undefined {
   if (!details || typeof details !== 'object') return undefined;
@@ -258,6 +262,10 @@ export default function CheckoutPageClient() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
+  
+
+
+
   const fetchAddresses = useCallback(async (preferId?: string) => {
     setLoadingAddresses(true);
 
@@ -306,22 +314,11 @@ export default function CheckoutPageClient() {
     }
   }, []);
 
-  const fetchZones = useCallback(async (city: string, state: string) => {
-    if (!city.trim() || !state.trim()) {
-      setZones([]);
-      setSelectedZoneId('');
-      return;
-    }
-
+  const fetchZones = useCallback(async () => {
     setLoadingZones(true);
 
     try {
-      const params = new URLSearchParams({
-        city: city.trim(),
-        state: state.trim(),
-      });
-
-      const response = await fetch(`/api/delivery/checkout-options?${params.toString()}`, {
+      const response = await fetch('/api/delivery/checkout-options', {
         credentials: 'include',
         cache: 'no-store',
       });
@@ -401,15 +398,10 @@ export default function CheckoutPageClient() {
     }
   }, [user, fetchAddresses]);
 
+   
   useEffect(() => {
-    if (!showAddress) return;
-
-    const timer = setTimeout(() => {
-      void fetchZones(address.city, address.region);
-    }, 400);
-
-    return () => clearTimeout(timer);
-  }, [showAddress, address.city, address.region, fetchZones]);
+    if (showAddress) void fetchZones();
+  }, [showAddress, fetchZones]);
 
   useEffect(() => {
     if (showAddress && selectedZoneId) {
@@ -420,20 +412,26 @@ export default function CheckoutPageClient() {
     }
   }, [showAddress, selectedZoneId, fetchSchedules]);
 
+   
   useEffect(() => {
     if (!showAddress || selectedZoneId || zones.length === 0) return;
 
     const area = (address.area ?? '').trim().toLowerCase();
+    const city = (address.city ?? '').trim().toLowerCase();
 
-    const pick =
-      zones.find((zone) => zone.name.trim().toLowerCase() === area) ??
-      (zones.length === 1 ? zones[0] : undefined);
+    if (!area) return;
+
+    const pick = zones.find(
+      (zone) =>
+        zone.name.trim().toLowerCase() === area &&
+        (!city || zone.city.trim().toLowerCase() === city),
+    );
 
     if (pick) {
       setSelectedZoneId(pick.id);
       invalidateCheckoutRequest();
     }
-  }, [zones, address.area, selectedZoneId, showAddress, invalidateCheckoutRequest]);
+  }, [zones, address.area, address.city, selectedZoneId, showAddress, invalidateCheckoutRequest]);
 
   const selectedAddress = useMemo(
     () => addresses.find((item) => item.id === selectedAddressId),
@@ -464,12 +462,30 @@ export default function CheckoutPageClient() {
     invalidateCheckoutRequest();
   }
 
+  function chooseZone(zoneId: string) {
+    const zone = zones.find((item) => item.id === zoneId);
+
+    setSelectedZoneId(zone?.id ?? '');
+    setSelectedScheduleId('');
+
+     
+    setAddress((current) => ({
+      ...current,
+      area: zone?.name ?? '',
+      city: zone?.city ?? '',
+      region: zone?.state ?? '',
+    }));
+
+    invalidateCheckoutRequest();
+  }
+
   async function saveAddress() {
     if (!validateAddress() || savingAddress) return;
 
     setSavingAddress(true);
 
     try {
+       
       const payload = {
         label: address.label || 'Home',
         fullName: address.fullName,
@@ -531,7 +547,7 @@ export default function CheckoutPageClient() {
     ];
 
     if (requiredFields.some((field) => !String(address[field] ?? '').trim())) {
-      setError('Please complete your name, phone, street address, area, city and state.');
+      setError('Please complete your name, phone, street address and delivery area.');
 
       return false;
     }
@@ -673,6 +689,7 @@ export default function CheckoutPageClient() {
     checkoutRequestId.current ??= crypto.randomUUID();
 
     try {
+       
       const base = {
         deliveryMethod,
         deliveryNotes: notes,
@@ -802,6 +819,34 @@ export default function CheckoutPageClient() {
       text: 'Continue to Paystack to complete your payment securely.',
     },
   };
+
+  const zoneGroups = Object.entries(
+    zones.reduce<Record<string, DeliveryZone[]>>((groups, zone) => {
+      const key = `${zone.city}, ${zone.state}`;
+
+      (groups[key] ??= []).push(zone);
+
+      return groups;
+    }, {}),
+  );
+
+  const areaOptions = (
+    <>
+      <option value="">
+        {loadingZones && zones.length === 0 ? 'Loading areas...' : 'Select your area'}
+      </option>
+
+      {zoneGroups.map(([group, groupZones]) => (
+        <optgroup key={group} label={group}>
+          {groupZones.map((zone) => (
+            <option key={zone.id} value={zone.id}>
+              {zone.name} — {formatPrice(zone.deliveryFeeCents)}
+            </option>
+          ))}
+        </optgroup>
+      ))}
+    </>
+  );
 
   const textFields: {
     field: keyof Address;
@@ -1105,6 +1150,7 @@ export default function CheckoutPageClient() {
                                   onClick={() => {
                                     setEditingAddress(false);
 
+                                     
                                     const original = addresses.find(
                                       (item) => item.id === selectedAddressId,
                                     );
@@ -1142,34 +1188,85 @@ export default function CheckoutPageClient() {
                                   type,
                                   full,
                                   optional,
-                                }) => (
-                                  <label
-                                    key={field}
-                                    className={`${labelClass} ${full ? 'sm:col-span-2' : ''}`}
-                                  >
-                                    <span>
-                                      {label}
-                                      {optional ? (
-                                        <span className="font-normal text-[#88847d]">
-                                          {' '}
-                                          (optional)
-                                        </span>
-                                      ) : (
-                                        ' *'
-                                      )}
-                                    </span>
+                                }) => {
+                                  if (field === 'area') {
+                                    const noAreas = !loadingZones && zones.length === 0;
+                                    const staleArea =
+                                      !loadingZones &&
+                                      zones.length > 0 &&
+                                      !selectedZoneId &&
+                                      !!address.area?.trim();
 
-                                    <input
-                                      className={inputClass}
-                                      value={String(address[field] ?? '')}
-                                      onChange={(event) => updateAddress(field, event.target.value)}
-                                      type={type ?? 'text'}
-                                      autoComplete={autoComplete}
-                                      maxLength={maxLength}
-                                      placeholder={placeholder}
-                                    />
-                                  </label>
-                                ),
+                                    return (
+                                      <label key={field} className={`${labelClass} sm:col-span-2`}>
+                                        <span>{label} *</span>
+
+                                        <select
+                                          className={inputClass}
+                                          value={selectedZoneId}
+                                          disabled={loadingZones && zones.length === 0}
+                                          onChange={(event) => chooseZone(event.target.value)}
+                                        >
+                                          {areaOptions}
+                                        </select>
+
+                                        {noAreas && (
+                                          <span className="text-[10px] font-normal text-amber-700">
+                                            No delivery areas are available right now. Please
+                                            contact ChunkNChop.
+                                          </span>
+                                        )}
+
+                                        {staleArea && (
+                                          <span className="text-[10px] font-normal text-amber-700">
+                                            We no longer deliver to {address.area}. Pick another
+                                            area.
+                                          </span>
+                                        )}
+                                      </label>
+                                    );
+                                  }
+
+                                   
+                                  const locked = field === 'city' || field === 'region';
+
+                                  return (
+                                    <label
+                                      key={field}
+                                      className={`${labelClass} ${full ? 'sm:col-span-2' : ''}`}
+                                    >
+                                      <span>
+                                        {label}
+                                        {optional ? (
+                                          <span className="font-normal text-[#88847d]">
+                                            {' '}
+                                            (optional)
+                                          </span>
+                                        ) : (
+                                          ' *'
+                                        )}
+                                      </span>
+
+                                      <input
+                                        className={`${inputClass} ${
+                                          locked ? 'bg-[#f8f8f6] text-[#77736d]' : ''
+                                        }`}
+                                        value={String(address[field] ?? '')}
+                                        onChange={(event) =>
+                                          updateAddress(field, event.target.value)
+                                        }
+                                        readOnly={locked}
+                                        tabIndex={locked ? -1 : undefined}
+                                        type={type ?? 'text'}
+                                        autoComplete={autoComplete}
+                                        maxLength={maxLength}
+                                        placeholder={
+                                          locked ? 'Filled in when you pick your area' : placeholder
+                                        }
+                                      />
+                                    </label>
+                                  );
+                                },
                               )}
                             </div>
 
@@ -1192,50 +1289,35 @@ export default function CheckoutPageClient() {
                     )}
 
                     <div className="border-t border-[#e9e6df] pt-4">
-                      <p className={sectionLabel}>DELIVERY AREA</p>
+                      <p className={sectionLabel}>DELIVERY FEE</p>
 
-                      <p className="mb-2 text-[10px] leading-5 text-[#77736d]">
-                        Available delivery zones and prices are managed by ChunkNChop.
-                      </p>
-
-                      {loadingZones ? (
+                      {loadingZones && zones.length === 0 ? (
                         <div className="flex items-center gap-2 text-[10px] text-[#77736d]">
                           <LoaderCircle size={13} className="animate-spin" />
-                          Checking delivery zones...
+                          Loading delivery areas...
                         </div>
-                      ) : zones.length > 0 ? (
-                        <select
-                          className={inputClass}
-                          value={selectedZoneId}
-                          onChange={(event) => {
-                            setSelectedZoneId(event.target.value);
-                            setSelectedScheduleId('');
-                            invalidateCheckoutRequest();
-                          }}
-                        >
-                          <option value="">Select your delivery area</option>
-
-                          {zones.map((zone) => (
-                            <option key={zone.id} value={zone.id}>
-                              {zone.name} — {formatPrice(zone.deliveryFeeCents)}
-                            </option>
-                          ))}
-                        </select>
-                      ) : (
-                        <p className="border border-amber-200 bg-amber-50 p-3 text-[10px] leading-5 text-amber-800">
-                          {address.city && address.region
-                            ? 'No active delivery zone is available for this location. Please contact ChunkNChop.'
-                            : 'Enter your city and state to check available delivery zones.'}
-                        </p>
-                      )}
-
-                      {selectedZone && (
-                        <p className="mt-2 text-[10px] text-[#77736d]">
-                          Delivery to {selectedZone.name}:{' '}
+                      ) : selectedZone ? (
+                        <p className="m-0 text-[10px] text-[#77736d]">
+                          Delivery to {selectedZone.name}, {selectedZone.city}:{' '}
                           <strong className="text-[#24231f]">
                             {formatPrice(selectedZone.deliveryFeeCents)}
                           </strong>
                         </p>
+                      ) : editingAddress ? (
+                        <p className="m-0 text-[10px] leading-5 text-[#77736d]">
+                          Pick your area above to see the delivery fee.
+                        </p>
+                      ) : (
+                        <label className={labelClass}>
+                          Choose your delivery area *
+                          <select
+                            className={inputClass}
+                            value={selectedZoneId}
+                            onChange={(event) => chooseZone(event.target.value)}
+                          >
+                            {areaOptions}
+                          </select>
+                        </label>
                       )}
                     </div>
                   </div>

@@ -415,7 +415,7 @@ export default function OrderDashboard() {
 
               const remainingItems = Math.max(items.length - 1, 0);
 
-              const orderUrl = `/account/orders/${encodeURIComponent(order.orderNumber)}`;
+              const orderUrl = `/account/orders/${encodeURIComponent(order.orderNumber)}/track`;
 
               const orderTotal = order.totalCents ?? order.subtotalCents;
 

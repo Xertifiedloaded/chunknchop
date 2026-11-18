@@ -36,6 +36,7 @@ const navigation = [
       { label: 'Orders', href: '/admin/orders', icon: ShoppingBag },
       { label: 'Coupons', href: '/admin/coupons', icon: ChefHat },
       { label: 'Delivery', href: '/admin/delivery', icon: Truck },
+      { label: 'Riders', href: '/admin/riders', icon: Truck },
     ],
   },
   {

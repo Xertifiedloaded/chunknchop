@@ -11,6 +11,7 @@ type StoredOrder = {
   paymentStatus?: string;
   status?: string;
   deliveryZoneId?: string;
+  delivery?: { city?: string };
 };
 type Ctx = { params: Promise<{ orderNumber: string }> };
 const input = z.object({ email: z.string().trim().email().max(254) }).strict();
@@ -61,8 +62,29 @@ export async function POST(req: Request, { params }: Ctx) {
       { error: 'Rider must have an approved, active and available profile' },
       { status: 409 },
     );
-  if (!order.deliveryZoneId || !profile.zones.some((z) => z.zoneId === order.deliveryZoneId))
+
+   
+   
+  let orderZoneIds: string[] = [];
+  if (order.deliveryZoneId) {
+    orderZoneIds = [order.deliveryZoneId];
+  } else if (order.delivery?.city?.trim()) {
+    const zones = await prisma.deliveryZone.findMany({
+      where: { active: true, city: { equals: order.delivery.city.trim(), mode: 'insensitive' } },
+      select: { id: true },
+    });
+    orderZoneIds = zones.map((z) => z.id);
+  }
+  if (!orderZoneIds.length)
+    return NextResponse.json(
+      {
+        error: `No delivery zone is set up for ${order.delivery?.city || 'this address'}. Add a delivery zone first.`,
+      },
+      { status: 409 },
+    );
+  if (!profile.zones.some((z) => orderZoneIds.includes(z.zoneId)))
     return NextResponse.json({ error: 'Rider does not serve this delivery zone' }, { status: 409 });
+
   const at = new Date().toISOString();
   const result = await updateMongoDocument(
     'StoreOrder',

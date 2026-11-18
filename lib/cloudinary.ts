@@ -1,6 +1,7 @@
 import { createHash, randomUUID } from 'node:crypto';
 
 const PRODUCT_FOLDER = 'field-fable/products';
+const RIDER_FOLDER = 'field-fable/riders';
 
 export class CloudinaryConfigurationError extends Error {
   constructor() {
@@ -30,19 +31,19 @@ function createSignature(values: Record<string, string>, secret: string) {
   return createHash('sha1').update(`${payload}${secret}`).digest('hex');
 }
 
-export async function uploadCloudinaryProductImage(file: File, contentType: string) {
+async function uploadCloudinaryImage(file: File, contentType: string, folder: string) {
   const config = getCloudinaryConfig();
   const timestamp = Math.floor(Date.now() / 1000).toString();
   const publicId = randomUUID();
-  const values = { folder: PRODUCT_FOLDER, public_id: publicId, timestamp };
+  const values = { folder, public_id: publicId, timestamp };
   const form = new FormData();
   form.set(
     'file',
     new Blob([await file.arrayBuffer()], { type: contentType }),
-    file.name || 'product-image',
+    file.name || 'image',
   );
   form.set('api_key', config.apiKey);
-  form.set('folder', PRODUCT_FOLDER);
+  form.set('folder', folder);
   form.set('public_id', publicId);
   form.set('timestamp', timestamp);
   form.set('signature', createSignature(values, config.apiSecret));
@@ -62,6 +63,14 @@ export async function uploadCloudinaryProductImage(file: File, contentType: stri
     );
   }
   return result.secure_url;
+}
+
+export function uploadCloudinaryProductImage(file: File, contentType: string) {
+  return uploadCloudinaryImage(file, contentType, PRODUCT_FOLDER);
+}
+
+export function uploadCloudinaryRiderImage(file: File, contentType: string) {
+  return uploadCloudinaryImage(file, contentType, RIDER_FOLDER);
 }
 
 function getCloudinaryPublicId(imageUrl: string, cloudName: string) {

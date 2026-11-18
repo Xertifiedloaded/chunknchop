@@ -21,6 +21,7 @@
     "lucide-react": "^1.16.0",
     "next": "16.4.3",
     "pusher": "^5.3.4",
+    "pusher-js": "^8.6.0",
     "react": "^19",
     "react-dom": "^19",
     "react-hot-toast": "^2.6.1",

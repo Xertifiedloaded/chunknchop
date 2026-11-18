@@ -20,6 +20,7 @@ model User {
   accounts           Account[]
   resetOtpHash       String?
   resetOtpExpiresAt  DateTime?
+  resetOtpCreatedAt  DateTime?
   resetOtpAttempts   Int                @default(0)
   addresses          CustomerAddress[]
   riderProfile       RiderProfile?

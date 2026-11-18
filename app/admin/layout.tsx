@@ -1,15 +1,18 @@
+
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
+
 import { getSession } from '@/lib/auth';
 import { isAdminUser } from '@/lib/admin-api';
 import AdminShell from '@/components/admin/admin-shell';
 
 function formatRole(role?: string | null) {
   if (!role) return 'Admin';
+
   return role
     .toLowerCase()
     .split('_')
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
 }
 
@@ -32,7 +35,7 @@ export default async function AdminLayout({
     <AdminShell
       userEmail={session.user.email ?? ''}
       userName={session.user.name ?? ''}
-      userRole={formatRole(session.user.staffRole)}
+      userRole={formatRole(session.user.role)}
       unreadMessages
       notificationCount={4}
     >

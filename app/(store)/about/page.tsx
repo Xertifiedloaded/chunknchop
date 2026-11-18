@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+
 import {
   ArrowRight,
   ArrowUpRight,
@@ -14,8 +15,6 @@ import {
   ShoppingBag,
   Scissors,
   Beef,
-  Instagram,
-  MessageCircle,
 } from 'lucide-react';
 
 const values = [

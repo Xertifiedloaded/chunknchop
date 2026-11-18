@@ -1,6 +1,8 @@
+
 import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import { z } from 'zod';
+
 import { getSession } from '@/lib/auth';
 import { hasSameOrigin } from '@/lib/admin-api';
 import { prisma } from '@/lib/prisma';
@@ -20,23 +22,35 @@ type StoredCart = {
 
 export async function POST(request: Request) {
   if (!hasSameOrigin(request)) {
-    return NextResponse.json({ error: 'Invalid request origin' }, { status: 403 });
+    return NextResponse.json(
+      { error: 'Invalid request origin' },
+      { status: 403 },
+    );
   }
 
   const session = await getSession(await headers());
 
   if (!session?.user) {
-    return NextResponse.json({ error: 'Sign in before applying a coupon' }, { status: 401 });
+    return NextResponse.json(
+      { error: 'Sign in before applying a coupon' },
+      { status: 401 },
+    );
   }
 
   const body = await request.json().catch(() => null);
   const parsed = schema.safeParse(body);
 
   if (!parsed.success) {
-    return NextResponse.json({ error: 'Enter a valid coupon code' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'Enter a valid coupon code' },
+      { status: 400 },
+    );
   }
 
-  const cart = await findMongoDocument<StoredCart>('UserCart', session.user.id);
+  const cart = await findMongoDocument<StoredCart>(
+    'UserCart',
+    session.user.id,
+  );
 
   const cartItems = (cart?.items ?? []).filter(
     (item): item is { slug: string; quantity: number } =>
@@ -47,7 +61,10 @@ export async function POST(request: Request) {
   );
 
   if (!cartItems.length) {
-    return NextResponse.json({ error: 'Your bag is empty' }, { status: 409 });
+    return NextResponse.json(
+      { error: 'Your bag is empty' },
+      { status: 409 },
+    );
   }
 
   const slugs = [...new Set(cartItems.map((item) => item.slug))];
@@ -73,14 +90,19 @@ export async function POST(request: Request) {
     );
   }
 
-  const productMap = new Map(products.map((product) => [product.slug, product]));
+  const productMap = new Map(
+    products.map((product) => [product.slug, product]),
+  );
 
   const subtotalCents = cartItems.reduce((total, item) => {
     const product = productMap.get(item.slug);
 
     if (!product) return total;
 
-    return total + getEffectiveProductPrice(product) * item.quantity;
+    return (
+      total +
+      getEffectiveProductPrice(product) * item.quantity
+    );
   }, 0);
 
   const code = parsed.data.code.trim().toUpperCase();
@@ -89,19 +111,27 @@ export async function POST(request: Request) {
     where: { code },
   });
 
+  if (!coupon) {
+    return NextResponse.json(
+      { error: 'Coupon does not exist. Check the saved coupon code.' },
+      { status: 400 },
+    );
+  }
+
   const now = new Date();
 
   let failureReason: string | null = null;
 
-  if (!coupon) {
-    failureReason = 'Coupon does not exist. Check the saved coupon code.';
-  } else if (!coupon.active) {
+  if (!coupon.active) {
     failureReason = 'This coupon is inactive.';
   } else if (coupon.startsAt && coupon.startsAt > now) {
     failureReason = 'This coupon is not active yet.';
   } else if (coupon.expiresAt && coupon.expiresAt < now) {
     failureReason = 'This coupon has expired.';
-  } else if (coupon.usageLimit !== null && coupon.usageCount >= coupon.usageLimit) {
+  } else if (
+    coupon.usageLimit !== null &&
+    coupon.usageCount >= coupon.usageLimit
+  ) {
     failureReason = 'This coupon has reached its usage limit.';
   }
 
@@ -109,19 +139,20 @@ export async function POST(request: Request) {
     console.error('[COUPON VALIDATION]', {
       code,
       failureReason,
-      coupon: coupon
-        ? {
-            code: coupon.code,
-            active: coupon.active,
-            startsAt: coupon.startsAt,
-            expiresAt: coupon.expiresAt,
-            usageLimit: coupon.usageLimit,
-            usageCount: coupon.usageCount,
-          }
-        : null,
+      coupon: {
+        code: coupon.code,
+        active: coupon.active,
+        startsAt: coupon.startsAt,
+        expiresAt: coupon.expiresAt,
+        usageLimit: coupon.usageLimit,
+        usageCount: coupon.usageCount,
+      },
     });
 
-    return NextResponse.json({ error: failureReason }, { status: 400 });
+    return NextResponse.json(
+      { error: failureReason },
+      { status: 400 },
+    );
   }
 
   if (subtotalCents < coupon.minimumOrderCents) {
@@ -134,14 +165,19 @@ export async function POST(request: Request) {
   let discountCents = 0;
 
   if (coupon.discountType === 'PERCENTAGE') {
-    if (coupon.discountValue < 1 || coupon.discountValue > 100) {
+    if (
+      coupon.discountValue < 1 ||
+      coupon.discountValue > 100
+    ) {
       return NextResponse.json(
         { error: 'This coupon has an invalid discount configuration' },
         { status: 400 },
       );
     }
 
-    discountCents = Math.round((subtotalCents * coupon.discountValue) / 100);
+    discountCents = Math.round(
+      (subtotalCents * coupon.discountValue) / 100,
+    );
   } else if (coupon.discountType === 'FIXED') {
     if (coupon.discountValue < 1) {
       return NextResponse.json(
@@ -159,7 +195,10 @@ export async function POST(request: Request) {
   }
 
   if (coupon.maximumDiscountCents !== null) {
-    discountCents = Math.min(discountCents, coupon.maximumDiscountCents);
+    discountCents = Math.min(
+      discountCents,
+      coupon.maximumDiscountCents,
+    );
   }
 
   discountCents = Math.min(discountCents, subtotalCents);

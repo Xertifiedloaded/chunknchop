@@ -12,9 +12,12 @@ import {
   Truck,
 } from 'lucide-react';
 
-import { useCart } from '@/components/cart/cart-provider';
+
 import { formatPrice } from '@/lib/catalog';
-import EmptyCart, { LoadingState } from './EmptyCart.tsx';
+
+import { useCart } from './cart-provider';
+import EmptyCart, { LoadingState } from './EmptyCart';
+
 
 const container = 'mx-auto w-full max-w-[1320px] px-4 sm:px-6 lg:px-10 xl:px-12';
 

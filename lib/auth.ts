@@ -16,7 +16,10 @@ const sessionCookieName = 'chunknchop';
 const sessionLifetimeMs = 7 * 24 * 60 * 60 * 1000;
 const scryptOptions = { N: 16_384, r: 16, p: 1, maxmem: 128 * 1024 * 1024 };
 
-type AuthUser = Pick<User, 'id' | 'name' | 'email' | 'emailVerified' | 'image' | 'role'>;
+type AuthUser = Pick<
+  User,
+  'id' | 'name' | 'email' | 'emailVerified' | 'image' | 'role'
+>;
 type AuthSession = { id: string; expiresAt: Date; user: AuthUser };
 
 export const isGoogleAuthEnabled = Boolean(

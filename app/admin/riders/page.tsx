@@ -138,7 +138,7 @@ export default function AdminRidersPage() {
   }, [riders, filter, query]);
 
   return (
-    <main className="min-h-screen bg-[#faf9f6] px-4 py-7 text-[#29241f] sm:px-6 sm:py-10">
+    <main className="min-h-screen bg-[#faf9f6]  py-7 text-[#29241f] sm:px-6 sm:py-10">
       <div className="mx-auto max-w-6xl">
         <Link
           href="/admin"

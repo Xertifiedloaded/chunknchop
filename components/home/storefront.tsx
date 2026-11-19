@@ -14,13 +14,11 @@ import {
   SlidersHorizontal,
 } from 'lucide-react';
 import { type CatalogProduct } from '@/lib/catalog';
-import Header from '@/components/layout/header';
-import Footer from '@/components/layout/footer';
 import AboutSection from '@/components/home/about-section';
 
 const container = 'mx-auto w-full max-w-[1280px] px-5 sm:px-8 lg:px-12';
 const sectionHeading =
-  'mt-3 mb-0 text-[clamp(34px,4vw,51px)] leading-[1] font-normal tracking-[-0.05em]';
+  'mt-3 mb-0 text-[clamp(34px,4vw,51px)] text-black leading-[1] font-normal tracking-[-0.05em]';
 
 function Eyebrow({ children, light = false }: { children: ReactNode; light?: boolean }) {
   return (
@@ -47,7 +45,7 @@ function TextLink({
   return (
     <Link
       href={href}
-      className={`inline-flex items-center gap-2 border-b border-[#b7b3aa] pb-1 text-[11px] font-bold tracking-[0.12em] whitespace-nowrap text-[#514f49] transition-colors hover:border-brand hover:text-brand ${className}`}
+      className={`inline-flex items-center gap-2 border-b  pb-1 text-[11px] font-bold tracking-[0.12em] whitespace-nowrap text-white/75 transition-colors hover:border-brand hover:text-brand ${className}`}
     >
       {children} <ArrowUpRight size={15} />
     </Link>
@@ -288,10 +286,10 @@ export default function Storefront({ products }: { products: CatalogProduct[] })
         <div className="absolute inset-0 bg-[linear-gradient(0deg,rgba(25,21,20,0.92)_0%,rgba(29,24,23,0.6)_55%,rgba(25,21,20,0.1)_100%)] md:bg-[linear-gradient(90deg,rgba(29,25,23,0.86)_0%,rgba(38,28,26,0.69)_42%,rgba(28,22,21,0.08)_100%),linear-gradient(0deg,rgba(0,0,0,0.23),transparent_35%)]" />
 
         <div className={`relative z-10 ${container} pt-24 pb-24 md:py-20`}>
-          <div className="max-w-[540px]">
+          <div className="max-w-135">
             <Eyebrow light>THE GOOD STUFF, FROM THE SOURCE</Eyebrow>
 
-            <h1 className="mt-5 mb-4 text-[clamp(44px,6vw,72px)] leading-[1] font-normal tracking-[-0.05em]">
+            <h1 className="mt-5 mb-4 text-[clamp(44px,6vw,72px)] leading-none font-normal tracking-[-0.05em]">
               Better meat.
               <br />
               <em className="font-heading font-normal text-brand">Better moments.</em>
@@ -370,7 +368,7 @@ export default function Storefront({ products }: { products: CatalogProduct[] })
               </h2>
             </div>
 
-            <TextLink href="/shop" className="hidden sm:inline-flex">
+            <TextLink href="/shop" className="hidden text-white sm:inline-flex">
               EXPLORE ALL CUTS
             </TextLink>
           </div>
@@ -382,7 +380,7 @@ export default function Storefront({ products }: { products: CatalogProduct[] })
                   href="#shop"
                   key={item.name}
                   onClick={() => setCategory(item.name)}
-                  className="group relative aspect-[4/5] overflow-hidden bg-[#d2c6b7] text-white"
+                  className="group relative aspect-4/5 overflow-hidden bg-[#d2c6b7] text-white"
                 >
                   <img
                     src={item.image}
@@ -427,7 +425,7 @@ export default function Storefront({ products }: { products: CatalogProduct[] })
               <h2 className={sectionHeading}>
                 The <em className="font-he font-normal text-brand">good cuts.</em>
               </h2>
-              <p className="mt-3 mb-0 max-w-[420px] text-[13px] leading-[1.6] text-[#77736d]">
+              <p className="mt-3 mb-0 max-w-105 text-[13px] leading-[1.6] text-[#77736d]">
                 Browse the cuts currently available from ChunknChop.
               </p>
             </div>
@@ -439,7 +437,7 @@ export default function Storefront({ products }: { products: CatalogProduct[] })
 
           <div className="mb-6 flex flex-col-reverse border-b border-[#e7e5df] md:flex-row md:items-center md:justify-between md:gap-6">
             <div
-              className="-mx-5 flex gap-6 overflow-x-auto px-5 [scrollbar-width:none] sm:-mx-8 sm:px-8 md:mx-0 md:px-0 [&::-webkit-scrollbar]:hidden"
+              className="-mx-5 flex gap-6 overflow-x-auto px-5 scrollbar-none sm:-mx-8 sm:px-8 md:mx-0 md:px-0 [&::-webkit-scrollbar]:hidden"
               role="group"
               aria-label="Filter by category"
             >
@@ -518,7 +516,7 @@ export default function Storefront({ products }: { products: CatalogProduct[] })
         </div>
 
         <div className="flex items-center px-5 py-14 sm:px-8 lg:px-16 lg:py-20">
-          <div className="max-w-[440px]">
+          <div className="max-w-110">
             <Eyebrow>A LITTLE ABOUT US</Eyebrow>
 
             <h2 className={`${sectionHeading} mb-5`}>
@@ -527,7 +525,7 @@ export default function Storefront({ products }: { products: CatalogProduct[] })
               <em className="font-he font-normal text-brand">butcher.</em>
             </h2>
 
-            <p className="mb-6 text-[13px] leading-[1.9] text-[#77736d]">
+            <p className="mb-6 text-[13px] leading-[1.9] text-white/70">
               We believe the best meals begin long before the kitchen. That&apos;s why we work with
               small farms who care for their animals and our planet — then bring every cut to you
               with the care it deserves.
@@ -535,7 +533,7 @@ export default function Storefront({ products }: { products: CatalogProduct[] })
 
             <TextLink href="/about">THE ChunknChop WAY</TextLink>
 
-            <div className="mt-8 border-t border-[#eae9e5] pt-8 font-he text-lg text-brand italic">
+            <div className="mt-8  border-[#eae9e5] pt-8 font-he text-lg text-brand italic">
               Good meat. Good people. Good living.
             </div>
           </div>
@@ -549,7 +547,7 @@ export default function Storefront({ products }: { products: CatalogProduct[] })
           <div>
             <Eyebrow light>NOTES FROM THE FARM</Eyebrow>
 
-            <h2 className="mt-4 mb-0 text-[clamp(34px,4vw,48px)] leading-[1] font-normal tracking-[-0.05em]">
+            <h2 className="mt-4 mb-0 text-[clamp(34px,4vw,48px)] leading-none font-normal tracking-tighter">
               A little goodness,
               <br />
               <em className="font-he font-normal text-brand">in your inbox.</em>

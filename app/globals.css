@@ -6,7 +6,7 @@
 
 :root {
   color-scheme: light;
-  --background: #fff;
+  --background: #402b28;
   --foreground: #25211e;
   --card: #fff;
   --card-foreground: #25211e;
@@ -70,7 +70,18 @@
     animation: none;
   }
 }
+@layer base {
+  input,
+  textarea {
+    @apply text-base;
+  }
 
+  input::placeholder,
+  textarea::placeholder {
+    @apply text-xs font-semibold;
+    font-family: var(--font-worksans);
+  }
+}
 * {
   box-sizing: border-box;
 }

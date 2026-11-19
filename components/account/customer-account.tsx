@@ -313,7 +313,9 @@ export default function AccountClient({ user }: { user: AccountUser }) {
             )}
 
             <div className="min-w-0 flex-1">
-              <h2 className="break-words text-[15px] font-bold text-[#29241f]">{displayName}</h2>
+              <h2 className="wrap-break-word text-[15px] font-bold text-[#29241f]">
+                {displayName}
+              </h2>
               <p className="mt-1 flex items-center gap-1.5 break-all text-[11px] text-[#8b857d]">
                 <Mail className="h-3 w-3 shrink-0" />
                 {user.email}

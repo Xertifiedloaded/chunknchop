@@ -24,7 +24,7 @@ export default async function AdminOrdersPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f7f8fa] px-4 py-6 text-[#292621] sm:px-6 lg:px-8">
+    <main className="min-h-screen bg-[#f7f8fa]  py-6 text-[#292621] sm:px-6 lg:px-8">
       <div className="mx-auto w-full max-w-[1600px]">
         <AdminOrders />
       </div>

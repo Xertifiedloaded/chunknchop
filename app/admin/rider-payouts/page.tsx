@@ -114,11 +114,11 @@ export default function RiderPayoutsPage() {
     }
   }
   return (
-    <main className="min-h-screen bg-[#f8f8f6] px-3 py-6 text-[#302b27] sm:px-6 lg:px-8">
+    <main className="min-h-screen bg-[#f8f8f6]  py-6 text-[#302b27] sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl space-y-5">
         <header className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p className="text-[9px] font-bold uppercase tracking-[.2em] text-[#a17443]">
+            <p className="text-[9px] font-bold uppercase tracking-[.2em] text-brand">
               Rider finance
             </p>
             <h1 className="mt-1 text-2xl font-bold">Rider payments</h1>
@@ -159,7 +159,7 @@ export default function RiderPayoutsPage() {
             <div key={label} className="rounded-xl border border-[#eae5dc] bg-white p-4">
               <div className="flex items-center justify-between">
                 <p className="text-[10px] font-semibold text-[#928b82]">{label}</p>
-                <Icon size={17} className="text-[#a17443]" />
+                <Icon size={17} className="text-brand" />
               </div>
               <p className="mt-2 text-2xl font-bold">{money(value)}</p>
             </div>

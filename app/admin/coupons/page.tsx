@@ -62,7 +62,7 @@ const money = (kobo = 0) =>
   }).format(kobo / 100);
 
 const inputClass =
-  'h-10 w-full min-w-0 rounded-md border border-[#eae6e0] bg-[#fdfcfb] px-3 text-[11px] text-[#302b27] outline-none transition placeholder:text-[#aaa19a] hover:border-[#d8d0c7] focus:border-[#c8552b] focus:ring-2 focus:ring-[#c8552b]/10';
+  'h-10 w-full min-w-0 rounded-md border border-[#eae6e0] bg-[#fdfcfb] px-3 text-[11px] text-[#302b27] outline-none transition placeholder:text-[#aaa19a] hover:border-[#d8d0c7] focus:border-brand focus:ring-2 focus:ring-brand/10';
 
 export default function AdminCouponsPage() {
   const [coupons, setCoupons] = useState<Coupon[]>([]);
@@ -241,14 +241,14 @@ export default function AdminCouponsPage() {
   ).length;
 
   return (
-    <main className="min-h-screen bg-[#f8f8f6] px-3 py-5 text-[#302b27] sm:px-5 lg:px-7 lg:py-7">
-      <div className="mx-auto max-w-[1440px] space-y-5">
+    <main className="min-h-screen bg-[#f8f8f6]  py-5 text-[#302b27] sm:px-5 lg:px-7 lg:py-7">
+      <div className="mx-auto max-w-360 space-y-5">
         {}
         <header className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div>
             <div className="mb-1.5 flex items-center gap-2">
-              <span className="size-1.5 rounded-full bg-[#c8552b]" />
-              <p className="text-[9px] font-bold uppercase tracking-[0.19em] text-[#c8552b]">
+              <span className="size-1.5 rounded-full bg-brand" />
+              <p className="text-[9px] font-bold uppercase tracking-[0.19em] text-brand">
                 Marketing & Promotions
               </p>
             </div>
@@ -264,7 +264,7 @@ export default function AdminCouponsPage() {
 
           <button
             onClick={openCreate}
-            className="inline-flex h-9 items-center justify-center gap-2 self-start rounded-md bg-[#c8552b] px-4 text-[11px] font-semibold text-white shadow-sm transition hover:bg-[#ad4725] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c8552b] focus-visible:ring-offset-2 sm:self-auto"
+            className="inline-flex h-9 items-center justify-center gap-2 self-start rounded-md bg-brand px-4 text-[11px] font-semibold text-white shadow-sm transition hover:bg-[#ad4725] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 sm:self-auto"
           >
             <Plus size={14} />
             Create coupon
@@ -369,12 +369,12 @@ export default function AdminCouponsPage() {
 
           {loading ? (
             <div className="flex flex-col items-center justify-center gap-2 py-16">
-              <RefreshCw size={17} className="animate-spin text-[#c8552b]" />
+              <RefreshCw size={17} className="animate-spin text-brand" />
               <p className="text-[10px] text-[#999188]">Loading coupons...</p>
             </div>
           ) : visible.length === 0 ? (
             <div className="flex flex-col items-center justify-center px-5 py-16 text-center">
-              <span className="mb-3 flex size-11 items-center justify-center rounded-full bg-[#fff2eb] text-[#c8552b]">
+              <span className="mb-3 flex size-11 items-center justify-center rounded-full bg-[#fff2eb] text-brand">
                 <Ticket size={19} />
               </span>
 
@@ -391,7 +391,7 @@ export default function AdminCouponsPage() {
               {!search && (
                 <button
                   onClick={openCreate}
-                  className="mt-4 inline-flex items-center gap-1.5 text-[10px] font-semibold text-[#c8552b] hover:underline"
+                  className="mt-4 inline-flex items-center gap-1.5 text-[10px] font-semibold text-brand hover:underline"
                 >
                   <Plus size={13} />
                   Create your first coupon
@@ -432,7 +432,7 @@ export default function AdminCouponsPage() {
                         {}
                         <td className="px-4 py-3.5">
                           <div className="flex items-center gap-2.5">
-                            <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-[#fff2eb] text-[#c8552b]">
+                            <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-[#fff2eb] text-brand">
                               <Tag size={14} />
                             </span>
 
@@ -475,7 +475,7 @@ export default function AdminCouponsPage() {
                           {coupon.usageLimit != null && (
                             <div className="mt-1.5 h-1 w-20 overflow-hidden rounded-full bg-[#f0ece7]">
                               <div
-                                className="h-full rounded-full bg-[#c8552b]"
+                                className="h-full rounded-full bg-brand"
                                 style={{
                                   width: `${Math.min(
                                     100,
@@ -533,7 +533,7 @@ export default function AdminCouponsPage() {
                           <div className="flex items-center gap-1.5">
                             <button
                               onClick={() => openEdit(coupon)}
-                              className="flex size-8 items-center justify-center rounded-md border border-[#eae6e0] text-[#716960] transition hover:border-[#e0c2b3] hover:bg-[#fff5ef] hover:text-[#c8552b]"
+                              className="flex size-8 items-center justify-center rounded-md border border-[#eae6e0] text-[#716960] transition hover:border-[#e0c2b3] hover:bg-[#fff5ef] hover:text-brand"
                               aria-label={`Edit ${coupon.code}`}
                               title="Edit coupon"
                             >
@@ -585,7 +585,7 @@ export default function AdminCouponsPage() {
             {}
             <div className="flex items-start justify-between gap-3 border-b border-[#f0ede9] pb-4">
               <div className="flex items-start gap-3">
-                <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-[#fff2eb] text-[#c8552b]">
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-[#fff2eb] text-brand">
                   <Ticket size={17} />
                 </span>
 
@@ -764,7 +764,7 @@ export default function AdminCouponsPage() {
                 aria-checked={form.active}
                 onClick={() => setForm({ ...form, active: !form.active })}
                 className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${
-                  form.active ? 'bg-[#c8552b]' : 'bg-[#d6d0c9]'
+                  form.active ? 'bg-brand' : 'bg-[#d6d0c9]'
                 }`}
               >
                 <span
@@ -789,7 +789,7 @@ export default function AdminCouponsPage() {
               <button
                 type="submit"
                 disabled={saving}
-                className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-[#c8552b] px-5 text-[10px] font-semibold text-white transition hover:bg-[#ad4725] disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-brand px-5 text-[10px] font-semibold text-white transition hover:bg-[#ad4725] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {saving && <RefreshCw size={12} className="animate-spin" />}
                 {saving ? 'Saving...' : editing ? 'Save changes' : 'Create coupon'}
@@ -817,7 +817,7 @@ function Stat({
   description: string;
 }) {
   const tones = {
-    orange: 'bg-[#fff2eb] text-[#c8552b]',
+    orange: 'bg-[#fff2eb] text-brand',
     green: 'bg-[#edf7ef] text-[#438052]',
     gray: 'bg-[#f2f0ed] text-[#777067]',
   };

@@ -56,7 +56,7 @@ const naira = (k = 0) =>
   }).format(k / 100);
 
 const input =
-  'h-9 w-full min-w-0 rounded-md border border-[#eae7e2] bg-[#fdfcfb] px-3 text-[11px] text-[#37332e] outline-none transition-all placeholder:text-[#aaa39b] hover:border-[#d8d1c9] focus:border-[#c8552b] focus:ring-2 focus:ring-[#c8552b]/10';
+  'h-9 w-full min-w-0 rounded-md border border-[#eae7e2] bg-[#fdfcfb] px-3 text-[11px] text-[#37332e] outline-none transition-all placeholder:text-[#aaa39b] hover:border-[#d8d1c9] focus:border-brand focus:ring-2 focus:ring-brand/10';
 
 export default function AdminPaymentsPage() {
   const [payments, setPayments] = useState<Payment[]>([]);
@@ -132,13 +132,13 @@ export default function AdminPaymentsPage() {
   ] as const;
 
   return (
-    <main className="min-h-screen bg-[#f8f8f6] px-3 py-5 text-[#302b27] sm:px-5 lg:px-7 lg:py-7">
-      <div className="mx-auto max-w-[1440px] space-y-5">
+    <main className="min-h-screen bg-[#f8f8f6]  py-5 text-[#302b27] sm:px-5 lg:px-7 lg:py-7">
+      <div className="mx-auto max-w-360 space-y-5">
         <header className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div>
             <div className="mb-1.5 flex items-center gap-2">
-              <span className="size-1.5 rounded-full bg-[#c8552b]" />
-              <p className="text-[9px] font-bold uppercase tracking-[0.19em] text-[#c8552b]">
+              <span className="size-1.5 rounded-full bg-brand" />
+              <p className="text-[9px] font-bold uppercase tracking-[0.19em] text-brand">
                 Finance & Reports
               </p>
             </div>
@@ -180,7 +180,7 @@ export default function AdminPaymentsPage() {
             const Icon = item.icon;
 
             const tones = {
-              orange: 'bg-[#fff2eb] text-[#c8552b]',
+              orange: 'bg-[#fff2eb] text-brand',
               green: 'bg-[#edf7ef] text-[#34804c]',
               amber: 'bg-[#fff7e8] text-[#b77a22]',
               red: 'bg-[#fff0ef] text-[#c34c42]',
@@ -221,7 +221,7 @@ export default function AdminPaymentsPage() {
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <div className="flex items-center gap-2">
-                  <TrendingUp size={15} className="text-[#c8552b]" />
+                  <TrendingUp size={15} className="text-brand" />
                   <h2 className="text-[12px] font-semibold text-[#37312c]">Revenue overview</h2>
                 </div>
                 <p className="mt-1 text-[10px] text-[#999188]">
@@ -246,7 +246,7 @@ export default function AdminPaymentsPage() {
                     className="group flex h-full min-w-[9px] flex-1 flex-col justify-end"
                   >
                     <div
-                      className="w-full rounded-t-[3px] bg-[#e8a083] transition-colors group-hover:bg-[#c8552b]"
+                      className="w-full rounded-t-[3px] bg-[#e8a083] transition-colors group-hover:bg-brand"
                       style={{
                         height: `${Math.max(percentage > 0 ? 3 : 0, percentage)}%`,
                       }}
@@ -264,7 +264,7 @@ export default function AdminPaymentsPage() {
 
           <div className="rounded-lg border border-[#ece9e4] bg-white p-4 shadow-[0_2px_9px_rgba(35,30,25,0.025)] sm:p-5">
             <div className="flex items-center gap-2">
-              <span className="flex size-7 items-center justify-center rounded-md bg-[#fff2eb] text-[#c8552b]">
+              <span className="flex size-7 items-center justify-center rounded-md bg-[#fff2eb] text-brand">
                 <CreditCard size={14} />
               </span>
               <h2 className="text-[12px] font-semibold text-[#37312c]">Payment summary</h2>
@@ -329,7 +329,7 @@ export default function AdminPaymentsPage() {
 
           {loading ? (
             <div className="flex flex-col items-center justify-center gap-2 py-16">
-              <RefreshCw size={18} className="animate-spin text-[#c8552b]" />
+              <RefreshCw size={18} className="animate-spin text-brand" />
               <p className="text-[10px] text-[#999188]">Loading transactions...</p>
             </div>
           ) : payments.length === 0 ? (
@@ -391,7 +391,7 @@ export default function AdminPaymentsPage() {
                                         className="size-9 shrink-0 rounded-md border border-[#eee9e3] bg-[#faf9f7] object-cover"
                                       />
                                     ) : (
-                                      <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-[#fff2eb] text-[11px] font-semibold text-[#c8552b]">
+                                      <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-[#fff2eb] text-[11px] font-semibold text-brand">
                                         {item.name?.charAt(0).toUpperCase() || 'P'}
                                       </span>
                                     )}
@@ -408,7 +408,7 @@ export default function AdminPaymentsPage() {
                                 ))}
 
                                 {payment.items.length > 2 && (
-                                  <span className="pl-11 text-[9px] font-medium text-[#c8552b]">
+                                  <span className="pl-11 text-[9px] font-medium text-brand">
                                     +{payment.items.length - 2} more products
                                   </span>
                                 )}

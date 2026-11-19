@@ -1246,7 +1246,7 @@ export default function DeliveryAdminClient() {
 
   return (
     <main className="min-h-screen bg-[#f8f8f6] text-[#24231f]">
-      <div className="mx-auto w-full max-w-[1200px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+      <div className="mx-auto w-full max-w-300 py-6 sm:px-6 sm:py-8 lg:px-8">
         <header className="mb-6">
           <h1 className="m-0 font-heading text-[23px] leading-tight font-semibold tracking-tight sm:text-[27px]">
             Delivery

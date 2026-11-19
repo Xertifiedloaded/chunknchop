@@ -55,10 +55,10 @@ export default function CategoriesPage() {
     }
   }
   return (
-    <main className="mx-auto max-w-5xl px-4 py-7 text-[#29231f] sm:px-6 sm:py-9">
+    <main className="mx-auto max-w-5xl py-7 text-[#29231f] sm:px-6 sm:py-9">
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="mb-1.5 text-[9px] font-bold uppercase tracking-[.2em] text-[#d2582f]">
+          <p className="mb-1.5 text-[9px] font-bold uppercase tracking-[.2em] text-brand">
             Catalogue management
           </p>
           <h1 className="text-xl font-bold tracking-tight sm:text-2xl">Product categories</h1>
@@ -67,7 +67,7 @@ export default function CategoriesPage() {
             reassigned before it can be removed.
           </p>
         </div>
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#f7eee8] px-3 py-1.5 text-[10px] font-semibold text-[#9f4d30]">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#f7eee8] px-3 py-1.5 text-[10px] font-semibold text-brand">
           <Layers3 size={12} />
           {items.length} categories
         </span>
@@ -75,7 +75,7 @@ export default function CategoriesPage() {
       <div className="grid gap-5 lg:grid-cols-[.85fr_1.15fr]">
         <section className="h-fit rounded-2xl border border-[#eee8e2] bg-white p-4 shadow-[0_5px_24px_rgba(45,32,20,.035)] sm:p-5">
           <div className="mb-4 flex items-center gap-2">
-            <span className="grid h-8 w-8 place-items-center rounded-xl bg-[#fff1e9] text-[#d2582f]">
+            <span className="grid h-8 w-8 place-items-center rounded-xl bg-[#fff1e9] text-brand">
               <Plus size={15} />
             </span>
             <div>
@@ -97,7 +97,7 @@ export default function CategoriesPage() {
               maxLength={50}
               required
               placeholder="e.g. Goat Meat, Seafood, Meat Boxes"
-              className="h-10 w-full rounded-xl border border-[#e8e2dc] bg-[#fcfbf9] px-3 text-[11px] outline-none transition focus:border-[#d2582f] focus:ring-2 focus:ring-[#d2582f]/10"
+              className="h-10 w-full rounded-xl border border-[#e8e2dc] bg-[#fcfbf9] px-3 text-[11px] outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
             />
             <button
               disabled={busy || !name.trim()}
@@ -118,7 +118,7 @@ export default function CategoriesPage() {
         <section className="overflow-hidden rounded-2xl border border-[#eee8e2] bg-white shadow-[0_5px_24px_rgba(45,32,20,.035)]">
           <div className="flex items-center justify-between border-b border-[#f0ece7] px-4 py-3.5">
             <div className="flex items-center gap-2">
-              <Tags size={15} className="text-[#d2582f]" />
+              <Tags size={15} className="text-brand" />
               <h2 className="text-[12px] font-bold">All categories</h2>
             </div>
             <span className="text-[9px] text-[#938a81]">Manage catalogue groups</span>

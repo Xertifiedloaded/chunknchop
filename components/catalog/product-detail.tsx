@@ -1,17 +1,33 @@
+
 'use client';
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, ArrowRight, Check, Heart, Minus, Plus } from 'lucide-react';
+import {
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  Heart,
+  Minus,
+  Plus,
+  ShieldCheck,
+  Truck,
+} from 'lucide-react';
+
 import type { CatalogProduct } from '@/lib/catalog';
 import { formatPrice } from '@/lib/catalog';
 import { useCart } from '@/components/cart/cart-provider';
 
-export default function ProductDetail({ product }: { product: CatalogProduct }) {
+export default function ProductDetail({
+  product,
+}: {
+  product: CatalogProduct;
+}) {
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
   const [favorite, setFavorite] = useState(false);
-  const { addProduct, cartCount, error: cartError } = useCart();
+
+  const { addProduct, error: cartError } = useCart();
 
   function addToBag() {
     addProduct(product, quantity);
@@ -21,126 +37,185 @@ export default function ProductDetail({ product }: { product: CatalogProduct }) 
 
   return (
     <main className="mx-auto min-h-screen w-full max-w-360 bg-[#f8f8f6] px-[7.1%] text-[#24231f] max-[650px]:px-[5%]">
-      <div className="flex flex-wrap items-center gap-[9px] py-[18px] text-[9px] text-[#88847d]">
-        <Link href="/" className="transition-colors hover:text-[#a9442c]">
+
+      {}
+      <div className="flex flex-wrap items-center gap-2 border-b border-[#eae8e2] py-5 text-[10px] text-[#88847d]">
+        <Link
+          href="/"
+          className="transition-colors hover:text-brand"
+        >
           Home
         </Link>
+
         <span>/</span>
-        <Link href="/shop" className="transition-colors hover:text-[#a9442c]">
+
+        <Link
+          href="/shop"
+          className="transition-colors hover:text-brand"
+        >
           Shop all
         </Link>
+
         <span>/</span>
-        <span className="text-[#514f49]">{product.name}</span>
+
+        <span className="max-w-55 truncate font-medium text-[#514f49]">
+          {product.name}
+        </span>
       </div>
 
-      <section className="grid grid-cols-2 items-center gap-[7.5%] py-[35px] pb-[75px] max-[750px]:grid-cols-1 max-[750px]:gap-8 max-[650px]:py-[15px] max-[650px]:pb-[50px]">
-        <div className="relative min-h-[500px] overflow-hidden bg-[#e7e3db] max-[750px]:min-h-0 max-[750px]:aspect-[1/1]">
+      {}
+      <section className="grid grid-cols-2 items-start gap-[7%] py-10 pb-20 max-[750px]:grid-cols-1 max-[750px]:gap-9 max-[650px]:py-6 max-[650px]:pb-12">
+
+        {}
+        <div className="relative w-full self-start overflow-hidden rounded-sm bg-[#e7e3db] aspect-4/5 max-[750px]:aspect-square">
+
           <img
             src={product.imageUrl}
             alt={product.name}
-            className="absolute inset-0 size-full object-cover"
+            className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 hover:scale-[1.035]"
           />
 
           {product.badge && (
-            <span className="absolute top-[15px] left-[15px] bg-[#f8f6f0] px-[10px] py-[8px] text-[8px] font-bold tracking-[0.1em] text-[#5c5146]">
+            <span className="absolute left-5 top-5 rounded-sm bg-[#f8f6f0] px-3 py-2 text-[9px] font-bold uppercase tracking-[0.12em] text-[#5c5146] shadow-sm">
               {product.badge}
             </span>
           )}
         </div>
 
-        <div className="py-[25px] max-[750px]:py-0">
-          <p className="m-0 flex items-center gap-[9px] text-[9px] font-bold tracking-[0.15em] text-[#77736d]">
-            <span className="h-px w-[19px] bg-[#e86b3e]" />
-            {product.category.toUpperCase()} · ChunknChop
+        {}
+        <div className="w-full self-start pt-0">
+
+          <p className="m-0 flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.16em] text-[#77736d]">
+            <span className="h-px w-6 bg-[#e86b3e]" />
+            {product.category} · ChunknChop
           </p>
 
-          <h1 className="mt-[17px] mb-[13px] font-heading text-[clamp(37px,4.5vw,55px)] leading-[1.02] tracking-[-0.045em]">
+          <h1 className="mt-5 mb-4 font-heading text-[clamp(34px,4vw,56px)] leading-[1.06] tracking-[-0.045em] text-[#292721]">
             {product.name}
           </h1>
 
-          <p className="mt-0 mb-[19px] text-[17px] font-semibold text-[#a9442c]">
-            {formatPrice(product.priceCents)}
-            <small className="ml-[5px] text-[10px] font-normal text-[#88847d]">
-              {` / ${product.unit}`}
-            </small>
-          </p>
+          <div className="mb-5 flex flex-wrap items-baseline gap-2">
+            <p className="m-0 text-[23px] font-semibold tracking-tight text-brand">
+              {formatPrice(product.priceCents)}
+            </p>
 
-          <p className="mb-[25px] max-w-[420px] text-[12px] leading-[1.9] text-[#77736d]">
+            <span className="text-[11px] text-[#88847d]">
+              / {product.unit}
+            </span>
+          </div>
+
+          <p className="mb-7 max-w-112.5 text-[13px] leading-[1.9] text-[#77736d]">
             {product.description}
           </p>
-          {product.productType === 'meatbox' && product.bundleItems?.length ? (
-            <div className="mb-[25px] rounded-xl border border-[#e6e4de] bg-white p-4">
-              <p className="mb-3 text-[9px] font-bold uppercase tracking-[0.14em] text-[#77736d]">
-                Inside this meatbox
-              </p>
-              <ul className="grid gap-2 sm:grid-cols-2">
-                {product.bundleItems.map((item, index) => (
-                  <li
-                    key={`${item.name}-${index}`}
-                    className="flex items-center justify-between gap-3 rounded-lg bg-[#faf8f4] px-3 py-2.5"
-                  >
-                    <span className="text-[11px] font-medium text-[#39312b]">{item.name}</span>
-                    <span className="shrink-0 rounded-full bg-[#f1e7dc] px-2.5 py-1 text-[10px] font-bold text-[#8f5738]">
-                      × {item.quantity}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
 
-          <div className="h-px w-full bg-[#e6e4de]" />
+          {}
+          {product.productType === 'meatbox' &&
+            product.bundleItems?.length ? (
+              <div className="mb-7 rounded-xl border border-[#e6e4de] bg-white p-5">
 
-          <div className="flex items-center justify-between gap-4 border-b border-[#e6e4de] py-[17px]">
-            <span className="text-[9px] font-bold tracking-[0.12em] text-[#77736d]">YOUR CUT</span>
-            <strong className="text-right text-[11px] font-semibold">{product.cut}</strong>
-          </div>
+                <div className="mb-4 flex items-center justify-between">
+                  <p className="m-0 text-[10px] font-bold uppercase tracking-[0.14em] text-[#77736d]">
+                    Inside this meatbox
+                  </p>
 
-          <div className="flex items-center justify-between gap-4 border-b border-[#e6e4de] py-[17px]">
-            <span className="text-[9px] font-bold tracking-[0.12em] text-[#77736d]">QUANTITY</span>
+                  <span className="rounded-full bg-[#f6eee6] px-3 py-1 text-[9px] font-semibold text-[#8f5738]">
+                    {product.bundleItems.length} items
+                  </span>
+                </div>
 
-            <div className="flex h-[36px] items-center border border-[#dedbd3]">
-              <button
-                type="button"
-                onClick={() => setQuantity((value) => Math.max(1, value - 1))}
-                aria-label="Decrease quantity"
-                className="grid size-[35px] place-items-center text-[#514f49] transition-colors hover:bg-[#eeeae2] hover:text-[#a9442c]"
-              >
-                <Minus size={15} />
-              </button>
+                <ul className="grid gap-2 sm:grid-cols-2">
+                  {product.bundleItems.map((item, index) => (
+                    <li
+                      key={`${item.name}-${index}`}
+                      className="flex items-center justify-between gap-3 rounded-lg bg-[#faf8f4] px-3 py-3"
+                    >
+                      <span className="text-[11px] font-medium text-[#39312b]">
+                        {item.name}
+                      </span>
 
-              <strong className="min-w-[32px] text-center text-[11px] font-semibold">
-                {quantity}
+                      <span className="shrink-0 rounded-full bg-[#f1e7dc] px-2.5 py-1 text-[10px] font-bold text-[#8f5738]">
+                        × {item.quantity}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
+          {}
+          <div className="border-t border-[#e6e4de]">
+
+            <div className="flex items-center justify-between gap-4 border-b border-[#e6e4de] py-5">
+              <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#77736d]">
+                Your cut
+              </span>
+
+              <strong className="text-right text-[12px] font-semibold text-[#39312b]">
+                {product.cut}
               </strong>
+            </div>
 
-              <button
-                type="button"
-                onClick={() => setQuantity((value) => Math.min(99, value + 1))}
-                aria-label="Increase quantity"
-                disabled={quantity >= 99}
-                className="grid size-[35px] place-items-center text-[#514f49] transition-colors hover:bg-[#eeeae2] hover:text-[#a9442c] disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                <Plus size={15} />
-              </button>
+            {}
+            <div className="flex items-center justify-between gap-4 border-b border-[#e6e4de] py-5">
+
+              <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#77736d]">
+                Quantity
+              </span>
+
+              <div className="flex h-10 items-center overflow-hidden rounded-sm border border-[#dedbd3] bg-white">
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setQuantity((value) => Math.max(1, value - 1))
+                  }
+                  aria-label="Decrease quantity"
+                  disabled={quantity <= 1}
+                  className="grid size-10 place-items-center text-[#514f49] transition-colors hover:bg-[#f4f0e9] hover:text-brand disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <Minus size={14} />
+                </button>
+
+                <strong className="min-w-10 text-center text-[12px] font-semibold">
+                  {quantity}
+                </strong>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setQuantity((value) => Math.min(99, value + 1))
+                  }
+                  aria-label="Increase quantity"
+                  disabled={quantity >= 99}
+                  className="grid size-10 place-items-center text-[#514f49] transition-colors hover:bg-[#f4f0e9] hover:text-brand disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <Plus size={14} />
+                </button>
+
+              </div>
             </div>
           </div>
 
-          <div className="mt-[22px] flex items-stretch gap-[10px]">
+          {}
+          <div className="mt-7 flex items-stretch gap-3">
+
             <button
               type="button"
-              className={`flex min-h-[49px] flex-1 items-center justify-center gap-[12px] px-[15px] text-[9px] font-bold tracking-[0.1em] transition-colors duration-200 ${
-                added ? 'bg-[#53623f] text-white' : 'bg-[#292721] text-white hover:bg-[#a9442c]'
-              }`}
               onClick={addToBag}
+              className={`flex min-h-13.5 flex-1 items-center justify-center gap-3 rounded-sm px-4 text-[10px] font-bold uppercase tracking-[0.12em] text-white transition-all duration-200 ${
+                added
+                  ? 'bg-[#53623f]'
+                  : 'bg-[#292721] hover:bg-brand'
+              }`}
             >
               {added ? (
                 <>
                   <Check size={17} />
-                  ADDED TO BAG
+                  Added to bag
                 </>
               ) : (
                 <>
-                  ADD TO BAG · {formatPrice(product.priceCents * quantity)}
+                  Add to bag · {formatPrice(product.priceCents * quantity)}
                   <ArrowRight size={16} />
                 </>
               )}
@@ -148,51 +223,96 @@ export default function ProductDetail({ product }: { product: CatalogProduct }) 
 
             <button
               type="button"
-              className={`grid size-[49px] shrink-0 place-items-center border transition-colors duration-200 ${
-                favorite
-                  ? 'border-[#a9442c] bg-[#a9442c] text-white'
-                  : 'border-[#dedbd3] bg-transparent text-[#514f49] hover:border-[#a9442c] hover:text-[#a9442c]'
-              }`}
-              onClick={() => setFavorite(!favorite)}
-              aria-label={favorite ? 'Remove from favorites' : 'Add to favorites'}
+              onClick={() => setFavorite((value) => !value)}
+              aria-label={
+                favorite ? 'Remove from favorites' : 'Add to favorites'
+              }
               aria-pressed={favorite}
+              className={`grid size-13.5 shrink-0 place-items-center rounded-sm border transition-all duration-200 ${
+                favorite
+                  ? 'border-brand bg-brand text-white'
+                  : 'border-[#dedbd3] bg-white text-[#514f49] hover:border-brand hover:text-brand'
+              }`}
             >
-              <Heart size={18} fill={favorite ? 'currentColor' : 'none'} />
+              <Heart
+                size={19}
+                fill={favorite ? 'currentColor' : 'none'}
+              />
             </button>
+
           </div>
 
           {cartError && (
-            <p className="mt-[12px] text-[10px] leading-[1.6] text-[#a9442c]" role="alert">
+            <p
+              className="mt-3 text-[11px] leading-relaxed text-brand"
+              role="alert"
+            >
               {cartError}
             </p>
           )}
 
-          <div className="mt-[27px] flex items-start gap-[15px] border-t border-[#e6e4de] pt-[18px]">
-            <span className="shrink-0 text-[8px] font-bold tracking-[0.1em] text-[#77736d]">
-              PRODUCT INFORMATION
+          {}
+          <div className="mt-8 grid grid-cols-2 gap-4 border-t border-[#e6e4de] pt-6">
+
+            <div className="flex items-start gap-3">
+              <ShieldCheck
+                size={19}
+                className="shrink-0 text-[#8b765d]"
+              />
+
+              <div>
+                <p className="m-0 text-[10px] font-bold text-[#39312b]">
+                  Quality assured
+                </p>
+
+                <p className="mt-1 text-[9px] leading-relaxed text-[#88847d]">
+                  Carefully selected products.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <Truck
+                size={19}
+                className="shrink-0 text-[#8b765d]"
+              />
+
+              <div>
+                <p className="m-0 text-[10px] font-bold text-[#39312b]">
+                  Delivery available
+                </p>
+
+                <p className="mt-1 text-[9px] leading-relaxed text-[#88847d]">
+                  Delivery details at checkout.
+                </p>
+              </div>
+            </div>
+
+          </div>
+
+          {}
+          <div className="mt-7 flex items-start justify-between gap-4 border-t border-[#e6e4de] pt-5">
+
+            <span className="shrink-0 text-[9px] font-bold uppercase tracking-[0.12em] text-[#77736d]">
+              Product information
             </span>
 
-            <div className="flex flex-col gap-[5px] text-right">
-              <strong className="text-[10px] font-semibold">Availability and details</strong>
-              <span className="text-[9px] leading-[1.6] text-[#88847d]">
+            <div className="text-right">
+              <strong className="text-[10px] font-semibold text-[#39312b]">
+                Availability and details
+              </strong>
+
+              <p className="mt-1 text-[9px] leading-relaxed text-[#88847d]">
                 Product information is provided by ChunknChop.
-              </span>
+              </p>
             </div>
+
           </div>
+
         </div>
       </section>
 
-      <footer className="flex flex-wrap items-center justify-between gap-[15px] border-t border-[#e6e4de] py-[20px] text-[8px] font-bold tracking-[0.12em] text-[#77736d]">
-        <Link
-          href="/shop"
-          className="inline-flex items-center gap-[9px] transition-colors hover:text-[#a9442c]"
-        >
-          <ArrowLeft size={14} />
-          BACK TO THE COUNTER
-        </Link>
 
-        <span>ChunknChop · GOOD MEAT. GOOD LIVING.</span>
-      </footer>
     </main>
   );
 }

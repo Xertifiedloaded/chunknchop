@@ -32,7 +32,7 @@ type Summary = {
 };
 
 const input =
-  'h-10 w-full rounded-lg border border-[#e8e3de] bg-white px-3 text-[13px] text-[#302b27] outline-none transition-colors placeholder:text-[#aaa29a] focus:border-[#C8552B]';
+  'h-10 w-full rounded-lg border border-[#e8e3de] bg-white px-3 text-[13px] text-[#302b27] outline-none transition-colors placeholder:text-[#aaa29a] focus:border-brand';
 
 const button =
   'inline-flex h-10 items-center justify-center gap-2 rounded-lg px-4 text-[13px] font-semibold transition disabled:cursor-not-allowed disabled:opacity-50';
@@ -129,11 +129,11 @@ export default function AdminUsersPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#F7F8FA] p-3 text-[#302b27] sm:p-5 lg:p-6">
+    <main className="min-h-screen bg-[#F7F8FA] py-3 text-[#302b27] sm:p-5 lg:p-6">
       <div className="mx-auto max-w-7xl space-y-5">
         <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[.16em] text-[#C8552B]">
+            <p className="text-[10px] font-bold uppercase tracking-[.16em] text-brand">
               People management
             </p>
             <h1 className="mt-1 text-[22px] font-bold tracking-tight">Users</h1>
@@ -159,7 +159,7 @@ export default function AdminUsersPage() {
                 setInviteError('');
                 setInviteSuccess('');
               }}
-              className={`${button} bg-[#C8552B] text-white hover:bg-[#a9442c]`}
+              className={`${button} bg-brand text-white hover:bg-[#a9442c]`}
             >
               <Plus size={15} />
               Create account
@@ -238,7 +238,7 @@ export default function AdminUsersPage() {
                     <tr key={user.id} className="hover:bg-[#fdfcfb]">
                       <td className="px-4 py-3">
                         <div className="flex min-w-0 items-center gap-2.5">
-                          <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-orange-50 text-[12px] font-bold text-[#C8552B]">
+                          <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-orange-50 text-[12px] font-bold text-brand">
                             {(user.name || user.email || 'U').slice(0, 1).toUpperCase()}
                           </span>
                           <div className="min-w-0">
@@ -299,7 +299,7 @@ export default function AdminUsersPage() {
           >
             <div className="flex items-start justify-between gap-3">
               <div>
-                <span className="mb-3 flex size-9 items-center justify-center rounded-lg bg-orange-50 text-[#C8552B]">
+                <span className="mb-3 flex size-9 items-center justify-center rounded-lg bg-orange-50 text-brand">
                   <Mail size={17} />
                 </span>
                 <h2 id="invite-title" className="text-[17px] font-bold">
@@ -390,7 +390,7 @@ export default function AdminUsersPage() {
                 <button
                   type="submit"
                   disabled={sending}
-                  className={`${button} bg-[#C8552B] text-white hover:bg-[#a9442c]`}
+                  className={`${button} bg-brand text-white hover:bg-[#a9442c]`}
                 >
                   {sending ? (
                     <>
@@ -426,7 +426,7 @@ function Stat({
     <div className="rounded-xl border border-[#ece7e2] bg-white p-3.5 shadow-sm sm:p-4">
       <div className="flex items-center justify-between gap-2">
         <p className="text-[11px] text-[#898078]">{label}</p>
-        <span className="rounded-lg bg-orange-50 p-2 text-[#C8552B]">
+        <span className="rounded-lg bg-orange-50 p-2 text-brand">
           <Icon size={15} />
         </span>
       </div>

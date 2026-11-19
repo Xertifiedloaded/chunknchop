@@ -158,17 +158,6 @@ function SidebarContent({
 
       {}
       <div className="shrink-0 space-y-2.5 border-t border-white/[0.07] p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-        <div className="rounded-lg bg-[#38332f] p-3">
-          <div className="flex items-center gap-2 text-[11px] font-medium text-white">
-            <Snowflake size={14} className="shrink-0 text-sky-400" />
-            Cold chain healthy
-          </div>
-
-          <p className="mt-1.5 text-[10px] leading-[1.6] text-[#aaa39a]">
-            Monitor storage conditions and cold-room status.
-          </p>
-        </div>
-
         <Link
           href="/admin/settings"
           onClick={onNavigate}
@@ -237,7 +226,7 @@ export default function AdminShell({
   return (
     <div className="min-h-dvh bg-[#f5f6f8] text-[#292723]">
       {}
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-[232px] flex-col bg-[#292622] text-white lg:flex">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-58 flex-col bg-[#292622] text-white lg:flex">
         <SidebarContent pathname={pathname} />
       </aside>
 
@@ -294,7 +283,7 @@ export default function AdminShell({
           role="dialog"
           aria-modal="true"
           aria-label="Admin navigation"
-          className={`absolute inset-y-0 left-0 flex w-[260px] max-w-[85vw] flex-col overscroll-contain bg-[#292622] pl-[env(safe-area-inset-left)] text-white shadow-2xl transition-transform duration-300 ease-out ${
+          className={`absolute inset-y-0 left-0 flex w-65 max-w-[85vw] flex-col overscroll-contain bg-[#292622] pl-[env(safe-area-inset-left)] text-white shadow-2xl transition-transform duration-300 ease-out ${
             open ? 'translate-x-0' : '-translate-x-full'
           }`}
         >

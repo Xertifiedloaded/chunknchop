@@ -98,6 +98,7 @@ h4 {
 input,
 textarea {
   font-size: 16px;
+  box-sizing: border-box;
 }
 
 input::placeholder,

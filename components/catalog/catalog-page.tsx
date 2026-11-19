@@ -56,7 +56,6 @@ export default function CatalogPage({ products }: { products: CatalogProduct[] }
         className="mx-auto grid w-[79%] flex-1 grid-cols-[190px_minmax(0,1fr)] gap-12 py-12 max-[900px]:w-[88%] max-[900px]:grid-cols-[160px_minmax(0,1fr)] max-[900px]:gap-[30px] max-[650px]:w-[88%] max-[650px]:grid-cols-1 max-[650px]:gap-[27px] max-[650px]:py-[30px]"
         aria-label="Product catalogue"
       >
-  
         <aside className="self-start">
           <p className="mb-4.25 text-[9px] font-bold tracking-[0.14em] text-[#77736d]">
             SHOP BY CUT
@@ -96,9 +95,7 @@ export default function CatalogPage({ products }: { products: CatalogProduct[] }
           </div>
         </aside>
 
-
         <div className="min-w-0">
-
           <div className="mb-5.5 flex min-h-10.75 items-center justify-between gap-4 border-b border-[#e7e5df] pb-3.25 max-[650px]:flex-col max-[650px]:items-stretch max-[650px]:gap-3.25">
             <div className="flex items-center gap-2.25 text-[10px] text-[#77736d]">
               <span className="font-semibold text-[#24231f]">
@@ -123,7 +120,6 @@ export default function CatalogPage({ products }: { products: CatalogProduct[] }
               <SlidersHorizontal size={16} className="shrink-0" />
             </label>
           </div>
-
 
           <div className="grid grid-cols-3 gap-x-4.25 gap-y-7.5 max-[900px]:grid-cols-2 max-[650px]:grid-cols-2 max-[650px]:gap-x-2.75 max-[650px]:gap-y-5.75">
             {visibleProducts.map((product) => (

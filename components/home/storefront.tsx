@@ -17,17 +17,18 @@ import { type CatalogProduct } from '@/lib/catalog';
 import AboutSection from '@/components/home/about-section';
 
 const container = 'mx-auto w-full max-w-[1280px] px-5 sm:px-8 lg:px-12';
+
 const sectionHeading =
-  'mt-3 mb-0 text-[clamp(34px,4vw,51px)] text-black leading-[1] font-normal tracking-[-0.05em]';
+  'mt-3 mb-0 max-w-full text-[clamp(30px,7.5vw,51px)] leading-[1.06] font-normal tracking-[-0.045em] text-black [text-wrap:balance]';
 
 function Eyebrow({ children, light = false }: { children: ReactNode; light?: boolean }) {
   return (
     <p
-      className={`flex items-center gap-2.5 font-worksans text-[11px] font-bold tracking-[0.15em] ${
+      className={`flex items-center gap-2.5 font-worksans text-[10px] font-bold tracking-[0.12em] sm:text-[11px] sm:tracking-[0.15em] ${
         light ? 'text-[#e4ddd4]' : 'text-[#77736d]'
       }`}
     >
-      <span className="h-px w-5 bg-brand" />
+      <span className="h-px w-5 shrink-0 bg-brand" />
       {children}
     </p>
   );
@@ -45,9 +46,10 @@ function TextLink({
   return (
     <Link
       href={href}
-      className={`inline-flex items-center gap-2 border-b  pb-1 text-[11px] font-bold tracking-[0.12em] whitespace-nowrap text-white/75 transition-colors hover:border-brand hover:text-brand ${className}`}
+      className={`inline-flex items-center gap-2 whitespace-nowrap border-b pb-1 text-[10px] font-bold tracking-widest text-blacktransition-colors hover:border-brand hover:text-brand sm:text-[11px] sm:tracking-[0.12em] ${className}`}
     >
-      {children} <ArrowUpRight size={15} />
+      {children}
+      <ArrowUpRight size={15} className="shrink-0" />
     </Link>
   );
 }
@@ -75,13 +77,14 @@ function ProductCard({
         />
 
         {product.badge && (
-          <span className="absolute top-2 left-2 bg-[#f8f6f0] px-2 py-1.5 text-[9px] tracking-[0.1em] text-[#5c5146] sm:top-3 sm:left-3 sm:text-[10px]">
+          <span className="absolute top-2 left-2 max-w-[calc(100%-4rem)] bg-[#f8f6f0] px-2 py-1.5 text-[9px] tracking-[0.1em] text-[#5c5146] sm:top-3 sm:left-3 sm:text-[10px]">
             {product.badge}
           </span>
         )}
 
         <button
-          className="absolute top-2 right-2 grid h-8 w-8 cursor-pointer place-items-center border-0 bg-white transition-colors hover:text-brand sm:top-3 sm:right-3"
+          type="button"
+          className="absolute top-2 right-2 grid size-8 cursor-pointer place-items-center border-0 bg-white transition-colors hover:text-brand sm:top-3 sm:right-3"
           aria-label={`${isFavorite ? 'Remove' : 'Save'} ${product.name} ${isFavorite ? 'from' : 'to'} favorites`}
           aria-pressed={isFavorite}
           onClick={() => onToggleFavorite(product.slug)}
@@ -90,7 +93,8 @@ function ProductCard({
         </button>
 
         <button
-          className={`absolute right-2 bottom-2 grid h-9 w-9 cursor-pointer place-items-center border-0 text-2xl transition-colors duration-200 sm:right-3 sm:bottom-3 ${
+          type="button"
+          className={`absolute right-2 bottom-2 grid size-9 cursor-pointer place-items-center border-0 text-2xl transition-colors duration-200 sm:right-3 sm:bottom-3 ${
             added
               ? 'bg-brand text-white'
               : 'bg-white text-[#292721] hover:bg-brand hover:text-white'
@@ -107,8 +111,8 @@ function ProductCard({
           {product.category}
         </p>
 
-        <div className="mt-2 flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-3">
-          <h3 className="m-0 font-he text-[15px] font-normal sm:text-base">
+        <div className="mt-2 flex min-w-0 flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-3">
+          <h3 className="m-0 min-w-0 break-words font-he text-[14px] font-normal leading-snug sm:text-base">
             <Link href={`/products/${product.slug}`} className="transition-colors hover:text-brand">
               {product.name}
             </Link>
@@ -124,7 +128,7 @@ function ProductCard({
           </strong>
         </div>
 
-        <p className="mt-1.5 mb-0 text-[11px] text-[#88847d]">
+        <p className="mt-1.5 mb-0 wrap-break-word text-[10px] leading-relaxed text-[#88847d] sm:text-[11px]">
           {product.productType === 'meatbox' && product.bundleItems?.length
             ? product.bundleItems.map((item) => `${item.name} ×${item.quantity}`).join(' · ')
             : product.cut}
@@ -172,7 +176,7 @@ function NewsletterForm() {
         Leave your email for recipes and seasonal updates.
       </label>
 
-      <div className="my-3 flex border-b border-[#96877e]">
+      <div className="my-3 flex min-w-0 border-b border-[#96877e]">
         <input
           id="newsletter-email"
           name="email"
@@ -182,14 +186,14 @@ function NewsletterForm() {
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           required
-          className="min-w-0 flex-1 border-0 bg-transparent py-3 text-sm text-white outline-none placeholder:text-[#b5aaa1]"
+          className="min-w-0 flex-1 border-0 bg-transparent py-3 text-[12px] text-white outline-none placeholder:text-[#b5aaa1] sm:text-sm"
         />
 
         <button
           type="submit"
           disabled={submitting}
           aria-label="Subscribe to newsletter"
-          className="w-10 cursor-pointer border-0 bg-transparent text-brand disabled:cursor-not-allowed disabled:opacity-50"
+          className="w-10 shrink-0 cursor-pointer border-0 bg-transparent text-brand disabled:cursor-not-allowed disabled:opacity-50"
         >
           <ArrowRight size={19} />
         </button>
@@ -273,40 +277,43 @@ export default function Storefront({ products }: { products: CatalogProduct[] })
   ];
 
   return (
-    <main id="home" className="relative">
-      <section className="relative flex min-h-[580px] items-end overflow-hidden bg-[#402b28] text-white md:min-h-[620px] md:items-center">
+    <main id="home" className="relative min-w-0 overflow-hidden">
+      {}
+      <section className="relative flex min-h-[540px] items-end overflow-hidden bg-[#402b28] text-white sm:min-h-[580px] md:min-h-[620px] md:items-center">
         <Image
           src="/images/market-hero.png"
           alt="Freshly prepared cuts from the butcher"
           fill
           priority
+          sizes="100vw"
           className="object-cover object-[62%_center] md:object-[center_54%]"
         />
 
         <div className="absolute inset-0 bg-[linear-gradient(0deg,rgba(25,21,20,0.92)_0%,rgba(29,24,23,0.6)_55%,rgba(25,21,20,0.1)_100%)] md:bg-[linear-gradient(90deg,rgba(29,25,23,0.86)_0%,rgba(38,28,26,0.69)_42%,rgba(28,22,21,0.08)_100%),linear-gradient(0deg,rgba(0,0,0,0.23),transparent_35%)]" />
 
-        <div className={`relative z-10 ${container} pt-24 pb-24 md:py-20`}>
+        <div className={`relative z-10 ${container} pt-24 pb-20 sm:pb-24 md:py-20`}>
           <div className="max-w-135">
             <Eyebrow light>THE GOOD STUFF, FROM THE SOURCE</Eyebrow>
 
-            <h1 className="mt-5 mb-4 text-[clamp(44px,6vw,72px)] leading-none font-normal tracking-[-0.05em]">
+            <h1 className="mt-5 mb-4 max-w-full text-[clamp(37px,9vw,72px)] leading-[1.02] font-normal tracking-[-0.05em] [text-wrap:balance]">
               Better meat.
               <br />
               <em className="font-heading font-normal text-brand">Better moments.</em>
             </h1>
 
-            <p className="mt-5 mb-7 max-w-[400px] text-sm leading-[1.8] text-[#eee9e2]">
+            <p className="mt-5 mb-7 max-w-[400px] text-[12px] leading-[1.8] text-[#eee9e2] sm:text-sm">
               Thoughtfully sourced, carefully cut, and ready to make more of the meals you love.
             </p>
 
             <Link
               href="#shop"
-              className="inline-flex min-h-12 items-center gap-5 bg-[#f8f6f0] px-5 text-[11px] font-bold tracking-[0.12em] text-[#24231f] transition-colors duration-200 hover:bg-brand"
+              className="inline-flex min-h-11 items-center gap-4 bg-[#f8f6f0] px-4 text-[10px] font-bold tracking-[0.1em] text-[#24231f] transition-colors duration-200 hover:bg-brand sm:min-h-12 sm:gap-5 sm:px-5 sm:text-[11px]"
             >
-              SHOP BY CUT <ArrowUpRight size={16} />
+              SHOP BY CUT
+              <ArrowUpRight size={16} />
             </Link>
 
-            <div className="mt-10 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-[#e6e1db]">
+            <div className="mt-8 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-[#e6e1db] sm:mt-10 sm:text-[11px]">
               <span>ChunknChop</span>
               <span>Good meat. Good people. Good living.</span>
             </div>
@@ -319,12 +326,14 @@ export default function Storefront({ products }: { products: CatalogProduct[] })
               href="#categories"
               className="inline-flex items-center gap-2 text-[10px] tracking-[0.17em] text-[#eee9e2]"
             >
-              SCROLL TO DISCOVER <ArrowDown size={14} />
+              SCROLL TO DISCOVER
+              <ArrowDown size={14} />
             </a>
           </div>
         </div>
       </section>
 
+      {}
       <section className="border-b border-[#eeede8] bg-[#f8f8f6]" aria-label="Our promises">
         <div
           className={`${container} grid grid-cols-1 items-center gap-4 py-5 sm:grid-cols-3 sm:gap-0 sm:py-6 lg:grid-cols-[1fr_1fr_1fr_1.2fr]`}
@@ -338,8 +347,9 @@ export default function Storefront({ products }: { products: CatalogProduct[] })
                 index < 2 ? 'border-b border-[#e6e4de] pb-4 sm:border-b-0 sm:pb-0' : ''
               }`}
             >
-              <span className="font-heading text-sm text-brand">{number}</span>
-              <p className="m-0 text-xs font-semibold">
+              <span className="shrink-0 font-heading text-sm text-brand">{number}</span>
+
+              <p className="m-0 min-w-0 text-xs font-semibold">
                 {heading}
                 <span className="mt-1 block text-[11px] font-normal text-[#88847d]">
                   {description}
@@ -349,18 +359,21 @@ export default function Storefront({ products }: { products: CatalogProduct[] })
           ))}
 
           <div className="hidden items-center justify-end gap-3 font-he text-[13px] text-[#77736d] italic lg:flex">
-            A better kind of butcher shop <ArrowRight size={16} />
+            A better kind of butcher shop
+            <ArrowRight size={16} />
           </div>
         </div>
       </section>
 
       <AboutSection />
 
-      <section className="py-10 lg:py-24" id="categories">
+      {}
+      <section className="py-10 sm:py-14 lg:py-24" id="categories">
         <div className={container}>
-          <div className="mb-8 flex items-end justify-between gap-4">
-            <div>
+          <div className="mb-7 flex min-w-0 items-end justify-between gap-3 sm:mb-8 sm:gap-4">
+            <div className="min-w-0">
               <Eyebrow>FIND YOUR FAVOURITE</Eyebrow>
+
               <h2 className={sectionHeading}>
                 Good things,
                 <br />
@@ -368,7 +381,7 @@ export default function Storefront({ products }: { products: CatalogProduct[] })
               </h2>
             </div>
 
-            <TextLink href="/shop" className="hidden text-white sm:inline-flex">
+            <TextLink href="/shop" className="hidden shrink-0 text-white sm:inline-flex">
               EXPLORE ALL CUTS
             </TextLink>
           </div>
@@ -380,7 +393,7 @@ export default function Storefront({ products }: { products: CatalogProduct[] })
                   href="#shop"
                   key={item.name}
                   onClick={() => setCategory(item.name)}
-                  className="group relative aspect-4/5 overflow-hidden bg-[#d2c6b7] text-white"
+                  className="group relative aspect-4/5 min-w-0 overflow-hidden bg-[#d2c6b7] text-white"
                 >
                   <img
                     src={item.image}
@@ -390,19 +403,22 @@ export default function Storefront({ products }: { products: CatalogProduct[] })
 
                   <span className="absolute inset-x-0 top-[35%] bottom-0 bg-[linear-gradient(0deg,rgba(20,18,16,0.75),transparent)]" />
 
-                  <span className="absolute top-3 left-3 z-10 text-[10px] tracking-widest text-[#f1e9df] sm:top-4 sm:left-4">
+                  <span className="absolute top-3 left-3 z-10 text-[9px] tracking-widest text-[#f1e9df] sm:top-4 sm:left-4 sm:text-[10px]">
                     {String(item.index + 1).padStart(2, '0')}
                   </span>
 
-                  <div className="absolute inset-x-3 bottom-3 z-10 flex items-end justify-between gap-2 sm:inset-x-4 sm:bottom-4">
+                  <div className="absolute inset-x-3 bottom-3 z-10 flex min-w-0 items-end justify-between gap-2 sm:inset-x-4 sm:bottom-4">
                     <div className="min-w-0">
-                      <h3 className="m-0 font-he text-lg font-normal sm:text-[23px]">
+                      <h3 className="m-0 break-words font-he text-[16px] leading-tight font-normal sm:text-[23px]">
                         {item.name}
                       </h3>
-                      <p className="mt-1 mb-0 text-[11px] text-[#e4ded5]">{item.count}</p>
+
+                      <p className="mt-1 mb-0 text-[10px] text-[#e4ded5] sm:text-[11px]">
+                        {item.count}
+                      </p>
                     </div>
 
-                    <span className="grid h-8 w-8 shrink-0 place-items-center border border-white/65 transition-colors duration-200 group-hover:border-brand group-hover:bg-brand">
+                    <span className="grid size-7 shrink-0 place-items-center border border-white/65 transition-colors duration-200 group-hover:border-brand group-hover:bg-brand sm:size-8">
                       <ArrowUpRight size={16} />
                     </span>
                   </div>
@@ -410,41 +426,45 @@ export default function Storefront({ products }: { products: CatalogProduct[] })
               ))}
             </div>
           ) : (
-            <p className="py-12 text-[#77736d]">
+            <p className="py-12 text-sm text-[#77736d]">
               Our counter is being stocked. Check back soon for available cuts.
             </p>
           )}
         </div>
       </section>
 
-      <section className="bg-[#f8f8f6] py-10 lg:py-24" id="shop">
+      {}
+      <section className="bg-[#f8f8f6] py-10 sm:py-14 lg:py-24" id="shop">
         <div className={container}>
-          <div className="mb-8 flex items-end justify-between gap-4">
-            <div>
+          <div className="mb-7 flex min-w-0 items-end justify-between gap-3 sm:mb-8 sm:gap-4">
+            <div className="min-w-0">
               <Eyebrow>FROM OUR COUNTER</Eyebrow>
+
               <h2 className={sectionHeading}>
                 The <em className="font-he font-normal text-brand">good cuts.</em>
               </h2>
-              <p className="mt-3 mb-0 max-w-105 text-[13px] leading-[1.6] text-[#77736d]">
+
+              <p className="mt-3 mb-0 max-w-105 text-[11px] leading-[1.7] text-[#77736d] sm:text-[13px] sm:leading-[1.6]">
                 Browse the cuts currently available from ChunknChop.
               </p>
             </div>
 
-            <TextLink href="/shop" className="hidden sm:inline-flex">
+            <TextLink href="/shop" className="hidden shrink-0 sm:inline-flex">
               VIEW THE FULL RANGE
             </TextLink>
           </div>
 
-          <div className="mb-6 flex flex-col-reverse border-b border-[#e7e5df] md:flex-row md:items-center md:justify-between md:gap-6">
+          <div className="mb-6 flex min-w-0 flex-col-reverse border-b border-[#e7e5df] md:flex-row md:items-center md:justify-between md:gap-6">
             <div
-              className="-mx-5 flex gap-6 overflow-x-auto px-5 scrollbar-none sm:-mx-8 sm:px-8 md:mx-0 md:px-0 [&::-webkit-scrollbar]:hidden"
+              className="-mx-5 flex min-w-0 gap-6 overflow-x-auto px-5 scrollbar-none sm:-mx-8 sm:px-8 md:mx-0 md:px-0 [&::-webkit-scrollbar]:hidden"
               role="group"
               aria-label="Filter by category"
             >
               {['All cuts', ...categoryNames].map((item) => (
                 <button
+                  type="button"
                   key={item}
-                  className={`shrink-0 cursor-pointer border-0 border-b-2 border-solid bg-transparent py-3 text-xs whitespace-nowrap transition-colors ${
+                  className={`shrink-0 cursor-pointer border-0 border-b-2 border-solid bg-transparent py-3 text-[11px] whitespace-nowrap transition-colors sm:text-xs ${
                     category === item
                       ? 'border-b-brand text-[#24231f]'
                       : 'border-b-transparent text-[#77736d] hover:text-[#24231f]'
@@ -456,15 +476,18 @@ export default function Storefront({ products }: { products: CatalogProduct[] })
               ))}
             </div>
 
-            <label className="flex w-full items-center gap-2 border-b border-[#e7e5df] py-3 text-[#77736d] md:w-auto md:border-b-0 md:py-2">
+            <label className="flex w-full min-w-0 items-center gap-2 border-b border-[#e7e5df] py-3 text-[#77736d] md:w-auto md:border-b-0 md:py-2">
               <Search size={16} className="shrink-0" />
+
               <span className="sr-only">Search products</span>
+
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="Find your cut"
-                className="min-w-0 flex-1 border-0 bg-transparent text-xs outline-none focus-visible:outline focus-visible:outline-offset-[3px] focus-visible:outline-brand md:w-36 md:flex-none"
+                className="min-w-0 flex-1 border-0 bg-transparent text-[12px] outline-none focus-visible:outline focus-visible:outline-offset-[3px] focus-visible:outline-brand md:w-36 md:flex-none"
               />
+
               <SlidersHorizontal size={16} className="shrink-0" />
             </label>
           </div>
@@ -484,7 +507,7 @@ export default function Storefront({ products }: { products: CatalogProduct[] })
                   />
                 ))
             ) : (
-              <p className="col-span-full py-12 text-[#77736d]">
+              <p className="col-span-full py-12 text-[12px] text-[#77736d] sm:text-sm">
                 {products.length
                   ? 'No cuts match your search. Try another filter.'
                   : 'No products are available yet. Please check back soon.'}
@@ -498,15 +521,16 @@ export default function Storefront({ products }: { products: CatalogProduct[] })
         </div>
       </section>
 
-      <section className="grid grid-cols-1 lg:grid-cols-2" id="story">
-        <div className="relative min-h-[340px] overflow-hidden bg-[#d4cabe] lg:min-h-[540px]">
+      {}
+      <section className="grid min-w-0 grid-cols-1 lg:grid-cols-2" id="story">
+        <div className="relative min-h-[300px] overflow-hidden bg-[#d4cabe] sm:min-h-[380px] lg:min-h-[540px]">
           <img
             src="https://images.unsplash.com/photo-1551028150-64b9f398f678?auto=format&fit=crop&w=1200&q=85"
             alt="A butcher carefully preparing a fresh cut"
             className="absolute inset-0 h-full w-full object-cover"
           />
 
-          <span className="absolute bottom-6 left-6 grid h-24 w-24 -rotate-12 place-items-center rounded-full border border-white/80 text-center font-he text-base leading-[1.05] text-white sm:bottom-10 sm:left-10">
+          <span className="absolute bottom-6 left-6 grid size-20 -rotate-12 place-items-center rounded-full border border-white/80 text-center font-he text-sm leading-[1.05] text-white sm:bottom-10 sm:left-10 sm:size-24 sm:text-base">
             GOOD
             <br />
             BY
@@ -515,8 +539,8 @@ export default function Storefront({ products }: { products: CatalogProduct[] })
           </span>
         </div>
 
-        <div className="flex items-center px-5 py-14 sm:px-8 lg:px-16 lg:py-20">
-          <div className="max-w-110">
+        <div className="flex min-w-0 items-center px-5 py-12 sm:px-8 sm:py-14 lg:px-16 lg:py-20">
+          <div className="w-full max-w-110">
             <Eyebrow>A LITTLE ABOUT US</Eyebrow>
 
             <h2 className={`${sectionHeading} mb-5`}>
@@ -525,7 +549,7 @@ export default function Storefront({ products }: { products: CatalogProduct[] })
               <em className="font-he font-normal text-brand">butcher.</em>
             </h2>
 
-            <p className="mb-6 text-[13px] leading-[1.9] text-white/70">
+            <p className="mb-6 text-[12px] leading-[1.8] text-black sm:text-[13px] sm:leading-[1.9]">
               We believe the best meals begin long before the kitchen. That&apos;s why we work with
               small farms who care for their animals and our planet — then bring every cut to you
               with the care it deserves.
@@ -533,21 +557,22 @@ export default function Storefront({ products }: { products: CatalogProduct[] })
 
             <TextLink href="/about">THE ChunknChop WAY</TextLink>
 
-            <div className="mt-8  border-[#eae9e5] pt-8 font-he text-lg text-brand italic">
+            <div className="mt-8 border-[#eae9e5] pt-8 font-he text-base text-brand italic sm:text-lg">
               Good meat. Good people. Good living.
             </div>
           </div>
         </div>
       </section>
 
-      <section className="bg-[#332925] py-12 text-white lg:py-10">
+      {}
+      <section className="bg-[#332925] py-12 text-white sm:py-14 lg:py-16">
         <div
-          className={`${container} flex flex-col gap-8 md:flex-row md:items-center md:justify-between md:gap-12`}
+          className={`${container} flex min-w-0 flex-col gap-7 md:flex-row md:items-center md:justify-between md:gap-12`}
         >
-          <div>
+          <div className="min-w-0">
             <Eyebrow light>NOTES FROM THE FARM</Eyebrow>
 
-            <h2 className="mt-4 mb-0 text-[clamp(34px,4vw,48px)] leading-none font-normal tracking-tighter">
+            <h2 className="mt-4 mb-0 max-w-full text-[clamp(30px,7.5vw,48px)] leading-[1.08] font-normal tracking-[-0.045em] [text-wrap:balance]">
               A little goodness,
               <br />
               <em className="font-he font-normal text-brand">in your inbox.</em>
@@ -558,6 +583,7 @@ export default function Storefront({ products }: { products: CatalogProduct[] })
         </div>
       </section>
 
+      {}
       {cartError && (
         <div
           className="fixed inset-x-4 bottom-4 z-50 flex animate-[toast-in_0.2s_ease-out] items-center gap-2 bg-[#282621] px-4 py-3.5 text-xs text-white shadow-[0_8px_30px_#0002] sm:inset-x-auto sm:right-6 sm:bottom-6"
@@ -567,6 +593,7 @@ export default function Storefront({ products }: { products: CatalogProduct[] })
         </div>
       )}
 
+      {}
       {lastAdded && !cartError && (
         <div
           className="fixed inset-x-4 bottom-4 z-50 flex animate-[toast-in_0.2s_ease-out] items-center gap-2 bg-[#282621] px-4 py-3.5 text-xs text-white shadow-[0_8px_30px_#0002] sm:inset-x-auto sm:right-6 sm:bottom-6"

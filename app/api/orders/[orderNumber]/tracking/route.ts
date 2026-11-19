@@ -12,11 +12,8 @@ type StoredOrder = {
   riderName?: string;
   status?: string;
   paymentStatus?: string;
-  riderLocation?: {
-    latitude: number;
-    longitude: number;
-    updatedAt: string;
-  };
+  currency?: string;
+
   items?: Array<{
     productId?: string;
     slug?: string;
@@ -25,81 +22,163 @@ type StoredOrder = {
     quantity?: number;
     unit?: string;
     priceCents?: number;
+    originalPriceCents?: number;
+    productDiscountCents?: number;
   }>;
+
+  itemsSubtotalCents?: number;
+  productDiscountCents?: number;
+  couponDiscountCents?: number;
+  deliveryFeeCents?: number;
+  subtotalCents?: number;
+
   delivery?: Record<string, unknown>;
+
+  riderLocation?: {
+    latitude: number;
+    longitude: number;
+    updatedAt: string;
+  } | null;
+
   statusHistory?: unknown[];
 };
 
-type Context = {
-  params: Promise<{
-    orderNumber: string;
-  }>;
+type RouteContext = {
+  params: Promise<{ orderNumber: string }>;
 };
 
-export async function GET(_request: Request, { params }: Context) {
-  const session = await getSession(await headers());
+const toAmount = (value: unknown): number => {
+  return typeof value === 'number' && Number.isFinite(value) ? value / 100 : 0;
+};
 
-  if (!session?.user) {
-    return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
-  }
+const isPaymentSuccessful = (status?: string) => {
+  return ['paid', 'success', 'successful', 'completed'].includes((status ?? '').toLowerCase());
+};
 
-  const { orderNumber } = await params;
+export async function GET(_request: Request, { params }: RouteContext) {
+  try {
+    const session = await getSession(await headers());
 
-  if (!/^CNC-[A-F\d]{32}$/i.test(orderNumber)) {
-    return NextResponse.json({ error: 'Order not found' }, { status: 404 });
-  }
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
 
-  const order = await findMongoDocument<StoredOrder>('StoreOrder', orderNumber);
+    const { orderNumber } = await params;
 
-  if (!order || (order.userId !== session.user.id && order.riderId !== session.user.id)) {
-    return NextResponse.json({ error: 'Order not found' }, { status: 404 });
-  }
+    if (!/^CNC-[A-F\d]{32}$/i.test(orderNumber)) {
+      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+    }
 
-  const riderProfile = order.riderId
-    ? await prisma.riderProfile.findUnique({
-        where: {
-          userId: order.riderId,
-        },
-        select: {
-          phone: true,
-          photoUrl: true,
-          vehicleType: true,
-          vehicleColor: true,
-          plateNumber: true,
-        },
-      })
-    : null;
+    const order = await findMongoDocument<StoredOrder>('StoreOrder', orderNumber);
 
-  return NextResponse.json(
-    {
-      id: order._id,
-      orderNumber: order._id,
+    if (!order) {
+      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+    }
 
-      status: order.status,
-      paymentStatus: order.paymentStatus,
+    const isOrderOwner = order.userId === session.user.id;
 
-      items: (order.items ?? []).map((item) => ({
+    const isAssignedRider = Boolean(order.riderId) && order.riderId === session.user.id;
+
+    const isAdmin = session.user.role?.toLowerCase() === 'admin';
+
+    if (!isOrderOwner && !isAssignedRider && !isAdmin) {
+      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+    }
+
+    const riderProfile = order.riderId
+      ? await prisma.riderProfile.findUnique({
+          where: {
+            userId: order.riderId,
+          },
+          select: {
+            phone: true,
+            photoUrl: true,
+            vehicleType: true,
+            vehicleColor: true,
+            plateNumber: true,
+            user: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        })
+      : null;
+
+    const items = (order.items ?? []).map((item) => {
+      const quantity = typeof item.quantity === 'number' && item.quantity > 0 ? item.quantity : 1;
+
+      const unitPriceCents = typeof item.priceCents === 'number' ? item.priceCents : 0;
+
+      return {
+        productId: item.productId ?? null,
+        slug: item.slug ?? null,
         name: item.name ?? 'Product',
         imageUrl: item.imageUrl ?? null,
-        quantity: item.quantity ?? 1,
-      })),
+        unit: item.unit ?? null,
+        quantity,
+        unitPrice: toAmount(unitPriceCents),
+        totalPrice: toAmount(unitPriceCents * quantity),
+      };
+    });
 
-      rider: order.riderId
-        ? {
-            name: order.riderName,
-            ...riderProfile,
-            location: order.riderLocation ?? null,
-          }
-        : null,
+    const orderTotalCents = typeof order.subtotalCents === 'number' ? order.subtotalCents : 0;
 
-      delivery: session.user.id === order.userId ? (order.delivery ?? null) : undefined,
+    const paymentSuccessful = isPaymentSuccessful(order.paymentStatus);
 
-      statusHistory: order.statusHistory ?? [],
-    },
-    {
-      headers: {
-        'Cache-Control': 'private, no-store',
+    const orderTotal = toAmount(orderTotalCents);
+
+    const totalPaid = paymentSuccessful ? orderTotal : null;
+
+    return NextResponse.json(
+      {
+        id: order._id,
+        orderNumber: order._id,
+
+        status: order.status ?? 'payment_pending',
+        paymentStatus: order.paymentStatus ?? 'pending',
+        currency: order.currency ?? 'NGN',
+
+        items,
+
+        itemsSubtotal: toAmount(order.itemsSubtotalCents),
+        productDiscount: toAmount(order.productDiscountCents),
+        couponDiscount: toAmount(order.couponDiscountCents),
+        deliveryFee: toAmount(order.deliveryFeeCents),
+
+        orderTotal,
+        orderTotalCents,
+
+        totalPaid,
+        totalPaidCents: paymentSuccessful ? orderTotalCents : null,
+
+        rider: order.riderId
+          ? {
+              name: riderProfile?.user?.name ?? order.riderName ?? 'Your rider',
+              phone: riderProfile?.phone ?? null,
+              imageUrl: riderProfile?.photoUrl ?? null,
+              vehicleType: riderProfile?.vehicleType ?? null,
+              vehicleColor: riderProfile?.vehicleColor ?? null,
+              plateNumber: riderProfile?.plateNumber ?? null,
+              location: order.riderLocation ?? null,
+            }
+          : null,
+
+        delivery: order.delivery ?? null,
+        statusHistory: order.statusHistory ?? [],
       },
-    },
-  );
+      {
+        headers: {
+          'Cache-Control': 'private, no-store',
+        },
+      },
+    );
+  } catch (error) {
+    console.error('[order-tracking] Failed to load order:', error);
+
+    return NextResponse.json(
+      { error: 'Unable to load order tracking information' },
+      { status: 500 },
+    );
+  }
 }

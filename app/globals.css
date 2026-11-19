@@ -6,7 +6,7 @@
 
 :root {
   color-scheme: light;
-  --background: #402b28;
+  --background: #fff;
   --foreground: #25211e;
   --card: #fff;
   --card-foreground: #25211e;
@@ -97,7 +97,7 @@ h4 {
 
 input,
 textarea {
-  font-size: 16px;
+  font-size: 12px;
   box-sizing: border-box;
 }
 

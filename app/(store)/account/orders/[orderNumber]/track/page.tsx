@@ -25,7 +25,7 @@ export default async function OrderTrackingPage({ params, searchParams }: PagePr
   const session = await getSession(await headers());
 
   if (!session?.user) {
-    redirect(`/sign-in?returnTo=${encodeURIComponent(`/account/orders/${orderNumber}`)}`);
+    redirect(`/sign-in?returnTo=${encodeURIComponent(`/account/orders/${orderNumber}/track`)}`);
   }
 
   return <OrderTracking orderNumber={orderNumber} paymentNotice={query.payment} />;

@@ -1,7 +1,7 @@
+
 import type { Metadata } from 'next';
 
 import AuthShell from '@/components/auth/auth-shell';
-import { safeReturnTo } from '@/lib/auth';
 import AuthForm from '@/components/auth/auth-form';
 
 export const metadata: Metadata = {
@@ -15,12 +15,17 @@ type PageProps = {
   }>;
 };
 
-export default async function ForgotPasswordPage({ searchParams }: PageProps) {
+export default async function ForgotPasswordPage({
+  searchParams,
+}: PageProps) {
   const { returnTo } = await searchParams;
 
   return (
     <AuthShell mode="forgot">
-      <AuthForm mode="forgot-password" returnTo={returnTo} />
+      <AuthForm
+        mode="forgot-password"
+        returnTo={returnTo ?? ''}
+      />
     </AuthShell>
   );
 }

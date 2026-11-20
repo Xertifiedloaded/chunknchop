@@ -182,12 +182,21 @@ model DeliveryZone {
   name             String
   state            String
   city             String
+
+  // Map-based delivery pricing
+  latitude          Float?
+  longitude         Float?
+  radiusMeters     Int?        @default(1000)
+
   deliveryFeeCents Int
   active           Boolean     @default(true)
+
   riders           RiderZone[]
   schedules        DeliverySchedule[]
+
   createdAt        DateTime    @default(now())
   updatedAt        DateTime    @updatedAt
+
   @@unique([name, city, state])
   @@index([active, city, state])
 }

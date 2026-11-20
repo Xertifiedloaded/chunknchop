@@ -1,4 +1,3 @@
-
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
@@ -9,8 +8,7 @@ import AuthForm from '@/components/auth/auth-form';
 
 export const metadata: Metadata = {
   title: 'Verify your email | ChunknChop',
-  description:
-    'Verify your email address to finish creating your ChunknChop account.',
+  description: 'Verify your email address to finish creating your ChunknChop account.',
 };
 
 type PageProps = {
@@ -20,13 +18,8 @@ type PageProps = {
   }>;
 };
 
-export default async function VerifyEmailPage({
-  searchParams,
-}: PageProps) {
-  const [{ email, returnTo }, requestHeaders] = await Promise.all([
-    searchParams,
-    headers(),
-  ]);
+export default async function VerifyEmailPage({ searchParams }: PageProps) {
+  const [{ email, returnTo }, requestHeaders] = await Promise.all([searchParams, headers()]);
 
   const session = await getSession(requestHeaders);
   const destination = safeReturnTo(returnTo);
@@ -37,11 +30,7 @@ export default async function VerifyEmailPage({
 
   return (
     <AuthShell mode="verify">
-      <AuthForm
-        mode="verify"
-        email={email ?? ''}
-        returnTo={returnTo ?? ''}
-      />
+      <AuthForm mode="verify" email={email ?? ''} returnTo={returnTo ?? ''} />
     </AuthShell>
   );
 }

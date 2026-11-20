@@ -82,6 +82,9 @@ export async function GET(request: Request) {
     state: zone.state,
     deliveryFeeCents: zone.deliveryFeeCents,
     active: zone.active,
+    latitude: zone.latitude,
+    longitude: zone.longitude,
+    radiusMeters: zone.radiusMeters,
   }));
 
   return NextResponse.json({ zones }, noStore);

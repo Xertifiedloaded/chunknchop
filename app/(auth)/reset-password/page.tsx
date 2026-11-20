@@ -1,4 +1,3 @@
-
 import type { Metadata } from 'next';
 
 import AuthShell from '@/components/auth/auth-shell';
@@ -16,18 +15,12 @@ type PageProps = {
   }>;
 };
 
-export default async function ResetPasswordPage({
-  searchParams,
-}: PageProps) {
+export default async function ResetPasswordPage({ searchParams }: PageProps) {
   const { email, returnTo } = await searchParams;
 
   return (
     <AuthShell mode="reset">
-      <AuthForm
-        mode="reset"
-        email={email ?? ''}
-        returnTo={returnTo ?? ''}
-      />
+      <AuthForm mode="reset" email={email ?? ''} returnTo={returnTo ?? ''} />
     </AuthShell>
   );
 }

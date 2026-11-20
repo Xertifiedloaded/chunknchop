@@ -2,18 +2,21 @@
 
 import { useCallback, useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import {
-  CalendarClock,
   Check,
   LoaderCircle,
   MapPin,
   Pencil,
   Plus,
   Search,
+  Sun,
+  CloudSun,
+  Moon,
   Trash2,
   X,
 } from 'lucide-react';
 
 import { formatPrice } from '@/lib/catalog';
+import LocationPicker from '@/components/map/location-picker';
 
 const ZONES_API = '/api/admin/delivery/zones';
 const SCHEDULES_API = '/api/admin/delivery/schedules';
@@ -28,6 +31,9 @@ type Zone = {
   state: string;
   deliveryFeeCents: number;
   active: boolean;
+  latitude?: number | null;
+  longitude?: number | null;
+  radiusMeters?: number | null;
   _count?: { riders: number };
 };
 
@@ -253,6 +259,9 @@ function ZoneForm({
   const [state, setState] = useState(zone?.state ?? '');
   const [fee, setFee] = useState(zone ? String(zone.deliveryFeeCents / 100) : '');
   const [active, setActive] = useState(zone?.active ?? true);
+  const [latitude, setLatitude] = useState<number | null>(zone?.latitude ?? null);
+  const [longitude, setLongitude] = useState<number | null>(zone?.longitude ?? null);
+  const [radiusMeters, setRadiusMeters] = useState(String(zone?.radiusMeters ?? 1000));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -263,6 +272,17 @@ function ZoneForm({
 
     if (name.trim().length < 2 || city.trim().length < 2 || state.trim().length < 2) {
       setError('Enter a zone name, city and state, at least 2 characters each.');
+      return;
+    }
+
+    if (latitude === null || longitude === null) {
+      setError('Select the zone location on the map.');
+      return;
+    }
+
+    const radius = Number(radiusMeters);
+    if (!Number.isFinite(radius) || radius < 100 || radius > 50000) {
+      setError('Set a zone radius between 100 and 50,000 metres.');
       return;
     }
 
@@ -283,6 +303,9 @@ function ZoneForm({
           state: state.trim(),
           deliveryFeeCents: Math.round(feeNaira * 100),
           active,
+          latitude,
+          longitude,
+          radiusMeters: Math.round(radius),
         }),
       });
 
@@ -348,6 +371,36 @@ function ZoneForm({
             />
           </label>
 
+          <div className="sm:col-span-2 space-y-3">
+            <div className={labelClass}>Delivery location / zone center</div>
+            <LocationPicker
+              value={latitude !== null && longitude !== null ? { latitude, longitude } : null}
+              onChange={(point) => {
+                setLatitude(point.latitude);
+                setLongitude(point.longitude);
+              }}
+              radiusMeters={Number(radiusMeters) || 0}
+              defaultCenter={[6.5244, 3.3792]}
+            />
+            <label className={labelClass}>
+              Coverage radius (metres)
+              <input
+                className={inputClass}
+                type="number"
+                min={100}
+                max={50000}
+                step={100}
+                value={radiusMeters}
+                onChange={(event) => setRadiusMeters(event.target.value)}
+                placeholder="1000"
+              />
+              <span className="text-[10px] font-normal text-[#88847d]">
+                Customers within this radius will match this fee area. If areas overlap, the closest
+                matching zone is used.
+              </span>
+            </label>
+          </div>
+
           <div className={labelClass}>
             Availability
             <span className="flex min-h-[42px] items-center gap-3 text-[12px] font-normal text-[#5c5851]">
@@ -410,6 +463,13 @@ function ZonesPanel({
           state: zone.state,
           deliveryFeeCents: zone.deliveryFeeCents,
           active,
+          ...(zone.latitude != null && zone.longitude != null
+            ? {
+                latitude: zone.latitude,
+                longitude: zone.longitude,
+                radiusMeters: zone.radiusMeters ?? 1000,
+              }
+            : {}),
         }),
       });
 
@@ -542,6 +602,11 @@ function ZonesPanel({
                         <MapPin size={13} className="shrink-0 text-brand" aria-hidden="true" />
                         {zone.name}
                       </span>
+                      <span className="mt-1 block text-[9px] text-[#928b82]">
+                        {zone.latitude != null && zone.longitude != null
+                          ? `Map pin · ${zone.radiusMeters ?? 1000}m coverage`
+                          : 'Location not pinned yet'}
+                      </span>
                     </td>
 
                     <td className={`${td} text-[#77736d]`}>
@@ -617,70 +682,78 @@ function ZonesPanel({
   );
 }
 
+const DELIVERY_PERIODS = {
+  morning: { label: 'Morning', startsAt: '08:00', endsAt: '11:00', icon: Sun },
+  afternoon: { label: 'Afternoon', startsAt: '12:00', endsAt: '16:00', icon: CloudSun },
+  evening: { label: 'Evening', startsAt: '17:00', endsAt: '20:00', icon: Moon },
+} as const;
+type DeliveryPeriod = keyof typeof DELIVERY_PERIODS;
+
+function periodForTime(time: string): DeliveryPeriod {
+  const hour = Number(time.slice(0, 2));
+  if (hour < 12) return 'morning';
+  if (hour < 17) return 'afternoon';
+  return 'evening';
+}
+
 function ScheduleForm({
   schedule,
   zones,
+  initialZoneId,
+  initialPeriod,
   onClose,
   onSaved,
   onPartial,
 }: {
   schedule?: Schedule;
   zones: Zone[];
+  initialZoneId?: string;
+  initialPeriod?: DeliveryPeriod;
   onClose: () => void;
   onSaved: (text: string) => void;
   onPartial: () => void;
 }) {
   const activeZones = zones.filter((zone) => zone.active);
+  const defaultPeriod =
+    initialPeriod ?? (schedule ? periodForTime(lagosTime(schedule.startsAt)) : 'morning');
+  const preset = DELIVERY_PERIODS[defaultPeriod];
 
-  const [zoneId, setZoneId] = useState(schedule?.zoneId ?? activeZones[0]?.id ?? '');
+  const [zoneId, setZoneId] = useState(
+    schedule?.zoneId ?? initialZoneId ?? activeZones[0]?.id ?? '',
+  );
+  const [period, setPeriod] = useState<DeliveryPeriod>(defaultPeriod);
   const [date, setDate] = useState(schedule ? lagosDate(schedule.startsAt) : '');
-  const [start, setStart] = useState(schedule ? lagosTime(schedule.startsAt) : '09:00');
-  const [end, setEnd] = useState(schedule ? lagosTime(schedule.endsAt) : '12:00');
+  const [start, setStart] = useState(schedule ? lagosTime(schedule.startsAt) : preset.startsAt);
+  const [end, setEnd] = useState(schedule ? lagosTime(schedule.endsAt) : preset.endsAt);
   const [capacity, setCapacity] = useState(String(schedule?.capacity ?? 10));
   const [repeat, setRepeat] = useState('1');
-  const [active, setActive] = useState(true);
+  const [active, setActive] = useState(schedule?.active ?? true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
+  function choosePeriod(nextPeriod: DeliveryPeriod) {
+    setPeriod(nextPeriod);
+    setStart(DELIVERY_PERIODS[nextPeriod].startsAt);
+    setEnd(DELIVERY_PERIODS[nextPeriod].endsAt);
+  }
+
   async function submit(event: FormEvent) {
     event.preventDefault();
-
     const cap = Number(capacity);
     const days = Number(repeat);
 
-    if (!schedule && !zoneId) {
-      setError('Choose a delivery zone.');
-      return;
-    }
-
-    if (!date || !start || !end) {
-      setError('Choose a date, a start time and an end time.');
-      return;
-    }
-
-    if (end <= start) {
-      setError('The end time must be after the start time.');
-      return;
-    }
-
-    if (new Date(toIso(date, start)) <= new Date()) {
-      setError('The slot must start in the future.');
-      return;
-    }
-
-    if (!Number.isInteger(cap) || cap < 1 || cap > 500) {
-      setError('Capacity must be a whole number from 1 to 500.');
-      return;
-    }
-
-    if (!schedule && (!Number.isInteger(days) || days < 1 || days > 30)) {
-      setError('Repeat must be a whole number of days from 1 to 30.');
-      return;
-    }
+    if (!schedule && !zoneId) return setError('Choose a delivery zone.');
+    if (!date || !start || !end) return setError('Choose a date, start time and end time.');
+    if (end <= start) return setError('The end time must be after the start time.');
+    if (new Date(toIso(date, start)) <= new Date())
+      return setError('The slot must start in the future.');
+    if (!Number.isInteger(cap) || cap < 1 || cap > 500)
+      return setError('Capacity must be a whole number from 1 to 500.');
+    if (!schedule && (!Number.isInteger(days) || days < 1 || days > 30))
+      return setError('Repeat must be a whole number of days from 1 to 30.');
 
     setSaving(true);
     setError('');
-
     try {
       if (schedule) {
         await request(`${SCHEDULES_API}/${schedule.id}`, {
@@ -691,17 +764,14 @@ function ScheduleForm({
             capacity: cap,
           }),
         });
-
-        onSaved('Slot saved.');
+        onSaved('Schedule saved.');
         return;
       }
 
       let created = 0;
       const skipped: string[] = [];
-
       for (let index = 0; index < days; index += 1) {
         const day = addDays(date, index);
-
         try {
           await request(SCHEDULES_API, {
             method: 'POST',
@@ -713,20 +783,16 @@ function ScheduleForm({
               active,
             }),
           });
-
           created += 1;
         } catch (err) {
           skipped.push(`${formatDay(toIso(day, start))}: ${errorText(err)}`);
         }
       }
-
-      if (skipped.length === 0) {
-        onSaved(created === 1 ? 'Slot added.' : `${created} slots added.`);
+      if (!skipped.length) {
+        onSaved(created === 1 ? 'Schedule added.' : `${created} schedules added.`);
         return;
       }
-
-      if (created > 0) onPartial();
-
+      if (created) onPartial();
       setError(`Added ${created} of ${days}. Skipped: ${skipped.join('; ')}`);
     } catch (err) {
       setError(errorText(err));
@@ -736,20 +802,50 @@ function ScheduleForm({
   }
 
   const today = lagosDate(new Date());
-
   return (
-    <FormShell title={schedule ? 'Edit delivery slot' : 'Add delivery slots'} onClose={onClose}>
+    <FormShell
+      title={schedule ? 'Edit delivery schedule' : 'Add delivery schedule'}
+      onClose={onClose}
+    >
       <form onSubmit={submit} className="space-y-4" noValidate>
         {error && <FormError>{error}</FormError>}
+        {!schedule && (
+          <div className="space-y-2">
+            <span className={labelClass}>Delivery period</span>
+            <div className="flex flex-wrap gap-2" role="group" aria-label="Choose delivery period">
+              {(Object.keys(DELIVERY_PERIODS) as DeliveryPeriod[]).map((key) => {
+                const item = DELIVERY_PERIODS[key];
+                const Icon = item.icon;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => choosePeriod(key)}
+                    aria-pressed={period === key}
+                    className={`inline-flex items-center gap-2 border px-3 py-2 text-xs font-semibold ${period === key ? 'border-brand bg-brand/5 text-brand' : 'border-[#e9e6df] bg-white text-[#5c5851] hover:border-brand'}`}
+                  >
+                    <Icon size={14} />
+                    {item.label}
+                    <span className="font-normal text-[#88847d]">
+                      {item.startsAt}–{item.endsAt}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
           <label className={`${labelClass} sm:col-span-2`}>
-            Delivery zone
+            Delivery location
             {schedule ? (
               <input
                 className={inputClass}
                 value={
-                  schedule.zone ? `${schedule.zone.name}, ${schedule.zone.city}` : 'Unknown zone'
+                  schedule.zone
+                    ? `${schedule.zone.name}, ${schedule.zone.city}`
+                    : (zones.find((z) => z.id === schedule.zoneId)?.name ?? 'Unknown location')
                 }
                 disabled
               />
@@ -757,7 +853,7 @@ function ScheduleForm({
               <select
                 className={inputClass}
                 value={zoneId}
-                onChange={(event) => setZoneId(event.target.value)}
+                onChange={(e) => setZoneId(e.target.value)}
               >
                 {activeZones.map((zone) => (
                   <option key={zone.id} value={zone.id}>
@@ -767,7 +863,6 @@ function ScheduleForm({
               </select>
             )}
           </label>
-
           <label className={`${labelClass} sm:col-span-2`}>
             {schedule ? 'Date' : 'First date'}
             <input
@@ -775,32 +870,29 @@ function ScheduleForm({
               type="date"
               min={today}
               value={date}
-              onChange={(event) => setDate(event.target.value)}
+              onChange={(e) => setDate(e.target.value)}
             />
           </label>
-
           <label className={labelClass}>
             Starts
             <input
               className={inputClass}
               type="time"
               value={start}
-              onChange={(event) => setStart(event.target.value)}
+              onChange={(e) => setStart(e.target.value)}
             />
           </label>
-
           <label className={labelClass}>
             Ends
             <input
               className={inputClass}
               type="time"
               value={end}
-              onChange={(event) => setEnd(event.target.value)}
+              onChange={(e) => setEnd(e.target.value)}
             />
           </label>
-
           <label className={labelClass}>
-            Orders it can take
+            Order capacity
             <input
               className={inputClass}
               type="number"
@@ -808,10 +900,9 @@ function ScheduleForm({
               min={1}
               max={500}
               value={capacity}
-              onChange={(event) => setCapacity(event.target.value)}
+              onChange={(e) => setCapacity(e.target.value)}
             />
           </label>
-
           {!schedule && (
             <label className={labelClass}>
               Repeat for days
@@ -822,37 +913,32 @@ function ScheduleForm({
                 min={1}
                 max={30}
                 value={repeat}
-                onChange={(event) => setRepeat(event.target.value)}
+                onChange={(e) => setRepeat(e.target.value)}
               />
             </label>
           )}
-
           {!schedule && (
             <div className={`${labelClass} sm:col-span-2`}>
               Availability
               <span className="flex min-h-[42px] items-center gap-3 text-[12px] font-normal text-[#5c5851]">
-                <Switch checked={active} onChange={setActive} label="Slot is active" />
-                {active ? 'Customers can book these slots' : 'Save as hidden for now'}
+                <Switch checked={active} onChange={setActive} label="Schedule is active" />
+                {active ? 'Customers can book this schedule' : 'Save as hidden for now'}
               </span>
             </div>
           )}
         </div>
-
         {!schedule && Number(repeat) > 1 && (
           <p className="m-0 text-[11px] leading-5 text-[#77736d]">
-            This adds the same window on {Number(repeat)} days in a row, starting on the first date.
-            Days that overlap an existing slot are skipped.
+            This creates the same time window on {Number(repeat)} consecutive days. Dates that
+            conflict with existing schedules are skipped.
           </p>
         )}
-
         <p className="m-0 text-[11px] leading-5 text-[#77736d]">All times are Lagos time (WAT).</p>
-
         <div className="flex flex-wrap items-center gap-2.5">
           <button type="submit" disabled={saving} className={primaryButton}>
             {saving ? <Spinner size={12} /> : <Check size={13} />}
-            {schedule ? 'Save slot' : 'Add slots'}
+            {schedule ? 'Save schedule' : 'Add schedules'}
           </button>
-
           <button type="button" onClick={onClose} className={secondaryButton}>
             Cancel
           </button>
@@ -867,16 +953,18 @@ function SchedulesPanel({ zones, notify }: { zones: Zone[]; notify: Notify }) {
   const [loading, setLoading] = useState(true);
   const [zoneFilter, setZoneFilter] = useState('all');
   const [timeFilter, setTimeFilter] = useState<'upcoming' | 'past' | 'all'>('upcoming');
-  const [editor, setEditor] = useState<{ schedule?: Schedule } | null>(null);
+  const [editor, setEditor] = useState<{
+    schedule?: Schedule;
+    zoneId?: string;
+    period?: DeliveryPeriod;
+  } | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
-
   const hasActiveZone = zones.some((zone) => zone.active);
 
   const load = useCallback(async () => {
     try {
       const data = await request<{ schedules: Schedule[] }>(SCHEDULES_API);
-
       setSchedules(data.schedules);
     } catch (err) {
       notify('error', errorText(err));
@@ -884,59 +972,50 @@ function SchedulesPanel({ zones, notify }: { zones: Zone[]; notify: Notify }) {
       setLoading(false);
     }
   }, [notify]);
-
   useEffect(() => {
     void load();
   }, [load]);
 
   const now = Date.now();
-
-  const visible = useMemo(() => {
-    const filtered = schedules.filter((slot) => {
-      if (zoneFilter !== 'all' && slot.zoneId !== zoneFilter) return false;
-
-      const started = new Date(slot.startsAt).getTime() <= now;
-
-      if (timeFilter === 'upcoming') return !started;
-      if (timeFilter === 'past') return started;
-
-      return true;
-    });
-
-    return filtered.sort((a, b) => {
-      const diff = new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime();
-
-      return timeFilter === 'upcoming' ? diff : -diff;
-    });
-  }, [schedules, zoneFilter, timeFilter, now]);
+  const visible = useMemo(
+    () =>
+      schedules
+        .filter((slot) => {
+          if (zoneFilter !== 'all' && slot.zoneId !== zoneFilter) return false;
+          const ends = new Date(slot.endsAt).getTime();
+          if (timeFilter === 'upcoming') return ends > now;
+          if (timeFilter === 'past') return ends <= now;
+          return true;
+        })
+        .sort((a, b) => {
+          const delta = new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime();
+          return timeFilter === 'past' ? -delta : delta;
+        }),
+    [schedules, zoneFilter, timeFilter, now],
+  );
 
   async function toggleActive(slot: Schedule, active: boolean) {
     setBusyId(slot.id);
-
     try {
       await request(`${SCHEDULES_API}/${slot.id}`, {
         method: 'PATCH',
         body: JSON.stringify({ active }),
       });
-
       await load();
-      notify('success', active ? 'Slot is now bookable.' : 'Slot is now hidden.');
+      notify('success', active ? 'Schedule is now bookable.' : 'Schedule hidden.');
     } catch (err) {
       notify('error', errorText(err));
     } finally {
       setBusyId(null);
     }
   }
-
   async function remove(slot: Schedule) {
     setBusyId(slot.id);
-
     try {
       await request(`${SCHEDULES_API}/${slot.id}`, { method: 'DELETE' });
-
       setConfirmId(null);
       await load();
-      notify('success', 'Slot deleted.');
+      notify('success', 'Schedule deleted.');
     } catch (err) {
       setConfirmId(null);
       notify('error', errorText(err));
@@ -944,18 +1023,6 @@ function SchedulesPanel({ zones, notify }: { zones: Zone[]; notify: Notify }) {
       setBusyId(null);
     }
   }
-
-  const addButton = (
-    <button
-      type="button"
-      disabled={!hasActiveZone}
-      onClick={() => setEditor({})}
-      className={primaryButton}
-    >
-      <Plus size={13} />
-      Add slots
-    </button>
-  );
 
   const filters: { value: typeof timeFilter; label: string }[] = [
     { value: 'upcoming', label: 'Upcoming' },
@@ -964,19 +1031,17 @@ function SchedulesPanel({ zones, notify }: { zones: Zone[]; notify: Notify }) {
   ];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-3">
           <label className="block">
-            <span className="sr-only">Filter by zone</span>
-
+            <span className="sr-only">Filter by delivery location</span>
             <select
               className={`${inputClass} w-auto min-w-[180px]`}
               value={zoneFilter}
-              onChange={(event) => setZoneFilter(event.target.value)}
+              onChange={(e) => setZoneFilter(e.target.value)}
             >
-              <option value="all">All zones</option>
-
+              <option value="all">All locations</option>
               {zones.map((zone) => (
                 <option key={zone.id} value={zone.id}>
                   {zone.name}, {zone.city}
@@ -984,10 +1049,9 @@ function SchedulesPanel({ zones, notify }: { zones: Zone[]; notify: Notify }) {
               ))}
             </select>
           </label>
-
           <div
             role="group"
-            aria-label="Filter by time"
+            aria-label="Filter schedules by date"
             className="inline-flex border border-[#e9e6df]"
           >
             {filters.map((filter) => (
@@ -996,211 +1060,224 @@ function SchedulesPanel({ zones, notify }: { zones: Zone[]; notify: Notify }) {
                 type="button"
                 aria-pressed={timeFilter === filter.value}
                 onClick={() => setTimeFilter(filter.value)}
-                className={`cursor-pointer border-0 px-3.5 py-2.5 text-[11px] font-semibold transition-colors ${
-                  timeFilter === filter.value
-                    ? 'bg-[#24231f] text-white'
-                    : 'bg-white text-[#5c5851] hover:text-brand'
-                }`}
+                className={`cursor-pointer border-0 px-3.5 py-2.5 text-[11px] font-semibold transition-colors ${timeFilter === filter.value ? 'bg-[#24231f] text-white' : 'bg-white text-[#5c5851] hover:text-brand'}`}
               >
                 {filter.label}
               </button>
             ))}
           </div>
         </div>
-
-        {addButton}
+        <button
+          type="button"
+          disabled={!hasActiveZone}
+          onClick={() => setEditor({})}
+          className={primaryButton}
+        >
+          <Plus size={13} />
+          Add schedule
+        </button>
       </div>
-
       {!hasActiveZone && !loading && (
         <p className="m-0 border border-amber-200 bg-amber-50 p-3 text-[12px] leading-5 text-amber-800">
-          Add at least one active delivery zone before creating delivery slots.
+          Add or activate a delivery location before creating schedules.
         </p>
       )}
-
       {editor && (
         <ScheduleForm
-          key={editor.schedule?.id ?? 'new'}
+          key={`${editor.schedule?.id ?? 'new'}-${editor.zoneId ?? ''}-${editor.period ?? ''}`}
           schedule={editor.schedule}
           zones={zones}
+          initialZoneId={editor.zoneId}
+          initialPeriod={editor.period}
           onClose={() => setEditor(null)}
           onPartial={() => void load()}
-          onSaved={(text) => {
+          onSaved={(message) => {
             setEditor(null);
-            notify('success', text);
+            notify('success', message);
             void load();
           }}
         />
       )}
-
       {loading ? (
         <div className="flex items-center gap-2 py-6 text-[12px] text-[#77736d]">
           <Spinner />
-          Loading delivery slots…
+          Loading schedules…
         </div>
-      ) : visible.length === 0 ? (
+      ) : zones.length === 0 ? (
         <EmptyState
-          title={
-            schedules.length === 0
-              ? 'No delivery slots yet'
-              : timeFilter === 'upcoming'
-                ? 'No upcoming slots'
-                : 'No slots match these filters'
-          }
-          text={
-            schedules.length === 0 || timeFilter === 'upcoming'
-              ? 'Customers can only choose home delivery when a zone has a future slot with space left. Add one to open it up.'
-              : 'Try another zone or time filter.'
-          }
-          action={hasActiveZone ? addButton : undefined}
+          title="No delivery locations"
+          text="Add a delivery zone first, then create schedules for it."
         />
       ) : (
-        <div className={`${card} overflow-x-auto`}>
-          <table className="w-full min-w-[820px] border-collapse">
-            <thead>
-              <tr className="border-b border-[#eae7e1]">
-                <th scope="col" className={th}>
-                  Date
-                </th>
-                <th scope="col" className={th}>
-                  Window
-                </th>
-                <th scope="col" className={th}>
-                  Zone
-                </th>
-                <th scope="col" className={th}>
-                  Booked
-                </th>
-                <th scope="col" className={th}>
-                  Active
-                </th>
-                <th scope="col" className={`${th} text-right`}>
-                  <span className="sr-only">Actions</span>
-                </th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {visible.map((slot) => {
-                const busy = busyId === slot.id;
-                const confirming = confirmId === slot.id;
-                const past = new Date(slot.startsAt).getTime() <= now;
-                const full = slot.bookedCount >= slot.capacity;
-                const percent = Math.min(100, Math.round((slot.bookedCount / slot.capacity) * 100));
-
-                return (
-                  <tr
-                    key={slot.id}
-                    className={`border-b border-[#f0eee9] last:border-b-0 ${past ? 'bg-[#fbfaf8]' : ''}`}
-                  >
-                    <td className={td}>
-                      <span className="flex items-center gap-2 font-medium">
-                        <CalendarClock
-                          size={13}
-                          aria-hidden="true"
-                          className={`shrink-0 ${past ? 'text-[#aaa69e]' : 'text-brand'}`}
-                        />
-                        {formatDay(slot.startsAt)}
-                      </span>
-                    </td>
-
-                    <td className={`${td} whitespace-nowrap`}>
-                      {formatTime(slot.startsAt)} – {formatTime(slot.endsAt)}
-                    </td>
-
-                    <td className={`${td} text-[#77736d]`}>
-                      {slot.zone ? `${slot.zone.name}, ${slot.zone.city}` : 'Unknown zone'}
-                    </td>
-
-                    <td className={td}>
-                      <div className="flex min-w-[120px] items-center gap-2.5">
-                        <span
-                          className="h-1.5 w-16 shrink-0 overflow-hidden bg-[#eae7e1]"
-                          role="img"
-                          aria-label={`${slot.bookedCount} of ${slot.capacity} booked`}
-                        >
-                          <span
-                            className={`block h-full ${full ? 'bg-red-500' : 'bg-brand'}`}
-                            style={{ width: `${percent}%` }}
-                          />
-                        </span>
-
-                        <span className="text-[11px] text-[#77736d]">
-                          {full ? 'Full' : `${slot.bookedCount} of ${slot.capacity}`}
-                        </span>
-                      </div>
-                    </td>
-
-                    <td className={td}>
-                      {past ? (
-                        <span className="text-[11px] text-[#88847d]">Past</span>
-                      ) : (
-                        <Switch
-                          checked={slot.active}
-                          disabled={busy}
-                          label="Slot is active"
-                          onChange={(next) => void toggleActive(slot, next)}
-                        />
-                      )}
-                    </td>
-
-                    <td className={`${td} text-right`}>
-                      {confirming ? (
-                        <span className="inline-flex items-center gap-2 text-[11px]">
-                          <span className="text-[#77736d]">Delete this slot?</span>
-
-                          <button
-                            type="button"
-                            disabled={busy}
-                            onClick={() => void remove(slot)}
-                            className="inline-flex cursor-pointer items-center gap-1 border-0 bg-red-600 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-red-700 disabled:opacity-50"
-                          >
-                            {busy && <Spinner size={11} />}
-                            Delete
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => setConfirmId(null)}
-                            className="cursor-pointer border-0 bg-transparent p-0 text-[11px] font-semibold text-[#5c5851] hover:text-brand"
-                          >
-                            Keep
-                          </button>
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center">
-                          <button
-                            type="button"
-                            aria-label="Edit slot"
-                            disabled={past}
-                            title={past ? 'Past slots can’t be edited' : undefined}
-                            onClick={() => setEditor({ schedule: slot })}
-                            className={iconButton}
-                          >
-                            <Pencil size={14} />
-                          </button>
-
-                          <button
-                            type="button"
-                            aria-label="Delete slot"
-                            disabled={slot.bookedCount > 0}
-                            title={
-                              slot.bookedCount > 0
-                                ? 'This slot has bookings. Hide it instead of deleting it.'
-                                : undefined
-                            }
-                            onClick={() => setConfirmId(slot.id)}
-                            className={`${iconButton} hover:!text-red-600`}
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+        <div className="space-y-8">
+          {zones
+            .filter((zone) => zoneFilter === 'all' || zone.id === zoneFilter)
+            .map((zone) => {
+              const zoneSlots = visible.filter((slot) => slot.zoneId === zone.id);
+              const periods: DeliveryPeriod[] = ['morning', 'afternoon', 'evening'];
+              return (
+                <section key={zone.id} className="space-y-4">
+                  <header className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e9e6df] pb-3">
+                    <div className="min-w-0">
+                      <h3 className="m-0 text-sm font-semibold text-[#24231f]">{zone.name}</h3>
+                      <p className="m-0 mt-1 text-[11px] text-[#77736d]">
+                        {zone.city}
+                        {zone.state ? `, ${zone.state}` : ''} ·{' '}
+                        {zone.active ? 'Active location' : 'Inactive location'}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      disabled={!zone.active}
+                      onClick={() => setEditor({ zoneId: zone.id })}
+                      className="inline-flex items-center gap-1.5 border-0 bg-transparent p-0 text-[11px] font-semibold text-brand hover:underline disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      <Plus size={13} />
+                      Add schedule
+                    </button>
+                  </header>
+                  {periods.map((period) => {
+                    const preset = DELIVERY_PERIODS[period];
+                    const Icon = preset.icon;
+                    const items = zoneSlots.filter(
+                      (slot) => periodForTime(lagosTime(slot.startsAt)) === period,
+                    );
+                    return (
+                      <section key={period} className="space-y-2">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-2">
+                            <Icon size={14} className="text-[#77736d]" />
+                            <h4 className="m-0 text-xs font-semibold">{preset.label}</h4>
+                          </div>
+                          <span className="text-[11px] text-[#88847d]">
+                            Default {preset.startsAt}–{preset.endsAt}
+                          </span>
+                        </div>
+                        {items.length === 0 ? (
+                          <div className="py-1 text-[11px] text-[#aaa69e]">No schedules</div>
+                        ) : (
+                          <div className="divide-y divide-[#eeeae4]">
+                            {items.map((slot) => {
+                              const busy = busyId === slot.id;
+                              const confirming = confirmId === slot.id;
+                              const past = new Date(slot.endsAt).getTime() <= now;
+                              const full = slot.capacity > 0 && slot.bookedCount >= slot.capacity;
+                              const remaining = Math.max(0, slot.capacity - slot.bookedCount);
+                              const percent =
+                                slot.capacity > 0
+                                  ? Math.min(
+                                      100,
+                                      Math.round((slot.bookedCount / slot.capacity) * 100),
+                                    )
+                                  : 0;
+                              return (
+                                <div
+                                  key={slot.id}
+                                  className={`flex flex-wrap items-center justify-between gap-3 py-3 ${past ? 'opacity-60' : ''}`}
+                                >
+                                  <div className="min-w-0 flex-1">
+                                    <div className="flex flex-wrap items-center gap-2">
+                                      <span className="text-xs font-medium">
+                                        {formatDay(slot.startsAt)}
+                                      </span>
+                                      <span className="text-[11px] text-[#77736d]">
+                                        {formatTime(slot.startsAt)}–{formatTime(slot.endsAt)}
+                                      </span>
+                                      {past && (
+                                        <span className="text-[10px] text-[#88847d]">Ended</span>
+                                      )}
+                                    </div>
+                                    <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-[#77736d]">
+                                      <span>
+                                        {slot.bookedCount}/{slot.capacity} booked
+                                      </span>
+                                      <span>·</span>
+                                      <span>{remaining} remaining</span>
+                                      <span className="h-1.5 w-20 overflow-hidden bg-[#eae7e1]">
+                                        <span
+                                          className={`block h-full ${full ? 'bg-red-500' : 'bg-brand'}`}
+                                          style={{ width: `${percent}%` }}
+                                        />
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <div className="flex shrink-0 items-center gap-2">
+                                    {confirming ? (
+                                      <div className="flex items-center gap-2 text-[11px]">
+                                        <span>Delete?</span>
+                                        <button
+                                          type="button"
+                                          disabled={busy}
+                                          onClick={() => void remove(slot)}
+                                          className="border-0 bg-red-600 px-2.5 py-1.5 text-[11px] font-semibold text-white disabled:opacity-50"
+                                        >
+                                          {busy && <Spinner size={11} />}Delete
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => setConfirmId(null)}
+                                          className="border-0 bg-transparent p-0 text-[11px] font-semibold text-[#77736d]"
+                                        >
+                                          Cancel
+                                        </button>
+                                      </div>
+                                    ) : (
+                                      <>
+                                        <span
+                                          className={`text-[11px] font-semibold ${slot.active ? 'text-emerald-600' : 'text-[#88847d]'}`}
+                                        >
+                                          {slot.active ? (full ? 'Full' : 'Active') : 'Inactive'}
+                                        </span>
+                                        {!past && (
+                                          <Switch
+                                            checked={slot.active}
+                                            disabled={busy}
+                                            label={`Schedule in ${zone.name} is active`}
+                                            onChange={(next) => void toggleActive(slot, next)}
+                                          />
+                                        )}
+                                        <button
+                                          type="button"
+                                          disabled={past}
+                                          aria-label="Edit schedule"
+                                          title={
+                                            past
+                                              ? 'Past schedules cannot be edited'
+                                              : 'Edit schedule'
+                                          }
+                                          onClick={() => setEditor({ schedule: slot })}
+                                          className={iconButton}
+                                        >
+                                          <Pencil size={13} />
+                                        </button>
+                                        <button
+                                          type="button"
+                                          disabled={slot.bookedCount > 0}
+                                          title={
+                                            slot.bookedCount > 0
+                                              ? 'Has bookings, hide instead'
+                                              : 'Delete schedule'
+                                          }
+                                          aria-label="Delete schedule"
+                                          onClick={() => setConfirmId(slot.id)}
+                                          className={`${iconButton} hover:!text-red-600`}
+                                        >
+                                          <Trash2 size={13} />
+                                        </button>
+                                      </>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </section>
+                    );
+                  })}
+                </section>
+              );
+            })}
         </div>
       )}
     </div>

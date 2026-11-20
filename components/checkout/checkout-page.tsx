@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import {
   ArrowLeft,
   ArrowRight,
@@ -21,6 +21,7 @@ import {
 import { useAuth } from '@/components/auth/auth-provider';
 import { useCart } from '@/components/cart/cart-provider';
 import { formatPrice } from '@/lib/catalog';
+import LocationPicker from '@/components/map/location-picker';
 
 type CheckoutResponse = {
   orderNumber: string;
@@ -48,6 +49,8 @@ type Address = {
   postalCode: string;
   instructions?: string;
   isDefault?: boolean;
+  latitude?: number | null;
+  longitude?: number | null;
 };
 
 type ApiAddress = {
@@ -64,6 +67,8 @@ type ApiAddress = {
   postalCode?: string | null;
   instructions?: string | null;
   isDefault?: boolean;
+  latitude?: number | null;
+  longitude?: number | null;
 };
 
 type DeliveryZone = {
@@ -73,6 +78,9 @@ type DeliveryZone = {
   state: string;
   deliveryFeeCents: number;
   active: boolean;
+  latitude?: number | null;
+  longitude?: number | null;
+  radiusMeters?: number | null;
 };
 
 type DeliverySchedule = {
@@ -90,6 +98,8 @@ type AppliedCoupon = {
   discountCents: number;
 };
 
+type Coords = { latitude?: number | null; longitude?: number | null };
+
 const initialAddress: Address = {
   fullName: '',
   phone: '',
@@ -100,6 +110,8 @@ const initialAddress: Address = {
   region: '',
   postalCode: '',
   instructions: '',
+  latitude: null,
+  longitude: null,
 };
 
 const steps = [
@@ -146,6 +158,8 @@ function normalizeAddress(raw: ApiAddress): Address {
     postalCode: raw.postalCode ?? '',
     instructions: raw.instructions ?? '',
     isDefault: raw.isDefault,
+    latitude: raw.latitude ?? null,
+    longitude: raw.longitude ?? null,
   };
 }
 
@@ -159,6 +173,37 @@ function firstDetail(details: unknown): string | undefined {
   }
 
   return undefined;
+}
+
+ 
+function distanceMeters(a: Coords, b: Coords) {
+  if (a.latitude == null || a.longitude == null || b.latitude == null || b.longitude == null) {
+    return Infinity;
+  }
+
+  const rad = (n: number) => (n * Math.PI) / 180;
+  const dLat = rad(b.latitude - a.latitude);
+  const dLon = rad(b.longitude - a.longitude);
+  const lat1 = rad(a.latitude);
+  const lat2 = rad(b.latitude);
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
+
+  return 6371000 * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+}
+
+ 
+function findZone(point: Coords, zones: DeliveryZone[]): DeliveryZone | undefined {
+  if (point.latitude == null || point.longitude == null) return undefined;
+
+  return zones
+    .filter(
+      (zone) =>
+        zone.latitude != null &&
+        zone.longitude != null &&
+        zone.radiusMeters != null &&
+        distanceMeters(point, zone) <= zone.radiusMeters,
+    )
+    .sort((a, b) => distanceMeters(point, a) - distanceMeters(point, b))[0];
 }
 
 function FullPage({ children }: { children: ReactNode }) {
@@ -235,6 +280,11 @@ export default function CheckoutPageClient() {
   const totalCents = Math.max(0, subtotalCents - couponDiscountCents + deliveryFeeCents);
 
   const showAddress = deliveryMethod === 'home';
+
+  const pickerValue =
+    address.latitude != null && address.longitude != null
+      ? { latitude: address.latitude, longitude: address.longitude }
+      : null;
 
   const invalidateCheckoutRequest = useCallback(() => {
     checkoutRequestId.current = null;
@@ -423,13 +473,6 @@ export default function CheckoutPageClient() {
     }
   }, [zones, address.area, address.city, selectedZoneId, showAddress, invalidateCheckoutRequest]);
 
-  const selectedAddress = useMemo(
-    () => addresses.find((item) => item.id === selectedAddressId),
-    [addresses, selectedAddressId],
-  );
-
-  void selectedAddress;
-
   function chooseAddress(item: Address) {
     setAddress({
       ...initialAddress,
@@ -438,7 +481,7 @@ export default function CheckoutPageClient() {
 
     setSelectedAddressId(item.id ?? '');
     setEditingAddress(false);
-    setSelectedZoneId('');
+    setSelectedZoneId(findZone(item, zones)?.id ?? '');
     setSelectedScheduleId('');
     invalidateCheckoutRequest();
   }
@@ -468,6 +511,21 @@ export default function CheckoutPageClient() {
     invalidateCheckoutRequest();
   }
 
+  function chooseMapPoint(point: { latitude: number; longitude: number }) {
+    const zone = findZone(point, zones);
+
+    setAddress((current) => ({
+      ...current,
+      latitude: point.latitude,
+      longitude: point.longitude,
+      ...(zone ? { area: zone.name, city: zone.city, region: zone.state } : {}),
+    }));
+
+    setSelectedZoneId(zone?.id ?? '');
+    setSelectedScheduleId('');
+    invalidateCheckoutRequest();
+  }
+
   async function saveAddress() {
     if (!validateAddress() || savingAddress) return;
 
@@ -485,6 +543,8 @@ export default function CheckoutPageClient() {
         state: address.region,
         postalCode: address.postalCode ?? '',
         instructions: address.instructions ?? '',
+        latitude: address.latitude ?? undefined,
+        longitude: address.longitude ?? undefined,
         isDefault: address.isDefault ?? addresses.length === 0,
       };
 
@@ -910,6 +970,10 @@ export default function CheckoutPageClient() {
     },
   ];
 
+  const mapFeeText = selectedZone
+    ? `Delivery fee: ${formatPrice(selectedZone.deliveryFeeCents)} (${selectedZone.name})`
+    : 'No price set yet for this location.';
+
   return (
     <main className="min-h-screen bg-[#f8f8f6] text-[#24231f]">
       <div className={`${container} py-6 sm:py-8 lg:py-10`}>
@@ -1255,6 +1319,16 @@ export default function CheckoutPageClient() {
                               )}
                             </div>
 
+                            <div className="my-4 rounded-lg border border-[#eae7e1] bg-[#faf9f6] p-3">
+                              <p className="mb-2 text-[11px] font-bold text-[#51483e]">
+                                Choose exact location on map
+                              </p>
+                              <LocationPicker value={pickerValue} onChange={chooseMapPoint} />
+                              <p className="mt-2 text-[10px] font-semibold text-[#77736d]">
+                                {mapFeeText}
+                              </p>
+                            </div>
+
                             <button
                               type="button"
                               disabled={savingAddress}
@@ -1271,6 +1345,18 @@ export default function CheckoutPageClient() {
                           </div>
                         )}
                       </>
+                    )}
+
+                    {!editingAddress && (
+                      <div className="my-3 rounded-lg border border-[#eae7e1] bg-[#faf9f6] p-3">
+                        <p className="mb-2 text-[11px] font-bold text-[#51483e]">
+                          Confirm delivery point on map
+                        </p>
+                        <LocationPicker value={pickerValue} onChange={chooseMapPoint} />
+                        <p className="mt-2 text-[10px] font-semibold text-[#77736d]">
+                          {mapFeeText}
+                        </p>
+                      </div>
                     )}
 
                     <div className="border-t border-[#e9e6df] pt-4">
@@ -1493,6 +1579,7 @@ export default function CheckoutPageClient() {
                   <div className="space-y-3">
                     {items.map(({ product, quantity }) => (
                       <div key={product.slug} className="flex min-w-0 items-center gap-2.5">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={product.imageUrl}
                           alt={product.name}
@@ -1744,6 +1831,7 @@ export default function CheckoutPageClient() {
             <div className="space-y-2.5">
               {items.map(({ product, quantity }) => (
                 <div key={product.slug} className="flex min-w-0 items-center gap-2">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={product.imageUrl}
                     alt={product.name}

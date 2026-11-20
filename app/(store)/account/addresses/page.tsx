@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import LocationPicker from '@/components/map/location-picker';
 import Link from 'next/link';
 import {
   ArrowLeft,
@@ -12,7 +13,6 @@ import {
   BriefcaseBusiness,
   MapPinned,
   Phone,
-  UserRound,
   CheckCircle2,
   Star,
   RefreshCw,
@@ -35,9 +35,61 @@ type Address = {
   postalCode?: string | null;
   instructions?: string | null;
   isDefault: boolean;
+  latitude?: number | null;
+  longitude?: number | null;
 };
 
 type Form = Omit<Address, 'id'>;
+
+type DeliveryZone = {
+  id: string;
+  name: string;
+  city: string;
+  state: string;
+  deliveryFeeCents: number;
+  latitude?: number | null;
+  longitude?: number | null;
+  radiusMeters?: number | null;
+};
+
+type Coords = { latitude?: number | null; longitude?: number | null };
+
+ 
+function distanceMeters(a: Coords, b: Coords) {
+  if (a.latitude == null || a.longitude == null || b.latitude == null || b.longitude == null) {
+    return Infinity;
+  }
+  const rad = (n: number) => (n * Math.PI) / 180;
+  const dLat = rad(b.latitude - a.latitude);
+  const dLon = rad(b.longitude - a.longitude);
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(rad(a.latitude)) * Math.cos(rad(b.latitude)) * Math.sin(dLon / 2) ** 2;
+  return 6371000 * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+}
+
+ 
+function findZone(point: Coords, zones: DeliveryZone[]): DeliveryZone | undefined {
+  if (point.latitude == null || point.longitude == null) return undefined;
+
+  return zones
+    .filter(
+      (zone) =>
+        zone.latitude != null &&
+        zone.longitude != null &&
+        zone.radiusMeters != null &&
+        distanceMeters(point, zone) <= zone.radiusMeters,
+    )
+    .sort((a, b) => distanceMeters(point, a) - distanceMeters(point, b))[0];
+}
+
+function money(cents: number) {
+  return new Intl.NumberFormat('en-NG', {
+    style: 'currency',
+    currency: 'NGN',
+    maximumFractionDigits: 0,
+  }).format(cents / 100);
+}
 
 const blank: Form = {
   label: 'Home',
@@ -51,7 +103,11 @@ const blank: Form = {
   postalCode: '',
   instructions: '',
   isDefault: false,
+  latitude: null,
+  longitude: null,
 };
+
+const PRESET_LABELS = ['Home', 'Office'];
 
 const inputClass =
   'w-full rounded-lg border border-[#e8e2d9] bg-white px-3.5 py-2.5 text-[11px] font-medium text-[#393129] outline-none transition placeholder:font-normal placeholder:text-[#b1aaa0] focus:border-[#b18a61] focus:ring-2 focus:ring-[#b18a61]/10';
@@ -71,6 +127,7 @@ function getAddressIcon(label: string) {
 
 export default function AddressesPage() {
   const [items, setItems] = useState<Address[]>([]);
+  const [zones, setZones] = useState<DeliveryZone[]>([]);
   const [form, setForm] = useState<Form>(blank);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState('');
@@ -112,6 +169,11 @@ export default function AddressesPage() {
 
   useEffect(() => {
     void load();
+
+    fetch('/api/delivery/zones', { cache: 'no-store' })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data) => setZones(Array.isArray(data?.zones) ? data.zones : []))
+      .catch(() => setZones([]));
   }, [load]);
 
   function updateField<K extends keyof Form>(key: K, value: Form[K]) {
@@ -191,6 +253,8 @@ export default function AddressesPage() {
       postalCode: address.postalCode ?? '',
       instructions: address.instructions ?? '',
       isDefault: address.isDefault,
+      latitude: address.latitude ?? null,
+      longitude: address.longitude ?? null,
     });
 
     setError('');
@@ -237,6 +301,21 @@ export default function AddressesPage() {
     }
   }
 
+  function selectAddressPoint(point: { latitude: number; longitude: number }) {
+    const zone = findZone(point, zones);
+
+    setForm((current) => ({
+      ...current,
+      latitude: point.latitude,
+      longitude: point.longitude,
+      ...(zone ? { area: zone.name, city: zone.city, state: zone.state } : {}),
+    }));
+  }
+
+  const hasPin = form.latitude != null && form.longitude != null;
+  const selectedMapZone = findZone(form, zones);
+  const isOtherLabel = !PRESET_LABELS.includes(form.label);
+
   const fields: Array<{
     key: keyof Form;
     label: string;
@@ -244,12 +323,14 @@ export default function AddressesPage() {
     required?: boolean;
     wide?: boolean;
     type?: string;
+    id?: string;
   }> = [
     {
       key: 'fullName',
       label: 'Recipient full name',
       placeholder: 'Enter recipient name',
       required: true,
+      id: 'address-recipient',
     },
     {
       key: 'phone',
@@ -398,7 +479,7 @@ export default function AddressesPage() {
 
                 <div className="grid grid-cols-3 gap-2">
                   {['Home', 'Office', 'Other'].map((label) => {
-                    const selected = form.label === label;
+                    const selected = label === 'Other' ? isOtherLabel : form.label === label;
                     const Icon =
                       label === 'Home' ? Home : label === 'Office' ? BriefcaseBusiness : MapPinned;
 
@@ -406,7 +487,13 @@ export default function AddressesPage() {
                       <button
                         key={label}
                         type="button"
-                        onClick={() => updateField('label', label)}
+                        onClick={() => {
+                          if (label === 'Other') {
+                            if (!isOtherLabel) updateField('label', '');
+                          } else {
+                            updateField('label', label);
+                          }
+                        }}
                         className={`flex items-center justify-center gap-2 rounded-lg border px-2 py-2.5 text-[10px] font-semibold transition ${
                           selected
                             ? 'border-[#c5a27d] bg-[#faf5ee] text-[#875d35]'
@@ -420,13 +507,14 @@ export default function AddressesPage() {
                   })}
                 </div>
 
-                {form.label === 'Other' && (
+                {isOtherLabel && (
                   <input
                     value={form.label}
                     onChange={(e) => updateField('label', e.target.value)}
                     className={`${inputClass} mt-2`}
                     placeholder="Enter address label"
                     maxLength={30}
+                    required
                   />
                 )}
               </div>
@@ -441,6 +529,7 @@ export default function AddressesPage() {
                     </label>
 
                     <input
+                      id={field.id}
                       type={field.type || 'text'}
                       required={field.required}
                       value={String(form[field.key] ?? '')}
@@ -450,6 +539,35 @@ export default function AddressesPage() {
                     />
                   </div>
                 ))}
+              </div>
+
+              {}
+              <div className="space-y-2 rounded-xl border border-[#eee8df] bg-[#fdfbf8] p-3.5">
+                <div>
+                  <p className="text-[11px] font-bold text-[#51483e]">
+                    Pin your exact delivery location
+                  </p>
+                  <p className="mt-1 text-[10px] text-[#928b82]">
+                    Search for a street or landmark, or tap the map to place the pin.
+                  </p>
+                </div>
+
+                <LocationPicker
+                  value={
+                    form.latitude != null && form.longitude != null
+                      ? { latitude: form.latitude, longitude: form.longitude }
+                      : null
+                  }
+                  onChange={selectAddressPoint}
+                />
+
+                <p className="text-[10px] font-semibold text-[#77736d]">
+                  {selectedMapZone
+                    ? `Delivery fee: ${money(selectedMapZone.deliveryFeeCents)} (${selectedMapZone.name})`
+                    : hasPin
+                      ? 'No price set yet for this location.'
+                      : 'Select a location to see its delivery price.'}
+                </p>
               </div>
 
               {}

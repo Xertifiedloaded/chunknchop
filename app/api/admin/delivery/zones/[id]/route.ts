@@ -10,6 +10,9 @@ const schema = z
     city: z.string().trim().min(2).max(80),
     deliveryFeeCents: z.number().int().min(0).max(100000000),
     active: z.boolean(),
+    latitude: z.number().min(-90).max(90).optional(),
+    longitude: z.number().min(-180).max(180).optional(),
+    radiusMeters: z.number().int().min(100).max(50000).optional(),
   })
   .strict();
 export async function PATCH(req: Request, { params }: Ctx) {

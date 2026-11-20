@@ -1,4 +1,3 @@
-
 import type { Metadata } from 'next';
 
 import AuthShell from '@/components/auth/auth-shell';
@@ -15,17 +14,12 @@ type PageProps = {
   }>;
 };
 
-export default async function ForgotPasswordPage({
-  searchParams,
-}: PageProps) {
+export default async function ForgotPasswordPage({ searchParams }: PageProps) {
   const { returnTo } = await searchParams;
 
   return (
     <AuthShell mode="forgot">
-      <AuthForm
-        mode="forgot-password"
-        returnTo={returnTo ?? ''}
-      />
+      <AuthForm mode="forgot-password" returnTo={returnTo ?? ''} />
     </AuthShell>
   );
 }

@@ -12,7 +12,6 @@ import {
   RefreshCw,
   AlertCircle,
   ShieldCheck,
-  ShieldAlert,
   Store,
   Truck,
   Settings,
@@ -91,18 +90,8 @@ function ShortcutCard({
   text: string;
   cta: string;
 }) {
-  const Wrapper = ({ children }: { children: ReactNode }) =>
-    href ? (
-      <Link href={href} className={cardClass}>
-        {children}
-      </Link>
-    ) : (
-      <button type="button" onClick={onClick} className={`${cardClass} w-full text-left`}>
-        {children}
-      </button>
-    );
-  return (
-    <Wrapper>
+  const content = (
+    <>
       <div className={iconClass}>{icon}</div>
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between">
@@ -112,7 +101,17 @@ function ShortcutCard({
         <p className="mt-2 text-[10px] leading-[1.7] text-[#8b857d]">{text}</p>
         <span className="mt-3 inline-block text-[10px] font-bold text-[#a17443]">{cta}</span>
       </div>
-    </Wrapper>
+    </>
+  );
+
+  return href ? (
+    <Link href={href} className={cardClass}>
+      {content}
+    </Link>
+  ) : (
+    <button type="button" onClick={onClick} className={`${cardClass} w-full text-left`}>
+      {content}
+    </button>
   );
 }
 
@@ -313,9 +312,7 @@ export default function AccountClient({ user }: { user: AccountUser }) {
             )}
 
             <div className="min-w-0 flex-1">
-              <h2 className="wrap-break-word text-[15px] font-bold text-[#29241f]">
-                {displayName}
-              </h2>
+              <h2 className="break-words text-[15px] font-bold text-[#29241f]">{displayName}</h2>
               <p className="mt-1 flex items-center gap-1.5 break-all text-[11px] text-[#8b857d]">
                 <Mail className="h-3 w-3 shrink-0" />
                 {user.email}
@@ -368,6 +365,22 @@ export default function AccountClient({ user }: { user: AccountUser }) {
         </section>
 
         {}
+        <section className="mt-8">
+          <SectionHeader
+            title="Account & profile"
+            subtitle="All account types can access and manage their profile."
+          />
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <ShortcutCard
+              href="/account/profile"
+              icon={<UserRound className="h-[19px] w-[19px]" />}
+              title="My profile"
+              text="View your personal account details, account type and profile information."
+              cta="Open profile"
+            />
+          </div>
+        </section>
+
         {isRider && (
           <>
             <section className="mt-8">

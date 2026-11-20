@@ -16,5 +16,9 @@ export async function GET() {
     },
     orderBy: [{ city: 'asc' }, { name: 'asc' }],
   });
-  return NextResponse.json({ zones }, { headers: { 'Cache-Control': 'public, max-age=30' } });
+
+  return NextResponse.json(
+    { zones },
+    { headers: { 'Cache-Control': 'public, max-age=30' } }
+  );
 }

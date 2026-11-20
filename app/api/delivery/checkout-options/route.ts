@@ -49,7 +49,6 @@ export async function GET(request: Request) {
     });
 
     const schedules = rows
-
       .filter((row) => row.bookedCount < row.capacity)
       .map((row) => ({
         id: row.id,
@@ -70,7 +69,9 @@ export async function GET(request: Request) {
     where: {
       active: true,
       ...(city ? { city: { equals: city, mode: 'insensitive' as const } } : {}),
-      ...(state ? { state: { contains: stripState(state), mode: 'insensitive' as const } } : {}),
+      ...(state
+        ? { state: { contains: stripState(state), mode: 'insensitive' as const } }
+        : {}),
     },
     orderBy: [{ state: 'asc' }, { city: 'asc' }, { name: 'asc' }],
   });

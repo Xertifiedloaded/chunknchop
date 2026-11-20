@@ -54,7 +54,6 @@ type DeliveryZone = {
 
 type Coords = { latitude?: number | null; longitude?: number | null };
 
- 
 function distanceMeters(a: Coords, b: Coords) {
   if (a.latitude == null || a.longitude == null || b.latitude == null || b.longitude == null) {
     return Infinity;
@@ -68,7 +67,6 @@ function distanceMeters(a: Coords, b: Coords) {
   return 6371000 * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
 }
 
- 
 function findZone(point: Coords, zones: DeliveryZone[]): DeliveryZone | undefined {
   if (point.latitude == null || point.longitude == null) return undefined;
 

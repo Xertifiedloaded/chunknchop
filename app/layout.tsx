@@ -2,7 +2,7 @@ import { Analytics } from '@vercel/analytics/next';
 import { Anton, Inter, Sora, Work_Sans, Plus_Jakarta_Sans } from 'next/font/google';
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
-import 'leaflet/dist/leaflet.css';
+
 import { Toaster } from 'react-hot-toast';
 import { CartProvider } from '@/components/cart/cart-provider';
 import { AuthProvider } from '@/components/auth/auth-provider';

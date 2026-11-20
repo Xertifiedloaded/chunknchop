@@ -1,6 +1,14 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type FormEvent,
+  type ReactNode,
+} from 'react';
 import {
   Check,
   LoaderCircle,
@@ -56,7 +64,7 @@ type ApiErrorBody = {
   issues?: { fieldErrors?: Record<string, string[] | undefined> };
 };
 
-const card = 'border border-[#eae7e1] bg-white';
+const card = 'min-w-0 max-w-full border border-[#eae7e1] bg-white';
 
 const primaryButton =
   'inline-flex min-h-9 items-center justify-center gap-2 bg-brand px-4 py-2 text-[11px] font-semibold text-white transition-colors hover:bg-[#a9442c] disabled:cursor-not-allowed disabled:opacity-50';
@@ -68,11 +76,11 @@ const iconButton =
   'inline-flex h-8 w-8 cursor-pointer items-center justify-center border border-transparent bg-transparent text-[#77736d] transition-colors hover:border-[#e9e6df] hover:text-brand disabled:cursor-not-allowed disabled:opacity-40';
 
 const inputClass =
-  'w-full min-w-0 border border-[#e9e6df] bg-white px-3 py-2.5 text-[12px] leading-5 text-[#24231f] outline-none transition-colors placeholder:text-[#aaa69e] focus:border-brand focus:ring-2 focus:ring-brand/10 disabled:bg-[#f8f8f6] disabled:text-[#88847d]';
+  'block w-full min-w-0 max-w-full border border-[#e9e6df] bg-white px-3 py-2.5 text-[12px] leading-5 text-[#24231f] outline-none transition-colors placeholder:text-[#aaa69e] focus:border-brand focus:ring-2 focus:ring-brand/10 disabled:bg-[#f8f8f6] disabled:text-[#88847d]';
 
 const labelClass = 'flex min-w-0 flex-col gap-1.5 text-[11px] font-semibold text-[#5c5851]';
 
-const th = 'px-3 py-2.5 text-left text-[11px] font-semibold text-[#88847d]';
+const th = 'whitespace-nowrap px-3 py-2.5 text-left text-[11px] font-semibold text-[#88847d]';
 const td = 'px-3 py-3 align-middle text-[12px] text-[#24231f]';
 
 function firstFieldError(fields?: Record<string, string[] | undefined>) {
@@ -164,6 +172,37 @@ function formatTime(iso: string) {
   });
 }
 
+/**
+ * Turns a Google formatted address such as
+ * "Kuto Rd, Kuto, Abeokuta 110101, Ogun, Nigeria"
+ * into zone name / city / state suggestions.
+ */
+function parseAddress(address: string): { name?: string; city?: string; state?: string } {
+  const parts = address
+    .split(',')
+    .map((part) =>
+      part
+        .trim()
+        .replace(/^\d{4,}\s+/, '')
+        .replace(/\s+\d{4,}$/, ''),
+    )
+    .filter((part) => part && part.toLowerCase() !== 'nigeria');
+
+  if (parts.length === 0) return {};
+
+  let state = parts[parts.length - 1];
+  if (parts.length > 1 && !/state|territory/i.test(state)) state = `${state} State`;
+
+  const city = parts.length >= 2 ? parts[parts.length - 2] : undefined;
+
+  let name: string | undefined;
+  if (parts.length >= 3) {
+    name = /^\d/.test(parts[0]) && parts.length > 3 ? parts[1] : parts[0];
+  }
+
+  return { name, city, state: parts.length >= 1 ? state : undefined };
+}
+
 function Switch({
   checked,
   onChange,
@@ -204,7 +243,9 @@ function EmptyState({ title, text, action }: { title: string; text: string; acti
   return (
     <div className={`${card} flex flex-col items-center px-6 py-10 text-center`}>
       <h3 className="m-0 font-heading text-base font-semibold">{title}</h3>
-      <p className="mt-1.5 mb-0 max-w-md text-[12px] leading-5 text-[#77736d]">{text}</p>
+      <p className="mt-1.5 mb-0 max-w-md text-[12px] leading-5 break-words text-[#77736d]">
+        {text}
+      </p>
       {action && <div className="mt-4">{action}</div>}
     </div>
   );
@@ -221,8 +262,8 @@ function FormShell({
 }) {
   return (
     <section className={`${card} p-4 sm:p-5`}>
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <h3 className="m-0 font-heading text-base font-semibold">{title}</h3>
+      <div className="mb-4 flex min-w-0 items-center justify-between gap-3">
+        <h3 className="m-0 min-w-0 font-heading text-base font-semibold break-words">{title}</h3>
 
         <button type="button" onClick={onClose} aria-label="Close form" className={iconButton}>
           <X size={15} />
@@ -238,7 +279,7 @@ function FormError({ children }: { children: ReactNode }) {
   return (
     <p
       role="alert"
-      className="border border-red-200 bg-red-50 px-3 py-2.5 text-[12px] leading-5 text-red-700"
+      className="border border-red-200 bg-red-50 px-3 py-2.5 text-[12px] leading-5 break-words text-red-700"
     >
       {children}
     </p>
@@ -264,6 +305,18 @@ function ZoneForm({
   const [radiusMeters, setRadiusMeters] = useState(String(zone?.radiusMeters ?? 1000));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+
+  // Fields the admin typed by hand are never overwritten by the map
+  const touched = useRef({ name: Boolean(zone), city: Boolean(zone), state: Boolean(zone) });
+
+  // Map search / click / drag → fill zone name, city and state
+  const handleAddress = useCallback((address: string) => {
+    const parsed = parseAddress(address);
+
+    if (parsed.name && !touched.current.name) setName(parsed.name.slice(0, 80));
+    if (parsed.city && !touched.current.city) setCity(parsed.city.slice(0, 80));
+    if (parsed.state && !touched.current.state) setState(parsed.state.slice(0, 80));
+  }, []);
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -319,16 +372,53 @@ function ZoneForm({
 
   return (
     <FormShell title={zone ? `Edit ${zone.name}` : 'Add a delivery zone'} onClose={onClose}>
-      <form onSubmit={submit} className="space-y-4" noValidate>
+      <form onSubmit={submit} className="min-w-0 space-y-4" noValidate>
         {error && <FormError>{error}</FormError>}
 
-        <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
+        <div className="grid min-w-0 grid-cols-1 gap-3.5 sm:grid-cols-2">
+          <div className="min-w-0 space-y-3 sm:col-span-2">
+            <div className={labelClass}>Delivery location / zone center</div>
+
+            <LocationPicker
+              value={latitude !== null && longitude !== null ? { latitude, longitude } : null}
+              onChange={(point) => {
+                setLatitude(point.latitude);
+                setLongitude(point.longitude);
+              }}
+              onAddressChange={handleAddress}
+              radiusMeters={Number(radiusMeters) || 0}
+              defaultCenter={[6.5244, 3.3792]}
+            />
+
+            <label className={labelClass}>
+              Coverage radius (metres)
+              <input
+                className={inputClass}
+                type="number"
+                inputMode="numeric"
+                min={100}
+                max={50000}
+                step={100}
+                value={radiusMeters}
+                onChange={(event) => setRadiusMeters(event.target.value)}
+                placeholder="1000"
+              />
+              <span className="text-[10px] leading-4 font-normal break-words text-[#88847d]">
+                Customers within this radius will match this fee area. If areas overlap, the closest
+                matching zone is used.
+              </span>
+            </label>
+          </div>
+
           <label className={`${labelClass} sm:col-span-2`}>
             Zone name
             <input
               className={inputClass}
               value={name}
-              onChange={(event) => setName(event.target.value)}
+              onChange={(event) => {
+                touched.current.name = true;
+                setName(event.target.value);
+              }}
               maxLength={80}
               placeholder="e.g. Kuto"
             />
@@ -339,7 +429,10 @@ function ZoneForm({
             <input
               className={inputClass}
               value={city}
-              onChange={(event) => setCity(event.target.value)}
+              onChange={(event) => {
+                touched.current.city = true;
+                setCity(event.target.value);
+              }}
               maxLength={80}
               placeholder="Abeokuta"
             />
@@ -350,7 +443,10 @@ function ZoneForm({
             <input
               className={inputClass}
               value={state}
-              onChange={(event) => setState(event.target.value)}
+              onChange={(event) => {
+                touched.current.state = true;
+                setState(event.target.value);
+              }}
               maxLength={80}
               placeholder="Ogun State"
             />
@@ -371,41 +467,13 @@ function ZoneForm({
             />
           </label>
 
-          <div className="sm:col-span-2 space-y-3">
-            <div className={labelClass}>Delivery location / zone center</div>
-            <LocationPicker
-              value={latitude !== null && longitude !== null ? { latitude, longitude } : null}
-              onChange={(point) => {
-                setLatitude(point.latitude);
-                setLongitude(point.longitude);
-              }}
-              radiusMeters={Number(radiusMeters) || 0}
-              defaultCenter={[6.5244, 3.3792]}
-            />
-            <label className={labelClass}>
-              Coverage radius (metres)
-              <input
-                className={inputClass}
-                type="number"
-                min={100}
-                max={50000}
-                step={100}
-                value={radiusMeters}
-                onChange={(event) => setRadiusMeters(event.target.value)}
-                placeholder="1000"
-              />
-              <span className="text-[10px] font-normal text-[#88847d]">
-                Customers within this radius will match this fee area. If areas overlap, the closest
-                matching zone is used.
-              </span>
-            </label>
-          </div>
-
           <div className={labelClass}>
             Availability
-            <span className="flex min-h-[42px] items-center gap-3 text-[12px] font-normal text-[#5c5851]">
+            <span className="flex min-h-[42px] min-w-0 items-center gap-3 text-[12px] font-normal text-[#5c5851]">
               <Switch checked={active} onChange={setActive} label="Zone is active" />
-              {active ? 'Customers can choose this zone' : 'Hidden from checkout'}
+              <span className="min-w-0 break-words">
+                {active ? 'Customers can choose this zone' : 'Hidden from checkout'}
+              </span>
             </span>
           </div>
         </div>
@@ -507,9 +575,9 @@ function ZonesPanel({
   );
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <label className="relative block w-full sm:w-72">
+    <div className="min-w-0 space-y-4">
+      <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
+        <label className="relative block w-full min-w-0 sm:w-72">
           <span className="sr-only">Search zones</span>
 
           <Search
@@ -613,7 +681,9 @@ function ZonesPanel({
                       {zone.city}, {zone.state}
                     </td>
 
-                    <td className={td}>{formatPrice(zone.deliveryFeeCents)}</td>
+                    <td className={`${td} whitespace-nowrap`}>
+                      {formatPrice(zone.deliveryFeeCents)}
+                    </td>
 
                     <td className={`${td} text-[#77736d]`}>{zone._count?.riders ?? 0}</td>
 
@@ -628,7 +698,7 @@ function ZonesPanel({
 
                     <td className={`${td} text-right`}>
                       {confirming ? (
-                        <span className="inline-flex items-center gap-2 text-[11px]">
+                        <span className="inline-flex items-center gap-2 text-[11px] whitespace-nowrap">
                           <span className="text-[#77736d]">Delete this zone?</span>
 
                           <button
@@ -807,7 +877,7 @@ function ScheduleForm({
       title={schedule ? 'Edit delivery schedule' : 'Add delivery schedule'}
       onClose={onClose}
     >
-      <form onSubmit={submit} className="space-y-4" noValidate>
+      <form onSubmit={submit} className="min-w-0 space-y-4" noValidate>
         {error && <FormError>{error}</FormError>}
         {!schedule && (
           <div className="space-y-2">
@@ -836,7 +906,7 @@ function ScheduleForm({
           </div>
         )}
 
-        <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid min-w-0 grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
           <label className={`${labelClass} sm:col-span-2`}>
             Delivery location
             {schedule ? (
@@ -920,15 +990,17 @@ function ScheduleForm({
           {!schedule && (
             <div className={`${labelClass} sm:col-span-2`}>
               Availability
-              <span className="flex min-h-[42px] items-center gap-3 text-[12px] font-normal text-[#5c5851]">
+              <span className="flex min-h-[42px] min-w-0 items-center gap-3 text-[12px] font-normal text-[#5c5851]">
                 <Switch checked={active} onChange={setActive} label="Schedule is active" />
-                {active ? 'Customers can book this schedule' : 'Save as hidden for now'}
+                <span className="min-w-0 break-words">
+                  {active ? 'Customers can book this schedule' : 'Save as hidden for now'}
+                </span>
               </span>
             </div>
           )}
         </div>
         {!schedule && Number(repeat) > 1 && (
-          <p className="m-0 text-[11px] leading-5 text-[#77736d]">
+          <p className="m-0 text-[11px] leading-5 break-words text-[#77736d]">
             This creates the same time window on {Number(repeat)} consecutive days. Dates that
             conflict with existing schedules are skipped.
           </p>
@@ -960,23 +1032,31 @@ function SchedulesPanel({ zones, notify }: { zones: Zone[]; notify: Notify }) {
   } | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [now, setNow] = useState(() => Date.now());
   const hasActiveZone = zones.some((zone) => zone.active);
+
+  // Keep "past / upcoming" accurate without recalculating on every render
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 60_000);
+    return () => clearInterval(timer);
+  }, []);
 
   const load = useCallback(async () => {
     try {
       const data = await request<{ schedules: Schedule[] }>(SCHEDULES_API);
       setSchedules(data.schedules);
+      setNow(Date.now());
     } catch (err) {
       notify('error', errorText(err));
     } finally {
       setLoading(false);
     }
   }, [notify]);
+
   useEffect(() => {
     void load();
   }, [load]);
 
-  const now = Date.now();
   const visible = useMemo(
     () =>
       schedules
@@ -1009,6 +1089,7 @@ function SchedulesPanel({ zones, notify }: { zones: Zone[]; notify: Notify }) {
       setBusyId(null);
     }
   }
+
   async function remove(slot: Schedule) {
     setBusyId(slot.id);
     try {
@@ -1031,13 +1112,13 @@ function SchedulesPanel({ zones, notify }: { zones: Zone[]; notify: Notify }) {
   ];
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-3">
-          <label className="block">
+    <div className="min-w-0 space-y-5">
+      <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
+        <div className="flex min-w-0 flex-wrap items-center gap-3">
+          <label className="block min-w-0 max-w-full">
             <span className="sr-only">Filter by delivery location</span>
             <select
-              className={`${inputClass} w-auto min-w-[180px]`}
+              className={`${inputClass} w-auto min-w-[160px]`}
               value={zoneFilter}
               onChange={(e) => setZoneFilter(e.target.value)}
             >
@@ -1052,7 +1133,7 @@ function SchedulesPanel({ zones, notify }: { zones: Zone[]; notify: Notify }) {
           <div
             role="group"
             aria-label="Filter schedules by date"
-            className="inline-flex border border-[#e9e6df]"
+            className="inline-flex max-w-full border border-[#e9e6df]"
           >
             {filters.map((filter) => (
               <button
@@ -1077,11 +1158,13 @@ function SchedulesPanel({ zones, notify }: { zones: Zone[]; notify: Notify }) {
           Add schedule
         </button>
       </div>
+
       {!hasActiveZone && !loading && (
         <p className="m-0 border border-amber-200 bg-amber-50 p-3 text-[12px] leading-5 text-amber-800">
           Add or activate a delivery location before creating schedules.
         </p>
       )}
+
       {editor && (
         <ScheduleForm
           key={`${editor.schedule?.id ?? 'new'}-${editor.zoneId ?? ''}-${editor.period ?? ''}`}
@@ -1098,6 +1181,7 @@ function SchedulesPanel({ zones, notify }: { zones: Zone[]; notify: Notify }) {
           }}
         />
       )}
+
       {loading ? (
         <div className="flex items-center gap-2 py-6 text-[12px] text-[#77736d]">
           <Spinner />
@@ -1109,18 +1193,20 @@ function SchedulesPanel({ zones, notify }: { zones: Zone[]; notify: Notify }) {
           text="Add a delivery zone first, then create schedules for it."
         />
       ) : (
-        <div className="space-y-8">
+        <div className="min-w-0 space-y-8">
           {zones
             .filter((zone) => zoneFilter === 'all' || zone.id === zoneFilter)
             .map((zone) => {
               const zoneSlots = visible.filter((slot) => slot.zoneId === zone.id);
               const periods: DeliveryPeriod[] = ['morning', 'afternoon', 'evening'];
               return (
-                <section key={zone.id} className="space-y-4">
-                  <header className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e9e6df] pb-3">
+                <section key={zone.id} className="min-w-0 space-y-4">
+                  <header className="flex min-w-0 flex-wrap items-center justify-between gap-3 border-b border-[#e9e6df] pb-3">
                     <div className="min-w-0">
-                      <h3 className="m-0 text-sm font-semibold text-[#24231f]">{zone.name}</h3>
-                      <p className="m-0 mt-1 text-[11px] text-[#77736d]">
+                      <h3 className="m-0 text-sm font-semibold break-words text-[#24231f]">
+                        {zone.name}
+                      </h3>
+                      <p className="m-0 mt-1 text-[11px] break-words text-[#77736d]">
                         {zone.city}
                         {zone.state ? `, ${zone.state}` : ''} ·{' '}
                         {zone.active ? 'Active location' : 'Inactive location'}
@@ -1136,6 +1222,7 @@ function SchedulesPanel({ zones, notify }: { zones: Zone[]; notify: Notify }) {
                       Add schedule
                     </button>
                   </header>
+
                   {periods.map((period) => {
                     const preset = DELIVERY_PERIODS[period];
                     const Icon = preset.icon;
@@ -1143,8 +1230,8 @@ function SchedulesPanel({ zones, notify }: { zones: Zone[]; notify: Notify }) {
                       (slot) => periodForTime(lagosTime(slot.startsAt)) === period,
                     );
                     return (
-                      <section key={period} className="space-y-2">
-                        <div className="flex items-center justify-between gap-3">
+                      <section key={period} className="min-w-0 space-y-2">
+                        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
                           <div className="flex items-center gap-2">
                             <Icon size={14} className="text-[#77736d]" />
                             <h4 className="m-0 text-xs font-semibold">{preset.label}</h4>
@@ -1153,6 +1240,7 @@ function SchedulesPanel({ zones, notify }: { zones: Zone[]; notify: Notify }) {
                             Default {preset.startsAt}–{preset.endsAt}
                           </span>
                         </div>
+
                         {items.length === 0 ? (
                           <div className="py-1 text-[11px] text-[#aaa69e]">No schedules</div>
                         ) : (
@@ -1173,10 +1261,10 @@ function SchedulesPanel({ zones, notify }: { zones: Zone[]; notify: Notify }) {
                               return (
                                 <div
                                   key={slot.id}
-                                  className={`flex flex-wrap items-center justify-between gap-3 py-3 ${past ? 'opacity-60' : ''}`}
+                                  className={`flex min-w-0 flex-wrap items-center justify-between gap-3 py-3 ${past ? 'opacity-60' : ''}`}
                                 >
-                                  <div className="min-w-0 flex-1">
-                                    <div className="flex flex-wrap items-center gap-2">
+                                  <div className="min-w-0 flex-1 basis-48">
+                                    <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
                                       <span className="text-xs font-medium">
                                         {formatDay(slot.startsAt)}
                                       </span>
@@ -1187,7 +1275,7 @@ function SchedulesPanel({ zones, notify }: { zones: Zone[]; notify: Notify }) {
                                         <span className="text-[10px] text-[#88847d]">Ended</span>
                                       )}
                                     </div>
-                                    <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-[#77736d]">
+                                    <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-[#77736d]">
                                       <span>
                                         {slot.bookedCount}/{slot.capacity} booked
                                       </span>
@@ -1201,9 +1289,10 @@ function SchedulesPanel({ zones, notify }: { zones: Zone[]; notify: Notify }) {
                                       </span>
                                     </div>
                                   </div>
-                                  <div className="flex shrink-0 items-center gap-2">
+
+                                  <div className="flex max-w-full shrink-0 flex-wrap items-center gap-2">
                                     {confirming ? (
-                                      <div className="flex items-center gap-2 text-[11px]">
+                                      <div className="flex flex-wrap items-center gap-2 text-[11px]">
                                         <span>Delete?</span>
                                         <button
                                           type="button"
@@ -1322,9 +1411,9 @@ export default function DeliveryAdminClient() {
   ];
 
   return (
-    <main className="min-h-screen bg-[#f8f8f6] text-[#24231f]">
-      <div className="mx-auto w-full max-w-300 py-6 sm:px-6 sm:py-8 lg:px-8">
-        <header className="mb-6">
+    <main className="min-h-screen w-full max-w-full overflow-x-hidden bg-[#f8f8f6] text-[#24231f]">
+      <div className="mx-auto w-full min-w-0 max-w-300 py-6 sm:px-6 sm:py-8 lg:px-8">
+        <header className="mb-6 min-w-0">
           <h1 className="m-0 font-heading text-[23px] leading-tight font-semibold tracking-tight sm:text-[27px]">
             Delivery
           </h1>
@@ -1338,13 +1427,13 @@ export default function DeliveryAdminClient() {
         {notice && (
           <div
             role={notice.kind === 'error' ? 'alert' : 'status'}
-            className={`mb-4 flex items-start justify-between gap-3 border px-3 py-2.5 text-[12px] leading-5 ${
+            className={`mb-4 flex min-w-0 items-start justify-between gap-3 border px-3 py-2.5 text-[12px] leading-5 ${
               notice.kind === 'error'
                 ? 'border-red-200 bg-red-50 text-red-700'
                 : 'border-green-200 bg-green-50 text-green-800'
             }`}
           >
-            <span>{notice.text}</span>
+            <span className="min-w-0 break-words">{notice.text}</span>
 
             <button
               type="button"
@@ -1360,7 +1449,7 @@ export default function DeliveryAdminClient() {
         <div
           role="tablist"
           aria-label="Delivery settings"
-          className="mb-5 flex gap-6 border-b border-[#e9e6df]"
+          className="mb-5 flex max-w-full gap-6 overflow-x-auto border-b border-[#e9e6df]"
         >
           {tabs.map((item) => (
             <button
@@ -1371,7 +1460,7 @@ export default function DeliveryAdminClient() {
               aria-selected={tab === item.id}
               aria-controls={`panel-${item.id}`}
               onClick={() => setTab(item.id)}
-              className={`-mb-px cursor-pointer border-0 border-b-2 bg-transparent px-0.5 pb-3 text-[12px] font-semibold transition-colors ${
+              className={`-mb-px shrink-0 cursor-pointer border-0 border-b-2 bg-transparent px-0.5 pb-3 text-[12px] font-semibold whitespace-nowrap transition-colors ${
                 tab === item.id
                   ? 'border-brand text-[#24231f]'
                   : 'border-transparent text-[#88847d] hover:text-[#24231f]'
@@ -1390,7 +1479,7 @@ export default function DeliveryAdminClient() {
           id={`panel-${tab}`}
           aria-labelledby={`tab-${tab}`}
           tabIndex={0}
-          className="outline-none"
+          className="min-w-0 outline-none"
         >
           {tab === 'zones' ? (
             <ZonesPanel zones={zones} loading={zonesLoading} reload={loadZones} notify={notify} />

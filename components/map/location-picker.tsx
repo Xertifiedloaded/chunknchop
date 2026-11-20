@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { Search, LocateFixed, LoaderCircle } from 'lucide-react';
 
 const LocationPickerMap = dynamic(() => import('./location-picker-map'), {
@@ -28,12 +28,14 @@ type SearchItem = {
 export default function LocationPicker({
   value,
   onChange,
+  onAddressChange,
   radiusMeters = 0,
   className = '',
   defaultCenter = [7.1475, 3.3619],
 }: {
   value?: Coordinates | null;
   onChange: (point: Coordinates) => void;
+  onAddressChange?: (address: string) => void;
   radiusMeters?: number;
   className?: string;
   defaultCenter?: [number, number];
@@ -42,6 +44,9 @@ export default function LocationPicker({
   const [results, setResults] = useState<SearchItem[]>([]);
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState('');
+
+  // Used to ignore stale reverse-geocode responses when the pin moves quickly
+  const reverseRequestId = useRef(0);
 
   async function search() {
     if (!query.trim()) return;
@@ -77,9 +82,44 @@ export default function LocationPicker({
     }
   }
 
+  // Map click / marker drag → look up the address for the new pin
+  const reportAddress = useCallback(
+    async (point: Coordinates) => {
+      if (!onAddressChange) return;
+
+      const requestId = ++reverseRequestId.current;
+
+      try {
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${point.latitude}&lon=${point.longitude}`,
+          { headers: { Accept: 'application/json' } },
+        );
+
+        if (!response.ok) return;
+
+        const data = (await response.json()) as { display_name?: string };
+
+        // A newer pin move happened while this request was in flight
+        if (requestId !== reverseRequestId.current) return;
+
+        if (data.display_name) onAddressChange(data.display_name);
+      } catch {
+        // Auto-fill is a convenience; the admin can still type the fields by hand
+      }
+    },
+    [onAddressChange],
+  );
+
+  const handleMapChange = useCallback(
+    (point: Coordinates) => {
+      onChange(point);
+      void reportAddress(point);
+    },
+    [onChange, reportAddress],
+  );
+
   return (
     <div className={`space-y-2 ${className}`}>
-      {}
       <div className="flex gap-2">
         <div className="relative min-w-0 flex-1">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
@@ -108,7 +148,6 @@ export default function LocationPicker({
         </button>
       </div>
 
-      {}
       {results.length > 0 && (
         <div className="max-h-36 overflow-y-auto rounded-lg border border-stone-200 bg-white text-xs shadow-sm">
           {results.map((item, index) => (
@@ -116,10 +155,14 @@ export default function LocationPicker({
               key={`${item.lat}-${item.lon}-${index}`}
               type="button"
               onClick={() => {
+                // Cancel any in-flight reverse lookup so it can't overwrite this address
+                reverseRequestId.current += 1;
+
                 onChange({
                   latitude: Number(item.lat),
                   longitude: Number(item.lon),
                 });
+                onAddressChange?.(item.display_name);
 
                 setResults([]);
                 setQuery(item.display_name);
@@ -134,17 +177,15 @@ export default function LocationPicker({
 
       {searchError && <p className="text-[10px] text-amber-700">{searchError}</p>}
 
-      {}
       <div className="overflow-hidden rounded-xl border border-stone-200">
         <LocationPickerMap
           value={value}
-          onChange={onChange}
+          onChange={handleMapChange}
           radiusMeters={radiusMeters}
           defaultCenter={defaultCenter}
         />
       </div>
 
-      {}
       <p className="text-[10px] leading-4 text-stone-500">
         <LocateFixed size={12} className="mr-1 inline" />
         Tap the map to choose a pin
@@ -152,7 +193,6 @@ export default function LocationPicker({
         above to jump to a place.
       </p>
 
-      {}
       {value && (
         <div className="rounded-md bg-stone-50 px-3 py-2 text-[10px] text-stone-600">
           Selected: {value.latitude.toFixed(5)}, {value.longitude.toFixed(5)}

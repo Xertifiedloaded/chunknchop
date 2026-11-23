@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import LocationPicker from '@/components/map/location-picker';
+import { findDeliveryZone } from '@/lib/delivery-geometry';
 import Link from 'next/link';
 import {
   ArrowLeft,
@@ -37,6 +38,7 @@ type Address = {
   isDefault: boolean;
   latitude?: number | null;
   longitude?: number | null;
+  deliveryZoneId?: string | null;
 };
 
 type Form = Omit<Address, 'id'>;
@@ -52,34 +54,7 @@ type DeliveryZone = {
   radiusMeters?: number | null;
 };
 
-type Coords = { latitude?: number | null; longitude?: number | null };
-
-function distanceMeters(a: Coords, b: Coords) {
-  if (a.latitude == null || a.longitude == null || b.latitude == null || b.longitude == null) {
-    return Infinity;
-  }
-  const rad = (n: number) => (n * Math.PI) / 180;
-  const dLat = rad(b.latitude - a.latitude);
-  const dLon = rad(b.longitude - a.longitude);
-  const h =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(rad(a.latitude)) * Math.cos(rad(b.latitude)) * Math.sin(dLon / 2) ** 2;
-  return 6371000 * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
-}
-
-function findZone(point: Coords, zones: DeliveryZone[]): DeliveryZone | undefined {
-  if (point.latitude == null || point.longitude == null) return undefined;
-
-  return zones
-    .filter(
-      (zone) =>
-        zone.latitude != null &&
-        zone.longitude != null &&
-        zone.radiusMeters != null &&
-        distanceMeters(point, zone) <= zone.radiusMeters,
-    )
-    .sort((a, b) => distanceMeters(point, a) - distanceMeters(point, b))[0];
-}
+const findZone = findDeliveryZone;
 
 function money(cents: number) {
   return new Intl.NumberFormat('en-NG', {
@@ -103,6 +78,7 @@ const blank: Form = {
   isDefault: false,
   latitude: null,
   longitude: null,
+  deliveryZoneId: null,
 };
 
 const PRESET_LABELS = ['Home', 'Office'];
@@ -253,6 +229,7 @@ export default function AddressesPage() {
       isDefault: address.isDefault,
       latitude: address.latitude ?? null,
       longitude: address.longitude ?? null,
+      deliveryZoneId: address.deliveryZoneId ?? null,
     });
 
     setError('');
@@ -306,12 +283,13 @@ export default function AddressesPage() {
       ...current,
       latitude: point.latitude,
       longitude: point.longitude,
+      deliveryZoneId: zone?.id ?? null,
       ...(zone ? { area: zone.name, city: zone.city, state: zone.state } : {}),
     }));
   }
 
   const hasPin = form.latitude != null && form.longitude != null;
-  const selectedMapZone = findZone(form, zones);
+  const selectedMapZone = zones.find((zone) => zone.id === form.deliveryZoneId) ?? findZone(form, zones);
   const isOtherLabel = !PRESET_LABELS.includes(form.label);
 
   const fields: Array<{
@@ -540,6 +518,30 @@ export default function AddressesPage() {
               </div>
 
               {}
+              <div>
+                <label className={labelClass}>Delivery zone</label>
+                <select
+                  value={form.deliveryZoneId ?? selectedMapZone?.id ?? ''}
+                  onChange={(event) => {
+                    const zone = zones.find((item) => item.id === event.target.value);
+                    setForm((current) => ({
+                      ...current,
+                      deliveryZoneId: zone?.id ?? null,
+                      ...(zone ? { area: zone.name, city: zone.city, state: zone.state, latitude: zone.latitude ?? null, longitude: zone.longitude ?? null } : {}),
+                    }));
+                  }}
+                  className={inputClass}
+                >
+                  <option value="">Choose a delivery zone or use the map</option>
+                  {zones.map((zone) => (
+                    <option key={zone.id} value={zone.id}>
+                      {zone.name} — {zone.city}, {zone.state} ({money(zone.deliveryFeeCents)})
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-[10px] text-[#928b82]">Selecting a zone fills the area and zone center. You can fine-tune your pin below.</p>
+              </div>
+
               <div className="space-y-2 rounded-xl border border-[#eee8df] bg-[#fdfbf8] p-3.5">
                 <div>
                   <p className="text-[11px] font-bold text-[#51483e]">

@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { getSession } from '@/lib/auth';
 import { hasSameOrigin } from '@/lib/admin-api';
 import { prisma } from '@/lib/prisma';
+import { resolveDeliveryZone } from '@/lib/delivery-zone';
 
 const schema = z
   .object({
@@ -19,6 +20,7 @@ const schema = z
     instructions: z.string().trim().max(500).optional(),
     latitude: z.number().min(-90).max(90).optional(),
     longitude: z.number().min(-180).max(180).optional(),
+    deliveryZoneId: z.string().regex(/^[a-f\d]{24}$/i).nullable().optional(),
 
     isDefault: z.boolean().optional(),
   })
@@ -44,6 +46,12 @@ export async function PATCH(req: Request, { params }: Ctx) {
 
   const exists = await prisma.customerAddress.findFirst({ where: { id, userId: s.user.id } });
   if (!exists) return NextResponse.json({ error: 'Address not found' }, { status: 404 });
+  const selectedZone = await resolveDeliveryZone(p.data, p.data.deliveryZoneId);
+  if (p.data.deliveryZoneId && !selectedZone)
+    return NextResponse.json({ error: 'Selected delivery zone is unavailable.' }, { status: 400 });
+  if (p.data.latitude != null && p.data.longitude != null && !selectedZone)
+    return NextResponse.json({ error: 'This pinned location is outside active delivery zones.' }, { status: 400 });
+  if (selectedZone) p.data.deliveryZoneId = selectedZone.id;
 
   const address = await prisma.$transaction(async (tx) => {
     if (p.data.isDefault)
@@ -52,7 +60,7 @@ export async function PATCH(req: Request, { params }: Ctx) {
         data: { isDefault: false },
       });
 
-    return tx.customerAddress.update({ where: { id }, data: p.data });
+    return tx.customerAddress.update({ where: { id }, data: { ...p.data, ...(selectedZone ? { area: selectedZone.name, city: selectedZone.city, state: selectedZone.state, ...(selectedZone.latitude != null ? { latitude: selectedZone.latitude } : {}), ...(selectedZone.longitude != null ? { longitude: selectedZone.longitude } : {}) } : {}) } });
   });
 
   return NextResponse.json({ address });

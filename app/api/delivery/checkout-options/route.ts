@@ -1,29 +1,11 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { decorateSchedule } from '@/lib/delivery-schedules';
 
 export const dynamic = 'force-dynamic';
 
 const objectId = /^[a-f\d]{24}$/i;
-const TIME_ZONE = 'Africa/Lagos';
-
 const noStore = { headers: { 'Cache-Control': 'private, no-store' } };
-
-const dateFormatter = new Intl.DateTimeFormat('en-CA', {
-  timeZone: TIME_ZONE,
-  year: 'numeric',
-  month: '2-digit',
-  day: '2-digit',
-});
-
-function formatTime(date: Date) {
-  return date.toLocaleTimeString('en-NG', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-    timeZone: TIME_ZONE,
-  });
-}
-
 function stripState(value: string) {
   return value.replace(/\s+state$/i, '').trim();
 }
@@ -51,10 +33,7 @@ export async function GET(request: Request) {
     const schedules = rows
       .filter((row) => row.bookedCount < row.capacity)
       .map((row) => ({
-        id: row.id,
-        date: dateFormatter.format(row.startsAt),
-        startTime: formatTime(row.startsAt),
-        endTime: formatTime(row.endsAt),
+        ...decorateSchedule(row),
         available: true,
         remainingCapacity: row.capacity - row.bookedCount,
       }));

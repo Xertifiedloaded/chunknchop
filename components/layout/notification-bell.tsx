@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Bell, BellRing, LoaderCircle, X, CheckCheck, Clock3, Trash2 } from 'lucide-react';
+import Pusher from 'pusher-js';
 
 type Notice = {
   _id: string;
@@ -13,20 +14,9 @@ type Notice = {
   createdAt: string;
 };
 
-function decodeKey(value: string) {
-  const pad = '='.repeat((4 - (value.length % 4)) % 4);
-  const raw = atob((value + pad).replace(/-/g, '+').replace(/_/g, '/'));
-
-  return Uint8Array.from(raw, (char) => char.charCodeAt(0));
-}
-
 export default function NotificationBell() {
   const [items, setItems] = useState<Notice[]>([]);
   const [open, setOpen] = useState(false);
-  const [permission, setPermission] = useState<NotificationPermission>('default');
-  const [supported, setSupported] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   async function load() {
@@ -47,66 +37,28 @@ export default function NotificationBell() {
   }
 
   useEffect(() => {
-    setSupported(
-      'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window,
-    );
-
-    if ('Notification' in window) {
-      setPermission(Notification.permission);
-    }
-
-    if ('serviceWorker' in navigator) {
-      void navigator.serviceWorker.register('/sw.js').catch(() => undefined);
-    }
-
     void load().catch(() => undefined);
-
-    const timer = window.setInterval(() => {
-      void load().catch(() => undefined);
-    }, 45000);
-
-    return () => window.clearInterval(timer);
+    const timer = window.setInterval(() => void load().catch(() => undefined), 45000);
+    let client: Pusher | null = null;
+    let channel: ReturnType<Pusher['subscribe']> | null = null;
+    void fetch('/api/auth/session', { cache: 'no-store' })
+      .then((response) => response.ok ? response.json() : null)
+      .then((data) => {
+        const userId = data?.user?.id;
+        const key = process.env.NEXT_PUBLIC_PUSHER_KEY;
+        const cluster = process.env.NEXT_PUBLIC_PUSHER_CLUSTER;
+        if (!userId || !key || !cluster) return;
+        client = new Pusher(key, { cluster, authEndpoint: '/api/pusher/auth' });
+        channel = client.subscribe(`private-user-${userId}`);
+        channel.bind('user.notification.created', () => void load().catch(() => undefined));
+      })
+      .catch(() => undefined);
+    return () => {
+      window.clearInterval(timer);
+      if (channel) channel.unbind_all();
+      if (client) client.disconnect();
+    };
   }, []);
-
-  async function enablePush() {
-    setBusy(true);
-    setError('');
-
-    try {
-      const result = await Notification.requestPermission();
-      setPermission(result);
-
-      if (result !== 'granted') return;
-
-      const registration = await navigator.serviceWorker.register('/sw.js');
-      const key = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-
-      if (!key) {
-        throw new Error('Push notifications are not configured yet.');
-      }
-
-      const subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: decodeKey(key),
-      });
-
-      const response = await fetch('/api/notifications/subscribe', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ subscription }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Could not save notification settings.');
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not enable notifications.');
-    } finally {
-      setBusy(false);
-    }
-  }
 
   async function markRead(id?: string) {
     const response = await fetch('/api/notifications', {
@@ -227,48 +179,6 @@ export default function NotificationBell() {
             </div>
 
             {}
-            {supported && permission !== 'granted' && (
-              <div className="shrink-0 border-b border-[#f0ede8] bg-[#fffaf6] px-3 py-2.5 sm:px-5">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex min-w-0 items-center gap-2.5">
-                    <div className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-white text-[#d97750] shadow-sm">
-                      <BellRing size={13} />
-                    </div>
-
-                    <div className="min-w-0">
-                      <p className="text-[10px] font-semibold text-[#40372f]">
-                        Get delivery alerts
-                      </p>
-                      <p className="text-[9px] text-[#8b8178]">
-                        Receive updates even when the app is closed.
-                      </p>
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    disabled={busy}
-                    onClick={() => void enablePush()}
-                    className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-[#29231f] px-3 py-2 text-[9px] font-semibold text-white transition hover:bg-[#493b32] disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    {busy ? (
-                      <LoaderCircle size={11} className="animate-spin" />
-                    ) : (
-                      <Bell size={11} />
-                    )}
-
-                    {busy ? 'Enabling...' : 'Enable'}
-                  </button>
-                </div>
-
-                {error && (
-                  <p role="alert" className="mt-2 text-[9px] text-red-600">
-                    {error}
-                  </p>
-                )}
-              </div>
-            )}
-
             {}
             <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-2 sm:p-3">
               {loading && items.length === 0 ? (

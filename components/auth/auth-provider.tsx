@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useCallback, useContext, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, type ReactNode } from 'react';
 import useSWR from 'swr';
 
 export type AuthUser = {
@@ -54,9 +54,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     revalidateOnReconnect: true,
     shouldRetryOnError: false,
     dedupingInterval: 2000,
+    refreshInterval: 15 * 60 * 1000,
   });
 
   const refreshSession = useCallback(() => mutate(), [mutate]);
+
+  useEffect(() => {
+    if (!data?.user || typeof window === 'undefined' || !('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window) || Notification.permission !== 'granted') return;
+    void (async () => {
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        const subscription = await registration.pushManager.getSubscription();
+        if (!subscription) return;
+        const anonymousId = localStorage.getItem('chunknchop-anonymous-push-id') || crypto.randomUUID();
+        localStorage.setItem('chunknchop-anonymous-push-id', anonymousId);
+        await fetch('/api/notifications/subscribe', {
+          method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ subscription, anonymousId }),
+        });
+      } catch {}
+    })();
+  }, [data?.user?.id]);
 
   return (
     <AuthContext.Provider

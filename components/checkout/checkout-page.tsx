@@ -22,6 +22,7 @@ import { useAuth } from '@/components/auth/auth-provider';
 import { useCart } from '@/components/cart/cart-provider';
 import { formatPrice } from '@/lib/catalog';
 import LocationPicker from '@/components/map/location-picker';
+import { findDeliveryZone } from '@/lib/delivery-geometry';
 
 type CheckoutResponse = {
   orderNumber: string;
@@ -51,6 +52,7 @@ type Address = {
   isDefault?: boolean;
   latitude?: number | null;
   longitude?: number | null;
+  deliveryZoneId?: string | null;
 };
 
 type ApiAddress = {
@@ -69,6 +71,7 @@ type ApiAddress = {
   isDefault?: boolean;
   latitude?: number | null;
   longitude?: number | null;
+  deliveryZoneId?: string | null;
 };
 
 type DeliveryZone = {
@@ -112,6 +115,7 @@ const initialAddress: Address = {
   instructions: '',
   latitude: null,
   longitude: null,
+  deliveryZoneId: null,
 };
 
 const steps = [
@@ -160,6 +164,7 @@ function normalizeAddress(raw: ApiAddress): Address {
     isDefault: raw.isDefault,
     latitude: raw.latitude ?? null,
     longitude: raw.longitude ?? null,
+    deliveryZoneId: raw.deliveryZoneId ?? null,
   };
 }
 
@@ -175,34 +180,7 @@ function firstDetail(details: unknown): string | undefined {
   return undefined;
 }
 
-function distanceMeters(a: Coords, b: Coords) {
-  if (a.latitude == null || a.longitude == null || b.latitude == null || b.longitude == null) {
-    return Infinity;
-  }
-
-  const rad = (n: number) => (n * Math.PI) / 180;
-  const dLat = rad(b.latitude - a.latitude);
-  const dLon = rad(b.longitude - a.longitude);
-  const lat1 = rad(a.latitude);
-  const lat2 = rad(b.latitude);
-  const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
-
-  return 6371000 * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
-}
-
-function findZone(point: Coords, zones: DeliveryZone[]): DeliveryZone | undefined {
-  if (point.latitude == null || point.longitude == null) return undefined;
-
-  return zones
-    .filter(
-      (zone) =>
-        zone.latitude != null &&
-        zone.longitude != null &&
-        zone.radiusMeters != null &&
-        distanceMeters(point, zone) <= zone.radiusMeters,
-    )
-    .sort((a, b) => distanceMeters(point, a) - distanceMeters(point, b))[0];
-}
+const findZone = findDeliveryZone;
 
 function FullPage({ children }: { children: ReactNode }) {
   return (
@@ -479,7 +457,7 @@ export default function CheckoutPageClient() {
 
     setSelectedAddressId(item.id ?? '');
     setEditingAddress(false);
-    setSelectedZoneId(findZone(item, zones)?.id ?? '');
+    setSelectedZoneId(item.deliveryZoneId ?? findZone(item, zones)?.id ?? '');
     setSelectedScheduleId('');
     invalidateCheckoutRequest();
   }
@@ -504,6 +482,9 @@ export default function CheckoutPageClient() {
       area: zone?.name ?? '',
       city: zone?.city ?? '',
       region: zone?.state ?? '',
+      deliveryZoneId: zone?.id ?? null,
+      latitude: zone?.latitude ?? current.latitude,
+      longitude: zone?.longitude ?? current.longitude,
     }));
 
     invalidateCheckoutRequest();
@@ -516,6 +497,7 @@ export default function CheckoutPageClient() {
       ...current,
       latitude: point.latitude,
       longitude: point.longitude,
+      deliveryZoneId: zone?.id ?? null,
       ...(zone ? { area: zone.name, city: zone.city, region: zone.state } : {}),
     }));
 
@@ -543,6 +525,7 @@ export default function CheckoutPageClient() {
         instructions: address.instructions ?? '',
         latitude: address.latitude ?? undefined,
         longitude: address.longitude ?? undefined,
+        deliveryZoneId: (address.deliveryZoneId ?? selectedZoneId) || undefined,
         isDefault: address.isDefault ?? addresses.length === 0,
       };
 

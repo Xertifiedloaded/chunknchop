@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { decorateSchedule } from '@/lib/delivery-schedules';
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -20,7 +21,7 @@ export async function GET(request: Request) {
   });
 
   return NextResponse.json(
-    { slots: slots.filter((slot) => slot.bookedCount < slot.capacity) },
+    { slots: slots.filter((slot) => slot.bookedCount < slot.capacity).map(decorateSchedule) },
     { headers: { 'Cache-Control': 'private, no-store' } },
   );
 }

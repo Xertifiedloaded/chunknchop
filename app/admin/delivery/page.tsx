@@ -1,5 +1,6 @@
 'use client';
 
+import { getSchedulePeriodFromHour } from '@/lib/delivery-schedules';
 import {
   useCallback,
   useEffect,
@@ -760,10 +761,7 @@ const DELIVERY_PERIODS = {
 type DeliveryPeriod = keyof typeof DELIVERY_PERIODS;
 
 function periodForTime(time: string): DeliveryPeriod {
-  const hour = Number(time.slice(0, 2));
-  if (hour < 12) return 'morning';
-  if (hour < 17) return 'afternoon';
-  return 'evening';
+  return getSchedulePeriodFromHour(Number(time.slice(0, 2))).toLowerCase() as DeliveryPeriod;
 }
 
 function ScheduleForm({

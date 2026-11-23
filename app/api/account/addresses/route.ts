@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { getSession } from '@/lib/auth';
 import { hasSameOrigin } from '@/lib/admin-api';
 import { prisma } from '@/lib/prisma';
+import { resolveDeliveryZone } from '@/lib/delivery-zone';
 
 const schema = z
   .object({
@@ -19,6 +20,7 @@ const schema = z
     instructions: z.string().trim().max(500).optional(),
     latitude: z.number().min(-90).max(90).optional(),
     longitude: z.number().min(-180).max(180).optional(),
+    deliveryZoneId: z.string().regex(/^[a-f\d]{24}$/i).nullable().optional(),
     isDefault: z.boolean().default(false),
   })
   .strict();
@@ -47,6 +49,12 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   const data = parsed.data;
+  const selectedZone = await resolveDeliveryZone(data, data.deliveryZoneId);
+  if (data.deliveryZoneId && !selectedZone)
+    return NextResponse.json({ error: 'Selected delivery zone is unavailable.' }, { status: 400 });
+  if (data.latitude != null && data.longitude != null && !selectedZone)
+    return NextResponse.json({ error: 'This pinned location is outside active delivery zones.' }, { status: 400 });
+  if (selectedZone) data.deliveryZoneId = selectedZone.id;
   const result = await prisma.$transaction(async (tx) => {
     if (data.isDefault)
       await tx.customerAddress.updateMany({
@@ -55,7 +63,7 @@ export async function POST(request: Request) {
       });
     const count = await tx.customerAddress.count({ where: { userId: session.user.id } });
     return tx.customerAddress.create({
-      data: { ...data, isDefault: data.isDefault || count === 0, userId: session.user.id },
+      data: { ...data, ...(selectedZone && data.latitude == null && selectedZone.latitude != null ? { latitude: selectedZone.latitude } : {}), ...(selectedZone && data.longitude == null && selectedZone.longitude != null ? { longitude: selectedZone.longitude } : {}), area: selectedZone?.name ?? data.area, city: selectedZone?.city ?? data.city, state: selectedZone?.state ?? data.state, isDefault: data.isDefault || count === 0, userId: session.user.id },
     });
   });
   return NextResponse.json({ address: result }, { status: 201 });

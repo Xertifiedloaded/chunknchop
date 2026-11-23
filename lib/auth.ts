@@ -13,7 +13,9 @@ function deriveScrypt(password: string, salt: Buffer) {
 }
 
 const sessionCookieName = 'chunknchop';
-const sessionLifetimeMs = 7 * 24 * 60 * 60 * 1000;
+const refreshCookieName = 'chunknchop_refresh';
+const sessionLifetimeMs = 30 * 24 * 60 * 60 * 1000;
+const refreshLifetimeMs = 90 * 24 * 60 * 60 * 1000;
 const scryptOptions = { N: 16_384, r: 16, p: 1, maxmem: 128 * 1024 * 1024 };
 
 type AuthUser = Pick<User, 'id' | 'name' | 'email' | 'emailVerified' | 'image' | 'role'>;
@@ -74,10 +76,7 @@ export async function getSession(headers: Headers): Promise<AuthSession | null> 
     include: { user: true },
   });
   if (!stored) return null;
-  if (stored.expiresAt.getTime() <= Date.now()) {
-    await prisma.session.delete({ where: { id: stored.id } }).catch(() => undefined);
-    return null;
-  }
+  if (stored.expiresAt.getTime() <= Date.now()) return null;
 
   const { user } = stored;
   return {
@@ -96,10 +95,14 @@ export async function getSession(headers: Headers): Promise<AuthSession | null> 
 
 export async function createSession(userId: string, request: NextRequest, response: NextResponse) {
   const rawToken = createOpaqueToken();
+  const rawRefreshToken = createOpaqueToken();
   const expiresAt = new Date(Date.now() + sessionLifetimeMs);
+  const refreshExpiresAt = new Date(Date.now() + refreshLifetimeMs);
   await prisma.session.create({
     data: {
       token: hashToken(rawToken),
+      refreshToken: hashToken(rawRefreshToken),
+      refreshExpiresAt,
       userId,
       expiresAt,
       ipAddress: request.headers.get('x-forwarded-for')?.split(',')[0]?.trim().slice(0, 64),
@@ -114,16 +117,35 @@ export async function createSession(userId: string, request: NextRequest, respon
     path: '/',
     expires: expiresAt,
   });
+  response.cookies.set(refreshCookieName, rawRefreshToken, {
+    httpOnly: true,
+    secure:
+      request.nextUrl.protocol === 'https:' ||
+      process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    expires: refreshExpiresAt,
+  });
 }
 
 export async function clearSession(request: NextRequest, response: NextResponse) {
   const rawToken = getCookieValue(request.headers, sessionCookieName);
-  if (rawToken) {
-    await prisma.session.deleteMany({ where: { token: hashToken(rawToken) } });
+  const rawRefreshToken = getCookieValue(request.headers, refreshCookieName);
+  if (rawToken || rawRefreshToken) {
+    await prisma.session.deleteMany({
+      where: { OR: [...(rawToken ? [{ token: hashToken(rawToken) }] : []), ...(rawRefreshToken ? [{ refreshToken: hashToken(rawRefreshToken) }] : [])] },
+    });
   }
   response.cookies.set(sessionCookieName, '', {
     httpOnly: true,
     secure: request.nextUrl.protocol === 'https:' || process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    expires: new Date(0),
+  });
+  response.cookies.set(refreshCookieName, '', {
+    httpOnly: true,
+    secure: request.nextUrl.protocol === 'https' || process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/',
     expires: new Date(0),

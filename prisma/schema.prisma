@@ -8,36 +8,42 @@ datasource db {
 }
 
 model User {
-  id                 String             @id @default(auto()) @map("_id") @db.ObjectId
-  name               String
-  email              String             @unique
-  emailVerified      Boolean            @default(false)
-  image              String?
-  role               String             @default("customer")
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
+  id                String              @id @default(auto()) @map("_id") @db.ObjectId
+  name              String
+  email             String              @unique
+  emailVerified      Boolean             @default(false)
+  image             String?
+  role              String              @default("customer")
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
   sessions           Session[]
   accounts           Account[]
   resetOtpHash       String?
   resetOtpExpiresAt  DateTime?
   resetOtpCreatedAt  DateTime?
-  resetOtpAttempts   Int                @default(0)
+  resetOtpAttempts   Int                 @default(0)
   addresses          CustomerAddress[]
-  riderProfile       RiderProfile?
+  riderProfile      RiderProfile?
 }
 
+
 model Session {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  expiresAt DateTime
-  token     String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  ipAddress String?
-  userAgent String?
-  userId    String   @db.ObjectId
-  user      User     @relation(fields: [userId], references: [id])
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  expiresAt         DateTime
+  token             String   @unique
+  refreshToken      String?
+  refreshExpiresAt  DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  ipAddress         String?
+  userAgent         String?
+  userId           String   @db.ObjectId
+  user              User     @relation(fields: [userId], references: [id])
+
   @@index([userId])
+  @@index([refreshToken])
 }
+
 
 model Account {
   id                    String    @id @default(auto()) @map("_id") @db.ObjectId
@@ -47,7 +53,7 @@ model Account {
   user                  User      @relation(fields: [userId], references: [id])
   accessToken           String?
   refreshToken          String?
-  idToken               String?
+  idToken              String?
   accessTokenExpiresAt  DateTime?
   refreshTokenExpiresAt DateTime?
   scope                 String?
@@ -58,6 +64,7 @@ model Account {
   @@index([userId])
 }
 
+
 model Verification {
   id         String   @id @default(auto()) @map("_id") @db.ObjectId
   identifier String
@@ -67,6 +74,7 @@ model Verification {
   updatedAt  DateTime @updatedAt
   @@index([identifier])
 }
+
 
 model Product {
   id               String   @id @default(auto()) @map("_id") @db.ObjectId
@@ -83,14 +91,15 @@ model Product {
   discountPercent  Int      @default(0)
   discountStartsAt DateTime?
   discountEndsAt   DateTime?
-  productType String @default("standard")
-bundleItems Json?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  productType     String   @default("standard")
+  bundleItems     Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
   @@index([published, category])
   @@index([createdAt])
   @@index([discountPercent, discountStartsAt, discountEndsAt])
 }
+
 
 model Coupon {
   id                   String             @id @default(auto()) @map("_id") @db.ObjectId
@@ -110,6 +119,7 @@ model Coupon {
   @@index([active, startsAt, expiresAt])
 }
 
+
 model CouponRedemption {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   orderNumber String   @unique
@@ -119,34 +129,40 @@ model CouponRedemption {
   @@index([couponId, createdAt])
 }
 
+
 model NewsletterSubscription {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   email     String   @unique
   createdAt DateTime @default(now())
 }
 
+
 model CustomerAddress {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId        String   @db.ObjectId
-  user          User     @relation(fields: [userId], references: [id])
-  label         String
-  fullName      String
-  phone         String
+  id             String        @id @default(auto()) @map("_id") @db.ObjectId
+  userId         String        @db.ObjectId
+  user           User          @relation(fields: [userId], references: [id])
+  label          String
+  fullName       String
+  phone          String
   addressLine1  String
   addressLine2  String?
-  area          String
-  city          String
-  state         String
+  area           String
+  city           String
+  state          String
   postalCode    String?
   instructions  String?
-  latitude      Float?
-  longitude     Float?
-  isDefault     Boolean  @default(false)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  latitude       Float?
+  longitude      Float?
+  deliveryZoneId String?       @db.ObjectId
+  deliveryZone   DeliveryZone? @relation(fields: [deliveryZoneId], references: [id])
+  isDefault     Boolean        @default(false)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
   @@index([userId])
   @@index([city, state])
+  @@index([deliveryZoneId])
 }
+
 
 model RiderProfile {
   id                 String      @id @default(auto()) @map("_id") @db.ObjectId
@@ -172,34 +188,31 @@ model RiderProfile {
   createdAt          DateTime    @default(now())
   updatedAt          DateTime    @updatedAt
   bankAccountName   String?
-bankName          String?
-bankAccountNumber String?
+  bankName          String?
+  bankAccountNumber String?
   @@index([isActive, isAvailable, verificationStatus])
 }
 
-model DeliveryZone {
-  id               String      @id @default(auto()) @map("_id") @db.ObjectId
-  name             String
-  state            String
-  city             String
 
-  // Map-based delivery pricing
+model DeliveryZone {
+  id               String             @id @default(auto()) @map("_id") @db.ObjectId
+  name             String
+  state             String
+  city              String
   latitude          Float?
   longitude         Float?
-  radiusMeters     Int?        @default(1000)
-
+  radiusMeters     Int?               @default(1000)
   deliveryFeeCents Int
-  active           Boolean     @default(true)
-
-  riders           RiderZone[]
-  schedules        DeliverySchedule[]
-
-  createdAt        DateTime    @default(now())
-  updatedAt        DateTime    @updatedAt
-
+  active            Boolean           @default(true)
+  riders            RiderZone[]
+  schedules         DeliverySchedule[]
+  addresses        CustomerAddress[]
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
   @@unique([name, city, state])
   @@index([active, city, state])
 }
+
 
 model RiderZone {
   id        String       @id @default(auto()) @map("_id") @db.ObjectId
@@ -217,13 +230,12 @@ model DeliverySchedule {
   id          String       @id @default(auto()) @map("_id") @db.ObjectId
   zoneId      String       @db.ObjectId
   zone        DeliveryZone @relation(fields: [zoneId], references: [id])
-  startsAt    DateTime
-  endsAt      DateTime
+  startsAt   DateTime
+  endsAt     DateTime
   capacity    Int          @default(10)
-  bookedCount Int          @default(0)
+  bookedCount Int         @default(0)
   active      Boolean      @default(true)
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
   @@index([zoneId, active, startsAt])
 }
